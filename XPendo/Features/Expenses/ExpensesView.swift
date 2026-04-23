@@ -1,53 +1,27 @@
 import SwiftUI
+import SwiftData
 
 struct ExpensesView: View {
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(
+        sort: [
+            SortDescriptor(\Expense.date, order: .reverse),
+            SortDescriptor(\Expense.createdAt, order: .reverse)
+        ]
+    ) private var expenses: [Expense]
+    @Query(sort: \Category.name) private var categories: [Category]
+    @Query private var settings: [AppSettings]
+
+    @State private var viewModel = ExpensesViewModel()
+    @State private var deleteErrorMessage: String?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                ScreenHeader(
-                    title: "Expenses",
-                    subtitle: "A card-based placeholder list prepared for the real expense management flow."
-                )
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Planned Filters")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        HStack(spacing: 10) {
-                            FilterChip(title: "All", isHighlighted: true)
-                            FilterChip(title: "This Month")
-                            FilterChip(title: "Category")
-                        }
-
-                        Text("Filtering is intentionally visual-only in Phase 1 and becomes functional later.")
-                            .font(.subheadline)
-                            .foregroundStyle(XPendoTheme.secondaryText)
-                    }
-                }
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Expense List Skeleton")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        VStack(spacing: 16) {
-                            ExpensePlaceholderRow(color: XPendoTheme.accentTeal)
-                            ExpensePlaceholderRow(color: XPendoTheme.coral)
-                            ExpensePlaceholderRow(color: XPendoTheme.housingGreen)
-                            ExpensePlaceholderRow(color: XPendoTheme.softPurple)
-                        }
-                    }
-                }
-
-                PlaceholderCard(
-                    title: "Empty State Prepared",
-                    systemImage: "tray.fill",
-                    description: "The list already has room for a clean empty-state treatment once real data handling starts in Phase 4.",
-                    accentColor: XPendoTheme.freshGreen
-                )
+                headerSection
+                filterSection
+                contentSection
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -55,31 +29,177 @@ struct ExpensesView: View {
         }
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(item: editingExpenseBinding) { expense in
+            AddExpenseView(expenseToEdit: expense)
+        }
+        .sheet(item: deleteExpenseBinding) { expense in
+            DeleteExpenseSheet(
+                expense: expense,
+                onDelete: deletePendingExpense,
+                onCancel: { viewModel.expensePendingDelete = nil }
+            )
+            .presentationDetents([.height(182)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(.white)
+        }
+        .alert("Expense could not be deleted", isPresented: deleteErrorBinding) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(deleteErrorMessage ?? "Please try again.")
+        }
+    }
+
+    private var filteredExpenses: [Expense] {
+        viewModel.filteredExpenses(from: expenses)
+    }
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Expenses")
+                .font(.system(size: 30, weight: .bold, design: .rounded))
+                .foregroundStyle(XPendoTheme.primaryText)
+
+            Text("Review, filter, edit, and delete your saved expenses in one place.")
+                .font(.subheadline)
+                .foregroundStyle(XPendoTheme.secondaryText)
+        }
+    }
+
+    private var filterSection: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Filters")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                HStack(spacing: 10) {
+                    ForEach(ExpensesViewModel.TimeFilter.allCases) { filter in
+                        Button {
+                            viewModel.selectedTimeFilter = filter
+                        } label: {
+                            FilterChip(
+                                title: filter.rawValue,
+                                isHighlighted: viewModel.selectedTimeFilter == filter
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Menu {
+                    Button("All Categories") {
+                        viewModel.selectCategory(nil)
+                    }
+
+                    ForEach(categories) { category in
+                        Button {
+                            viewModel.selectCategory(category)
+                        } label: {
+                            Label(category.name, systemImage: category.icon)
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                            .foregroundStyle(XPendoTheme.accentTeal)
+
+                        Text(viewModel.categoryFilterTitle(from: categories))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.primaryText)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var contentSection: some View {
+        if expenses.isEmpty {
+            ExpenseEmptyState(
+                title: "No Expenses Yet",
+                description: "Use the main add button to save your first expense. It will appear here once it is recorded.",
+                showsResetButton: false,
+                onReset: { }
+            )
+        } else if filteredExpenses.isEmpty {
+            ExpenseEmptyState(
+                title: "No Matching Expenses",
+                description: "Try changing the current filters to see your saved expenses again.",
+                showsResetButton: true,
+                onReset: viewModel.resetFilters
+            )
+        } else {
+            VStack(spacing: 16) {
+                ForEach(filteredExpenses) { expense in
+                    ExpenseRowCard(
+                        expense: expense,
+                        currencyCode: currencyCode,
+                        onEdit: { viewModel.requestEdit(expense) },
+                        onDelete: { viewModel.requestDelete(expense) }
+                    )
+                }
+            }
+        }
+    }
+
+    private var currencyCode: String {
+        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+    }
+
+    private var editingExpenseBinding: Binding<Expense?> {
+        Binding(
+            get: { viewModel.expenseBeingEdited },
+            set: { viewModel.expenseBeingEdited = $0 }
+        )
+    }
+
+    private var deleteExpenseBinding: Binding<Expense?> {
+        Binding(
+            get: { viewModel.expensePendingDelete },
+            set: { newValue in
+                if newValue == nil {
+                    viewModel.expensePendingDelete = nil
+                }
+            }
+        )
+    }
+
+    private var deleteErrorBinding: Binding<Bool> {
+        Binding(
+            get: { deleteErrorMessage != nil },
+            set: { newValue in
+                if !newValue {
+                    deleteErrorMessage = nil
+                }
+            }
+        )
+    }
+
+    private func deletePendingExpense() {
+        do {
+            try viewModel.deletePendingExpense(in: modelContext)
+        } catch {
+            deleteErrorMessage = error.localizedDescription
+        }
     }
 }
 
 #Preview {
     NavigationStack {
         ExpensesView()
+            .modelContainer(XPendoModelContainer.shared)
     }
     .background(XPendoTheme.background)
-}
-
-private struct ScreenHeader: View {
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(XPendoTheme.primaryText)
-
-            Text(subtitle)
-                .font(.subheadline)
-                .foregroundStyle(XPendoTheme.secondaryText)
-        }
-    }
 }
 
 private struct FilterChip: View {
@@ -99,33 +219,91 @@ private struct FilterChip: View {
     }
 }
 
-private struct ExpensePlaceholderRow: View {
-    let color: Color
+private struct ExpenseEmptyState: View {
+    let title: String
+    let description: String
+    let showsResetButton: Bool
+    let onReset: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(color.opacity(0.14))
-                .frame(width: 50, height: 50)
-                .overlay {
-                    Circle()
-                        .fill(color)
-                        .frame(width: 12, height: 12)
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 16) {
+                Image(systemName: "tray")
+                    .font(.title2)
+                    .foregroundStyle(XPendoTheme.freshGreen)
+                    .padding(12)
+                    .background(XPendoTheme.freshGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+
+                if showsResetButton {
+                    Button("Reset Filters", action: onReset)
+                        .buttonStyle(.plain)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(XPendoTheme.accentTeal)
                 }
-
-            VStack(alignment: .leading, spacing: 8) {
-                SkeletonLine(width: 120)
-                SkeletonLine(width: 80, height: 10)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 8) {
-                SkeletonLine(width: 62)
-                SkeletonLine(width: 40, height: 10)
             }
         }
-        .padding(16)
-        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+}
+
+private struct DeleteExpenseSheet: View {
+    let expense: Expense
+    let onDelete: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 10) {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(XPendoTheme.coral.opacity(0.12))
+                    .frame(width: 38, height: 38)
+                    .overlay {
+                        Image(systemName: "trash.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.coral)
+                    }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Delete Expense?")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(XPendoTheme.primaryText)
+
+                    Text("\"\(expense.title)\" will be removed permanently.")
+                        .font(.subheadline)
+                        .foregroundStyle(XPendoTheme.secondaryText)
+                        .lineLimit(2)
+                }
+            }
+
+            HStack(spacing: 10) {
+                Button("Cancel", action: onCancel)
+                    .buttonStyle(.plain)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(XPendoTheme.primaryText)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                Button("Delete", action: onDelete)
+                    .buttonStyle(.plain)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(XPendoTheme.coral, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(.white)
     }
 }

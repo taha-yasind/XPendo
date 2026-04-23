@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct XPendoApp: App {
@@ -6,5 +7,6 @@ struct XPendoApp: App {
         WindowGroup {
             AppRootView()
         }
+        .modelContainer(XPendoModelContainer.shared)
     }
 }

@@ -45,7 +45,7 @@ struct AppRootView: View {
                 .padding(.bottom, 8)
         }
         .sheet(isPresented: $isShowingAddExpenseSheet) {
-            AddExpensePlaceholderView()
+            AddExpenseView()
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }

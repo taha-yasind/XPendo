@@ -1,59 +1,43 @@
+import Charts
+import SwiftData
 import SwiftUI
 
 struct AnalyticsView: View {
+    @Query(
+        sort: [
+            SortDescriptor(\Expense.date, order: .reverse),
+            SortDescriptor(\Expense.createdAt, order: .reverse)
+        ]
+    ) private var expenses: [Expense]
+    @Query private var settings: [AppSettings]
+
+    private let viewModel = AnalyticsViewModel()
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 AnalyticsHeader()
 
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Category Distribution")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
+                if expenses.isEmpty {
+                    AnalyticsEmptyState()
+                } else {
+                    AnalyticsInsightsSection(
+                        data: analyticsData,
+                        currencyCode: currencyCode
+                    )
 
-                        HStack(alignment: .bottom, spacing: 12) {
-                            ChartBar(height: 78, color: XPendoTheme.accentTeal)
-                            ChartBar(height: 112, color: XPendoTheme.coral)
-                            ChartBar(height: 64, color: XPendoTheme.housingGreen)
-                            ChartBar(height: 94, color: XPendoTheme.softPurple)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    AnalyticsCategoryChartSection(
+                        categories: analyticsData.categoryTotals,
+                        currencyCode: currencyCode
+                    )
 
-                        HStack(spacing: 12) {
-                            LegendBadge(title: "Food", color: XPendoTheme.accentTeal)
-                            LegendBadge(title: "Shopping", color: XPendoTheme.coral)
-                            LegendBadge(title: "Bills", color: XPendoTheme.softPurple)
-                        }
-                    }
+                    AnalyticsMonthlyTrendSection(
+                        monthlyTotals: analyticsData.monthlyTotals,
+                        trendRangeLabel: analyticsData.trendRangeLabel,
+                        strongestMonth: analyticsData.strongestMonth,
+                        currencyCode: currencyCode
+                    )
                 }
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Monthly Trend Placeholder")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        HStack(alignment: .bottom, spacing: 10) {
-                            TrendBar(height: 36)
-                            TrendBar(height: 52)
-                            TrendBar(height: 68)
-                            TrendBar(height: 44)
-                            TrendBar(height: 78)
-                        }
-
-                        Text("Charts will become real once expense data and analytics calculations exist in later phases.")
-                            .font(.subheadline)
-                            .foregroundStyle(XPendoTheme.secondaryText)
-                    }
-                }
-
-                PlaceholderCard(
-                    title: "Insight Summary Area",
-                    systemImage: "sparkles",
-                    description: "This section is reserved for short, readable insights after real spending data becomes available.",
-                    accentColor: XPendoTheme.freshGreen
-                )
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -62,11 +46,20 @@ struct AnalyticsView: View {
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
     }
+
+    private var analyticsData: AnalyticsDashboardData {
+        viewModel.makeDashboardData(expenses: expenses)
+    }
+
+    private var currencyCode: String {
+        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+    }
 }
 
 #Preview {
     NavigationStack {
         AnalyticsView()
+            .modelContainer(XPendoModelContainer.shared)
     }
     .background(XPendoTheme.background)
 }
@@ -78,51 +71,315 @@ private struct AnalyticsHeader: View {
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("A clear placeholder foundation for future charts and spending insights.")
+            Text("Understand category distribution and monthly movement from your real expense data.")
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
     }
 }
 
-private struct ChartBar: View {
-    let height: CGFloat
-    let color: Color
+private struct AnalyticsInsightsSection: View {
+    let data: AnalyticsDashboardData
+    let currencyCode: String
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(color.opacity(0.7))
-            .frame(width: 34, height: height)
-    }
-}
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Quick Insights")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
 
-private struct TrendBar: View {
-    let height: CGFloat
+                VStack(spacing: 12) {
+                    AnalyticsInsightRow(
+                        title: "Recorded Spend",
+                        value: data.totalSpend.formatted(.currency(code: currencyCode)),
+                        detail: "\(data.totalExpenseCount) saved expenses in local storage",
+                        accentColor: XPendoTheme.accentTeal,
+                        systemImage: "creditcard.fill"
+                    )
 
-    var body: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(XPendoTheme.placeholder)
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-    }
-}
+                    AnalyticsInsightRow(
+                        title: "Top Category",
+                        value: data.topCategory?.name ?? "No data",
+                        detail: topCategoryDetail,
+                        accentColor: topCategoryColor,
+                        systemImage: data.topCategory?.icon ?? "square.grid.2x2.fill"
+                    )
 
-private struct LegendBadge: View {
-    let title: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(XPendoTheme.primaryText)
+                    AnalyticsInsightRow(
+                        title: "Strongest Month",
+                        value: strongestMonthValue,
+                        detail: strongestMonthDetail,
+                        accentColor: XPendoTheme.softPurple,
+                        systemImage: "chart.line.uptrend.xyaxis"
+                    )
+                }
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(color.opacity(0.12), in: Capsule())
+    }
+
+    private var topCategoryDetail: String {
+        guard let topCategory = data.topCategory else {
+            return "Add more expenses to reveal a leading category."
+        }
+
+        return "\(shareText(for: topCategory.share)) of total spending • \(topCategory.totalAmount.formatted(.currency(code: currencyCode)))"
+    }
+
+    private var strongestMonthValue: String {
+        guard let strongestMonth = data.strongestMonth else {
+            return "No data"
+        }
+
+        return strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())
+    }
+
+    private var strongestMonthDetail: String {
+        guard let strongestMonth = data.strongestMonth else {
+            return "Monthly trend will appear after expenses are recorded."
+        }
+
+        return strongestMonth.totalAmount.formatted(.currency(code: currencyCode))
+    }
+
+    private var topCategoryColor: Color {
+        guard let colorHex = data.topCategory?.colorHex else {
+            return XPendoTheme.housingGreen
+        }
+
+        return Color(hexString: colorHex) ?? XPendoTheme.housingGreen
+    }
+
+    private func shareText(for share: Double) -> String {
+        "\(Int((share * 100).rounded()))%"
+    }
+}
+
+private struct AnalyticsInsightRow: View {
+    let title: String
+    let value: String
+    let detail: String
+    let accentColor: Color
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(accentColor.opacity(0.12))
+                .frame(width: 46, height: 46)
+                .overlay {
+                    Image(systemName: systemImage)
+                        .font(.headline)
+                        .foregroundStyle(accentColor)
+                }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(XPendoTheme.secondaryText)
+
+                Text(value)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(XPendoTheme.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+            }
+
+            Spacer()
+        }
+        .padding(14)
+        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+}
+
+private struct AnalyticsCategoryChartSection: View {
+    let categories: [AnalyticsCategoryTotal]
+    let currencyCode: String
+
+    var body: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Category Breakdown")
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.primaryText)
+
+                        Text("Totals grouped by category across all saved expenses.")
+                            .font(.subheadline)
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Text("\(categories.count) categories")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(XPendoTheme.accentTeal)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(XPendoTheme.accentTeal.opacity(0.12), in: Capsule())
+                }
+
+                Chart(categories) { category in
+                    BarMark(
+                        x: .value("Amount", category.totalAmount),
+                        y: .value("Category", category.name)
+                    )
+                    .foregroundStyle(categoryColor(for: category))
+                    .cornerRadius(10)
+                    .annotation(position: .trailing, alignment: .center) {
+                        Text(category.totalAmount, format: .currency(code: currencyCode))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+                }
+                .frame(height: max(240, CGFloat(categories.count) * 44))
+                .chartLegend(.hidden)
+                .chartXAxis(.hidden)
+                .chartXScale(domain: 0...chartDomainUpperBound)
+                .chartPlotStyle { content in
+                    content
+                        .background(XPendoTheme.background.opacity(0.85))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                }
+            }
+        }
+    }
+
+    private func categoryColor(for category: AnalyticsCategoryTotal) -> Color {
+        Color(hexString: category.colorHex) ?? XPendoTheme.accentTeal
+    }
+
+    private var chartDomainUpperBound: Double {
+        let maxValue = categories.map(\.totalAmount).max() ?? 0
+        return max(maxValue * 1.2, 1)
+    }
+}
+
+private struct AnalyticsMonthlyTrendSection: View {
+    let monthlyTotals: [AnalyticsMonthlyTotal]
+    let trendRangeLabel: String
+    let strongestMonth: AnalyticsMonthlyTotal?
+    let currencyCode: String
+
+    var body: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Monthly Trend")
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.primaryText)
+
+                        Text("Six-month view anchored to your latest recorded expense month.")
+                            .font(.subheadline)
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Text(trendRangeLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(XPendoTheme.secondaryText)
+                }
+
+                Chart {
+                    ForEach(monthlyTotals) { month in
+                        AreaMark(
+                            x: .value("Month", month.monthStart),
+                            y: .value("Amount", month.totalAmount)
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    XPendoTheme.accentTeal.opacity(0.24),
+                                    XPendoTheme.accentTeal.opacity(0.04)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+
+                        LineMark(
+                            x: .value("Month", month.monthStart),
+                            y: .value("Amount", month.totalAmount)
+                        )
+                        .foregroundStyle(XPendoTheme.accentTeal)
+                        .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+
+                        PointMark(
+                            x: .value("Month", month.monthStart),
+                            y: .value("Amount", month.totalAmount)
+                        )
+                        .foregroundStyle(XPendoTheme.accentTeal)
+                        .symbolSize(60)
+                    }
+                }
+                .frame(height: 250)
+                .chartLegend(.hidden)
+                .chartXAxis {
+                    AxisMarks(values: monthlyTotals.map(\.monthStart)) { value in
+                        AxisTick()
+                            .foregroundStyle(XPendoTheme.placeholder.opacity(0.8))
+
+                        AxisValueLabel {
+                            if let monthDate = value.as(Date.self) {
+                                Text(monthDate, format: .dateTime.month(.abbreviated))
+                            }
+                        }
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading)
+                }
+                .chartPlotStyle { content in
+                    content
+                        .background(XPendoTheme.background.opacity(0.85))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                }
+
+                if let strongestMonth {
+                    HStack(spacing: 10) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(XPendoTheme.softPurple)
+
+                        Text("\(strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())) reached \(strongestMonth.totalAmount.formatted(.currency(code: currencyCode))).")
+                            .font(.subheadline)
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+                    .padding(14)
+                    .background(XPendoTheme.softPurple.opacity(0.08), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                }
+            }
+        }
+    }
+}
+
+private struct AnalyticsEmptyState: View {
+    var body: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 16) {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(XPendoTheme.accentTeal.opacity(0.12))
+                    .frame(width: 52, height: 52)
+                    .overlay {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.accentTeal)
+                    }
+
+                Text("No Analytics Yet")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text("Add a few expenses to unlock category totals, monthly trend charts, and summary insights.")
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+            }
+        }
     }
 }

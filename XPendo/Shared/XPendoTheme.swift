@@ -14,7 +14,7 @@ enum XPendoTheme {
     static let cardShadow = Color.black.opacity(0.08)
 }
 
-private extension Color {
+extension Color {
     init(hex: UInt, alpha: Double = 1.0) {
         self.init(
             .sRGB,
@@ -23,5 +23,17 @@ private extension Color {
             blue: Double(hex & 0xFF) / 255,
             opacity: alpha
         )
+    }
+
+    init?(hexString: String, alpha: Double = 1.0) {
+        let cleanedHex = hexString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "#", with: "")
+
+        guard cleanedHex.count == 6, let hexValue = UInt(cleanedHex, radix: 16) else {
+            return nil
+        }
+
+        self.init(hex: hexValue, alpha: alpha)
     }
 }

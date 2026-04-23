@@ -1,116 +1,25 @@
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
+    @Query(
+        sort: [
+            SortDescriptor(\Expense.date, order: .reverse),
+            SortDescriptor(\Expense.createdAt, order: .reverse)
+        ]
+    ) private var expenses: [Expense]
+    @Query private var budgets: [Budget]
+    @Query private var settings: [AppSettings]
+
+    private let viewModel = HomeViewModel()
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Xpendo")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        Text("A bright, structured foundation for personal expense tracking.")
-                            .font(.subheadline)
-                            .foregroundStyle(XPendoTheme.secondaryText)
-                    }
-
-                    Spacer()
-
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-                            .frame(width: 46, height: 46)
-                            .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
-                            }
-                            .shadow(color: XPendoTheme.cardShadow, radius: 16, x: 0, y: 10)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            Text("Monthly Overview")
-                                .font(.headline)
-                                .foregroundStyle(XPendoTheme.primaryText)
-
-                            Spacer()
-
-                            Text("Phase 1")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(XPendoTheme.accentTeal)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(XPendoTheme.accentTeal.opacity(0.12), in: Capsule())
-                        }
-
-                        SkeletonLine(width: 180, height: 38)
-
-                        Text("This hero area is reserved for the dashboard summary that will be implemented later.")
-                            .font(.subheadline)
-                            .foregroundStyle(XPendoTheme.secondaryText)
-
-                        HStack(spacing: 12) {
-                            HomeMetricCard(
-                                title: "Today's Spending",
-                                accentColor: XPendoTheme.accentTeal
-                            )
-
-                            HomeMetricCard(
-                                title: "Remaining Budget",
-                                accentColor: XPendoTheme.freshGreen
-                            )
-                        }
-                    }
-                }
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Top Categories")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        HStack(spacing: 10) {
-                            CategoryPill(title: "Food", color: XPendoTheme.accentTeal)
-                            CategoryPill(title: "Transport", color: XPendoTheme.housingGreen)
-                            CategoryPill(title: "Shopping", color: XPendoTheme.coral)
-                        }
-
-                        VStack(spacing: 14) {
-                            CategoryPlaceholderRow(color: XPendoTheme.accentTeal)
-                            CategoryPlaceholderRow(color: XPendoTheme.housingGreen)
-                            CategoryPlaceholderRow(color: XPendoTheme.coral)
-                        }
-                    }
-                }
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Recent Transactions")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        VStack(spacing: 16) {
-                            RecentTransactionPlaceholder(accentColor: XPendoTheme.accentTeal)
-                            RecentTransactionPlaceholder(accentColor: XPendoTheme.softPurple)
-                            RecentTransactionPlaceholder(accentColor: XPendoTheme.coral)
-                        }
-                    }
-                }
-
-                PlaceholderCard(
-                    title: "Budget Preview Area",
-                    systemImage: "gauge.with.needle",
-                    description: "The home screen already reserves space for future budget warnings and progress highlights.",
-                    accentColor: XPendoTheme.coral
-                )
+                headerSection
+                HomeOverviewCard(dashboard: dashboardData, currencyCode: currencyCode)
+                HomeRecentExpensesSection(expenses: dashboardData.recentExpenses, currencyCode: currencyCode)
+                HomeBudgetPreviewSection(preview: dashboardData.budgetPreview, currencyCode: currencyCode)
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -119,18 +28,139 @@ struct HomeView: View {
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
     }
+
+    private var dashboardData: HomeDashboardData {
+        viewModel.makeDashboardData(expenses: expenses, budgets: budgets)
+    }
+
+    private var currencyCode: String {
+        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+    }
+
+    private var headerSection: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Xpendo")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text("A clean view of today, \(dashboardData.monthLabel), and your latest activity.")
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+            }
+
+            Spacer()
+
+            NavigationLink {
+                SettingsView()
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+                    .frame(width: 46, height: 46)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
+                    }
+                    .shadow(color: XPendoTheme.cardShadow, radius: 16, x: 0, y: 10)
+            }
+            .buttonStyle(.plain)
+        }
+    }
 }
 
 #Preview {
     NavigationStack {
         HomeView()
+            .modelContainer(XPendoModelContainer.shared)
     }
     .background(XPendoTheme.background)
 }
 
-private struct HomeMetricCard: View {
+private struct HomeOverviewCard: View {
+    let dashboard: HomeDashboardData
+    let currencyCode: String
+
+    var body: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 20) {
+                HStack {
+                    Label(dashboard.monthLabel, systemImage: "calendar")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(XPendoTheme.secondaryText)
+
+                    Spacer()
+
+                    Text("Overview")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(XPendoTheme.accentTeal, in: Capsule())
+                }
+
+                Text(dashboard.monthTotal, format: .currency(code: currencyCode))
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text(monthDescription)
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+
+                HStack(spacing: 12) {
+                    HomeMetricTile(
+                        title: "Today's Spending",
+                        accentColor: XPendoTheme.accentTeal,
+                        primaryContent: {
+                            Text(dashboard.todayTotal, format: .currency(code: currencyCode))
+                        },
+                        secondaryText: todayDescription
+                    )
+
+                    HomeTopCategoryTile(
+                        topCategory: dashboard.topCategory,
+                        currencyCode: currencyCode
+                    )
+                }
+            }
+        }
+    }
+
+    private var monthDescription: String {
+        if dashboard.monthExpenseCount == 0 {
+            return "No expenses recorded this month yet."
+        }
+
+        return "\(dashboard.monthExpenseCount) expenses recorded this month."
+    }
+
+    private var todayDescription: String {
+        if dashboard.todayExpenseCount == 0 {
+            return "No expenses recorded today."
+        }
+
+        return "\(dashboard.todayExpenseCount) expenses added today."
+    }
+}
+
+private struct HomeMetricTile<PrimaryContent: View>: View {
     let title: String
     let accentColor: Color
+    let primaryContent: PrimaryContent
+    let secondaryText: String
+
+    init(
+        title: String,
+        accentColor: Color,
+        @ViewBuilder primaryContent: () -> PrimaryContent,
+        secondaryText: String
+    ) {
+        self.title = title
+        self.accentColor = accentColor
+        self.primaryContent = primaryContent()
+        self.secondaryText = secondaryText
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -138,77 +168,335 @@ private struct HomeMetricCard: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            SkeletonLine(width: 72, height: 22)
-            SkeletonLine(width: 96, height: 10)
+            primaryContent
+                .font(.title3.weight(.bold))
+                .foregroundStyle(XPendoTheme.primaryText)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+
+            Text(secondaryText)
+                .font(.caption)
+                .foregroundStyle(XPendoTheme.secondaryText)
+                .lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 
-private struct CategoryPill: View {
-    let title: String
-    let color: Color
+private struct HomeTopCategoryTile: View {
+    let topCategory: HomeTopCategorySummary?
+    let currencyCode: String
 
     var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
+        HomeMetricTile(
+            title: "Top Category",
+            accentColor: tileColor,
+            primaryContent: {
+                if let topCategory {
+                    HStack(spacing: 10) {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(tileColor.opacity(0.18))
+                            .frame(width: 34, height: 34)
+                            .overlay {
+                                Image(systemName: topCategory.icon)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(tileColor)
+                            }
 
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(XPendoTheme.primaryText)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(topCategory.name)
+                                .font(.subheadline.weight(.bold))
+
+                            Text(topCategory.totalAmount, format: .currency(code: currencyCode))
+                                .font(.caption.weight(.semibold))
+                        }
+                    }
+                } else {
+                    Text("No data yet")
+                }
+            },
+            secondaryText: topCategory == nil
+                ? "Your leading category will appear here."
+                : "Highest spending area this month."
+        )
+    }
+
+    private var tileColor: Color {
+        guard let colorHex = topCategory?.colorHex else {
+            return XPendoTheme.softPurple
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(color.opacity(0.12), in: Capsule())
+
+        return Color(hexString: colorHex) ?? XPendoTheme.softPurple
     }
 }
 
-private struct CategoryPlaceholderRow: View {
-    let color: Color
+private struct HomeRecentExpensesSection: View {
+    let expenses: [Expense]
+    let currencyCode: String
 
     var body: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(color)
-                .frame(width: 12, height: 12)
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Recent Expenses")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
 
-            VStack(alignment: .leading, spacing: 8) {
-                SkeletonLine(width: 110)
-                SkeletonLine(width: 150, height: 10)
+                if expenses.isEmpty {
+                    HomeInlineEmptyState(
+                        systemImage: "tray",
+                        title: "No recent activity",
+                        description: "Your latest expenses will appear here after you save them."
+                    )
+                } else {
+                    VStack(spacing: 12) {
+                        ForEach(expenses) { expense in
+                            HomeRecentExpenseRow(expense: expense, currencyCode: currencyCode)
+                        }
+                    }
+                }
             }
-
-            Spacer()
-
-            SkeletonLine(width: 54)
         }
     }
 }
 
-private struct RecentTransactionPlaceholder: View {
-    let accentColor: Color
+private struct HomeRecentExpenseRow: View {
+    let expense: Expense
+    let currencyCode: String
 
     var body: some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(accentColor.opacity(0.14))
-                .frame(width: 46, height: 46)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(categoryColor.opacity(0.14))
+                .frame(width: 48, height: 48)
                 .overlay {
-                    Image(systemName: "creditcard.fill")
-                        .foregroundStyle(accentColor)
+                    Image(systemName: expense.category.icon)
+                        .font(.headline)
+                        .foregroundStyle(categoryColor)
                 }
 
-            VStack(alignment: .leading, spacing: 8) {
-                SkeletonLine(width: 120)
-                SkeletonLine(width: 90, height: 10)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(expense.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                HStack(spacing: 8) {
+                    Text(expense.category.name)
+                    Text("•")
+                    Text(expense.date.formatted(date: .abbreviated, time: .omitted))
+                }
+                .font(.caption)
+                .foregroundStyle(XPendoTheme.secondaryText)
             }
 
             Spacer()
 
-            SkeletonLine(width: 56)
+            Text(expense.amount, format: .currency(code: currencyCode))
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(XPendoTheme.primaryText)
+                .multilineTextAlignment(.trailing)
         }
+        .padding(14)
+        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var categoryColor: Color {
+        Color(hexString: expense.category.color) ?? XPendoTheme.accentTeal
+    }
+}
+
+private struct HomeBudgetPreviewSection: View {
+    let preview: HomeBudgetPreview
+    let currencyCode: String
+
+    var body: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack {
+                    Text("Budget Preview")
+                        .font(.headline)
+                        .foregroundStyle(XPendoTheme.primaryText)
+
+                    Spacer()
+
+                    budgetStatusPill
+                }
+
+                switch preview {
+                case .empty:
+                    HomeInlineEmptyState(
+                        systemImage: "gauge.with.needle",
+                        title: "No monthly budgets yet",
+                        description: "This area is ready to show budget progress and warnings once monthly budgets are available."
+                    )
+
+                case .tracked(let status):
+                    HomeBudgetStatusCard(
+                        status: status,
+                        currencyCode: currencyCode,
+                        accentColor: Color(hexString: status.colorHex) ?? XPendoTheme.freshGreen,
+                        footerText: "\(status.trackedBudgetCount) monthly budgets are currently being tracked."
+                    )
+
+                case .warning(let status):
+                    HomeBudgetStatusCard(
+                        status: status,
+                        currencyCode: currencyCode,
+                        accentColor: XPendoTheme.coral,
+                        footerText: warningDescription(for: status.warningCount)
+                    )
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var budgetStatusPill: some View {
+        switch preview {
+        case .empty:
+            Text("Ready")
+                .foregroundStyle(XPendoTheme.secondaryText)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(XPendoTheme.placeholder.opacity(0.55), in: Capsule())
+
+        case .tracked:
+            Text("On Track")
+                .foregroundStyle(XPendoTheme.freshGreen)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(XPendoTheme.freshGreen.opacity(0.12), in: Capsule())
+
+        case .warning:
+            Text("Warning")
+                .foregroundStyle(XPendoTheme.coral)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(XPendoTheme.coral.opacity(0.12), in: Capsule())
+        }
+    }
+
+    private func warningDescription(for warningCount: Int) -> String {
+        if warningCount <= 1 {
+            return "1 category is currently over its monthly limit."
+        }
+
+        return "\(warningCount) categories are currently over their monthly limits."
+    }
+}
+
+private struct HomeBudgetStatusCard: View {
+    let status: HomeBudgetStatus
+    let currencyCode: String
+    let accentColor: Color
+    let footerText: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(accentColor.opacity(0.14))
+                    .frame(width: 46, height: 46)
+                    .overlay {
+                        Image(systemName: status.categoryIcon)
+                            .font(.headline)
+                            .foregroundStyle(accentColor)
+                    }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(status.categoryName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(XPendoTheme.primaryText)
+
+                    Text(status.remainingAmount >= 0 ? "Remaining budget available." : "Monthly limit exceeded.")
+                        .font(.caption)
+                        .foregroundStyle(XPendoTheme.secondaryText)
+                }
+            }
+
+            VStack(spacing: 10) {
+                HomeBudgetProgressBar(progress: min(max(status.progress, 0), 1), accentColor: accentColor)
+
+                HStack {
+                    Text("Spent")
+                    Spacer()
+                    Text(status.spentAmount, format: .currency(code: currencyCode))
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(XPendoTheme.secondaryText)
+
+                HStack {
+                    Text(status.remainingAmount >= 0 ? "Remaining" : "Over by")
+                    Spacer()
+                    Text(abs(status.remainingAmount), format: .currency(code: currencyCode))
+                        .foregroundStyle(accentColor)
+                }
+                .font(.caption.weight(.semibold))
+
+                HStack {
+                    Text("Limit")
+                    Spacer()
+                    Text(status.limitAmount, format: .currency(code: currencyCode))
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(XPendoTheme.secondaryText)
+            }
+
+            Text(footerText)
+                .font(.caption)
+                .foregroundStyle(XPendoTheme.secondaryText)
+        }
+        .padding(16)
+        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+}
+
+private struct HomeBudgetProgressBar: View {
+    let progress: Double
+    let accentColor: Color
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(XPendoTheme.placeholder.opacity(0.6))
+
+                Capsule()
+                    .fill(accentColor)
+                    .frame(width: proxy.size.width * progress)
+            }
+        }
+        .frame(height: 10)
+    }
+}
+
+private struct HomeInlineEmptyState: View {
+    let systemImage: String
+    let title: String
+    let description: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(XPendoTheme.accentTeal.opacity(0.12))
+                .frame(width: 46, height: 46)
+                .overlay {
+                    Image(systemName: systemImage)
+                        .foregroundStyle(XPendoTheme.accentTeal)
+                }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+            }
+        }
+        .padding(16)
+        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }

@@ -1,52 +1,40 @@
+import SwiftData
 import SwiftUI
 
 struct BudgetView: View {
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \Category.name) private var categories: [Category]
+    @Query(
+        sort: [
+            SortDescriptor(\Expense.date, order: .reverse),
+            SortDescriptor(\Expense.createdAt, order: .reverse)
+        ]
+    ) private var expenses: [Expense]
+    @Query(
+        sort: [
+            SortDescriptor(\Budget.year, order: .reverse),
+            SortDescriptor(\Budget.month, order: .reverse),
+            SortDescriptor(\Budget.limitAmount, order: .reverse)
+        ]
+    ) private var budgets: [Budget]
+    @Query private var settings: [AppSettings]
+
+    @State private var viewModel = BudgetViewModel()
+    @State private var saveErrorMessage: String?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 BudgetHeader()
-
-                SurfaceCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Monthly Budget Snapshot")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.primaryText)
-
-                        VStack(spacing: 18) {
-                            BudgetPlaceholderRow(
-                                title: "Food",
-                                tint: XPendoTheme.accentTeal,
-                                progress: 0.72
-                            )
-
-                            BudgetPlaceholderRow(
-                                title: "Transport",
-                                tint: XPendoTheme.housingGreen,
-                                progress: 0.46
-                            )
-
-                            BudgetPlaceholderRow(
-                                title: "Shopping",
-                                tint: XPendoTheme.coral,
-                                progress: 0.84
-                            )
-                        }
-                    }
-                }
-
-                PlaceholderCard(
-                    title: "Overspending Alerts Placeholder",
-                    systemImage: "exclamationmark.triangle.fill",
-                    description: "Budget warnings stay visual-only for now and will become real once budget logic is implemented in Phase 7.",
-                    accentColor: XPendoTheme.coral
+                BudgetMonthOverviewCard(
+                    monthData: monthData,
+                    selectedMonthTitle: viewModel.selectedMonthTitle,
+                    currencyCode: currencyCode,
+                    onPreviousMonth: moveToPreviousMonth,
+                    onNextMonth: moveToNextMonth
                 )
-
-                PlaceholderCard(
-                    title: "Limit Usage Area",
-                    systemImage: "chart.bar.xaxis",
-                    description: "This screen already reserves clear card sections for remaining budget and progress details.",
-                    accentColor: XPendoTheme.softPurple
-                )
+                budgetListSection
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -54,12 +42,121 @@ struct BudgetView: View {
         }
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .task(id: budgetSyncKey) {
+            viewModel.prepare(categories: categories, budgets: budgets)
+        }
+        .alert("Budget could not be saved", isPresented: saveErrorBinding) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(saveErrorMessage ?? "Please try again.")
+        }
+    }
+
+    private var monthData: BudgetMonthData {
+        viewModel.makeMonthData(budgets: budgets, expenses: expenses)
+    }
+
+    private var currencyCode: String {
+        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+    }
+
+    private var categoryEntries: [BudgetCategoryEntry] {
+        viewModel.makeCategoryEntries(categories: categories, budgets: budgets, expenses: expenses)
+    }
+
+    private var budgetSyncKey: String {
+        let budgetSignature = budgets
+            .map { "\($0.id.uuidString)-\($0.limitAmount)-\($0.month)-\($0.year)" }
+            .joined(separator: "|")
+
+        return "\(viewModel.selectedMonth.timeIntervalSinceReferenceDate)-\(categories.count)-\(budgetSignature)"
+    }
+
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(
+            get: { saveErrorMessage != nil },
+            set: { newValue in
+                if !newValue {
+                    saveErrorMessage = nil
+                }
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var budgetListSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Categories")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Spacer()
+
+                Text("\(categories.count) total")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(XPendoTheme.secondaryText)
+            }
+
+            Text("Enter each category amount directly from the list below for \(viewModel.selectedMonthTitle).")
+                .font(.subheadline)
+                .foregroundStyle(XPendoTheme.secondaryText)
+
+            if categories.isEmpty {
+                BudgetEmptyState()
+            } else {
+                VStack(spacing: 16) {
+                    ForEach(categoryEntries) { entry in
+                        BudgetStatusCard(
+                            entry: entry,
+                            amountText: draftBinding(for: entry.categoryID),
+                            currencyCode: currencyCode,
+                            saveButtonTitle: viewModel.saveButtonTitle(for: entry.categoryID, budgets: budgets),
+                            validationMessage: viewModel.validationMessage(for: entry.categoryID),
+                            onSave: {
+                                saveBudget(for: entry.categoryID)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func moveToPreviousMonth() {
+        viewModel.moveMonth(by: -1)
+    }
+
+    private func moveToNextMonth() {
+        viewModel.moveMonth(by: 1)
+    }
+
+    private func draftBinding(for categoryID: UUID) -> Binding<String> {
+        Binding(
+            get: { viewModel.draftAmount(for: categoryID) },
+            set: { newValue in
+                viewModel.updateDraftAmount(newValue, for: categoryID)
+            }
+        )
+    }
+
+    private func saveBudget(for categoryID: UUID) {
+        guard let category = categories.first(where: { $0.id == categoryID }) else {
+            return
+        }
+
+        do {
+            try viewModel.saveBudget(for: category, in: modelContext, budgets: budgets)
+        } catch {
+            saveErrorMessage = error.localizedDescription
+        }
     }
 }
 
 #Preview {
     NavigationStack {
         BudgetView()
+            .modelContainer(XPendoModelContainer.shared)
     }
     .background(XPendoTheme.background)
 }
@@ -71,36 +168,195 @@ private struct BudgetHeader: View {
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("A calm placeholder layout for category budgets, progress, and overspending states.")
+            Text("Define monthly category limits and compare them with your real spending.")
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
     }
 }
 
-private struct BudgetPlaceholderRow: View {
-    let title: String
-    let tint: Color
-    let progress: CGFloat
+private struct BudgetMonthOverviewCard: View {
+    let monthData: BudgetMonthData
+    let selectedMonthTitle: String
+    let currencyCode: String
+    let onPreviousMonth: () -> Void
+    let onNextMonth: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack {
+                    Button(action: onPreviousMonth) {
+                        Image(systemName: "chevron.left")
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.primaryText)
+                            .frame(width: 42, height: 42)
+                            .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    VStack(spacing: 4) {
+                        Text(selectedMonthTitle)
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.primaryText)
+
+                        Text("Monthly budget tracking")
+                            .font(.caption)
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Button(action: onNextMonth) {
+                        Image(systemName: "chevron.right")
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.primaryText)
+                            .frame(width: 42, height: 42)
+                            .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Text(monthData.totalLimit, format: .currency(code: currencyCode))
+                    .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Spacer()
+                Text("Total budget planned for \(selectedMonthTitle).")
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
 
-                SkeletonLine(width: 52, height: 10)
+                HStack(spacing: 12) {
+                    BudgetSummaryTile(
+                        title: "Spent",
+                        value: monthData.totalSpent.formatted(.currency(code: currencyCode)),
+                        accentColor: XPendoTheme.softPurple
+                    )
+
+                    BudgetSummaryTile(
+                        title: monthData.totalRemaining >= 0 ? "Remaining" : "Over by",
+                        value: abs(monthData.totalRemaining).formatted(.currency(code: currencyCode)),
+                        accentColor: monthData.totalRemaining >= 0 ? XPendoTheme.freshGreen : XPendoTheme.coral
+                    )
+
+                    BudgetSummaryTile(
+                        title: "Tracked",
+                        value: "\(monthData.trackedBudgetCount)",
+                        accentColor: XPendoTheme.accentTeal
+                    )
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    BudgetOverviewProgressBar(
+                        progress: min(max(monthData.totalProgress, 0), 1),
+                        accentColor: monthData.overspentCount > 0 ? XPendoTheme.coral : XPendoTheme.accentTeal
+                    )
+
+                    HStack {
+                        Text("\(monthData.trackedBudgetCount) categories tracked")
+                        Spacer()
+                        Text(progressFootnote)
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(XPendoTheme.secondaryText)
+                }
+
+                if monthData.overspentCount > 0 {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(XPendoTheme.coral)
+
+                        Text(warningText)
+                            .font(.subheadline)
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+                    .padding(14)
+                    .background(XPendoTheme.coral.opacity(0.08), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                }
             }
+        }
+    }
 
-            PlaceholderProgressBar(tint: tint, progress: progress)
+    private var progressFootnote: String {
+        if monthData.trackedBudgetCount == 0 {
+            return "No budgets saved yet"
+        }
 
-            HStack {
-                SkeletonLine(width: 74, height: 10)
-                Spacer()
-                SkeletonLine(width: 60, height: 10)
+        return "\(Int((monthData.totalProgress * 100).rounded()))% used"
+    }
+
+    private var warningText: String {
+        if monthData.overspentCount == 1 {
+            return "1 category is already above its monthly limit."
+        }
+
+        return "\(monthData.overspentCount) categories are already above their monthly limits."
+    }
+}
+
+private struct BudgetSummaryTile: View {
+    let title: String
+    let value: String
+    let accentColor: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(XPendoTheme.secondaryText)
+
+            Text(value)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(XPendoTheme.primaryText)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+}
+
+private struct BudgetOverviewProgressBar: View {
+    let progress: Double
+    let accentColor: Color
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(XPendoTheme.placeholder.opacity(0.6))
+
+                Capsule()
+                    .fill(accentColor)
+                    .frame(width: proxy.size.width * progress)
+            }
+        }
+        .frame(height: 12)
+    }
+}
+
+private struct BudgetEmptyState: View {
+    var body: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 16) {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(XPendoTheme.accentTeal.opacity(0.12))
+                    .frame(width: 52, height: 52)
+                    .overlay {
+                        Image(systemName: "gauge.with.needle")
+                            .font(.headline)
+                            .foregroundStyle(XPendoTheme.accentTeal)
+                    }
+
+                Text("No Categories Available")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text("The category list will appear here as soon as categories are available for budgeting.")
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
             }
         }
     }
