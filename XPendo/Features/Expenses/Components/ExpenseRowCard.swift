@@ -51,11 +51,11 @@ struct ExpenseRowCard: View {
                                 .font(.headline)
                                 .foregroundStyle(XPendoTheme.secondaryText)
                                 .frame(width: 34, height: 34)
-                                .background(XPendoTheme.background, in: Circle())
+                                .background(XPendoTheme.inputBackground, in: Circle())
                         }
                         .buttonStyle(.plain)
 
-                        Text(expense.amount, format: .currency(code: currencyCode))
+                        Text(CurrencyConverter.formatFromTRY(expense.amount, to: currencyCode))
                             .font(.headline.weight(.bold))
                             .foregroundStyle(XPendoTheme.primaryText)
                             .multilineTextAlignment(.trailing)

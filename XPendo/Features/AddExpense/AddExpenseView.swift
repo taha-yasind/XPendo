@@ -36,8 +36,8 @@ struct AddExpenseView: View {
             .padding(.bottom, 32)
         }
         .background(XPendoTheme.background.ignoresSafeArea())
-        .task(id: categories.count) {
-            viewModel.ensureSelectedCategory(from: categories)
+        .task(id: expenseFormSyncKey) {
+            viewModel.prepareForm(categories: categories, displayCurrencyCode: currencyCode)
         }
         .alert("Expense could not be saved", isPresented: saveErrorBinding) {
             Button("OK", role: .cancel) { }
@@ -67,7 +67,7 @@ struct AddExpenseView: View {
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
                     .frame(width: 44, height: 44)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
                             .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
@@ -174,7 +174,7 @@ struct AddExpenseView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
@@ -218,7 +218,11 @@ struct AddExpenseView: View {
     }
 
     private var currencyCode: String {
-        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+        CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
+    }
+
+    private var expenseFormSyncKey: String {
+        "\(categories.count)-\(currencyCode)-\(expenseToEdit?.id.uuidString ?? "new")"
     }
 
     private var selectedCategoryColor: Color {
@@ -243,17 +247,29 @@ struct AddExpenseView: View {
 
     private var saveFootnote: String {
         if expenseToEdit == nil {
-            return "After a successful save, the sheet closes automatically and the expense stays available for later phases."
+            return "After saving, the expense is added to your lists, summaries, and charts automatically."
         }
 
         return "After saving, the updated expense immediately replaces the previous details."
     }
 
     private func saveExpense() {
+        Task {
+            await saveExpenseFlow()
+        }
+    }
+
+    @MainActor
+    private func saveExpenseFlow() async {
         do {
-            try viewModel.saveExpense(in: modelContext, categories: categories)
+            try viewModel.saveExpense(
+                in: modelContext,
+                categories: categories,
+                inputCurrencyCode: currencyCode
+            )
 
             if viewModel.validationMessage == nil {
+                try await NotificationSyncService.refresh(using: modelContext)
                 dismiss()
             }
         } catch {
@@ -303,7 +319,7 @@ private struct LabeledField<Content: View>: View {
             content
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
-                .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
     }
 }
@@ -323,7 +339,7 @@ private struct ValidationBanner: View {
             Spacer()
         }
         .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(XPendoTheme.coral.opacity(0.18), lineWidth: 1)

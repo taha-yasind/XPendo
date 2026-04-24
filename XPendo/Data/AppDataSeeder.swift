@@ -31,12 +31,26 @@ enum AppDataSeeder {
         let existingSettings = try modelContext.fetch(FetchDescriptor<AppSettings>())
 
         if existingSettings.isEmpty {
-            let settings = AppSettings(currencyCode: defaultCurrencyCode)
+            let settings = AppSettings(
+                currencyCode: defaultCurrencyCode,
+                preferredThemeCode: defaultThemeCode
+            )
             modelContext.insert(settings)
+            return
+        }
+
+        for settings in existingSettings {
+            if settings.preferredThemeCode?.isEmpty != false {
+                settings.preferredThemeCode = defaultThemeCode
+            }
         }
     }
 
     private static var defaultCurrencyCode: String {
-        Locale.current.currency?.identifier ?? "USD"
+        CurrencyConverter.supportedCurrencyCode(from: Locale.current.currency?.identifier)
+    }
+
+    private static var defaultThemeCode: String {
+        PreferredTheme.light.rawValue
     }
 }

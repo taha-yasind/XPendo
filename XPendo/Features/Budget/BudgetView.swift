@@ -43,7 +43,7 @@ struct BudgetView: View {
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .task(id: budgetSyncKey) {
-            viewModel.prepare(categories: categories, budgets: budgets)
+            viewModel.prepare(categories: categories, budgets: budgets, displayCurrencyCode: currencyCode)
         }
         .alert("Budget could not be saved", isPresented: saveErrorBinding) {
             Button("OK", role: .cancel) { }
@@ -57,7 +57,7 @@ struct BudgetView: View {
     }
 
     private var currencyCode: String {
-        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+        CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
     private var categoryEntries: [BudgetCategoryEntry] {
@@ -69,7 +69,7 @@ struct BudgetView: View {
             .map { "\($0.id.uuidString)-\($0.limitAmount)-\($0.month)-\($0.year)" }
             .joined(separator: "|")
 
-        return "\(viewModel.selectedMonth.timeIntervalSinceReferenceDate)-\(categories.count)-\(budgetSignature)"
+        return "\(viewModel.selectedMonth.timeIntervalSinceReferenceDate)-\(categories.count)-\(budgetSignature)-\(currencyCode)"
     }
 
     private var saveErrorBinding: Binding<Bool> {
@@ -141,12 +141,25 @@ struct BudgetView: View {
     }
 
     private func saveBudget(for categoryID: UUID) {
+        Task {
+            await saveBudgetFlow(for: categoryID)
+        }
+    }
+
+    @MainActor
+    private func saveBudgetFlow(for categoryID: UUID) async {
         guard let category = categories.first(where: { $0.id == categoryID }) else {
             return
         }
 
         do {
-            try viewModel.saveBudget(for: category, in: modelContext, budgets: budgets)
+            try viewModel.saveBudget(
+                for: category,
+                in: modelContext,
+                budgets: budgets,
+                inputCurrencyCode: currencyCode
+            )
+            try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             saveErrorMessage = error.localizedDescription
         }
@@ -191,7 +204,7 @@ private struct BudgetMonthOverviewCard: View {
                             .font(.headline)
                             .foregroundStyle(XPendoTheme.primaryText)
                             .frame(width: 42, height: 42)
-                            .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
                     .buttonStyle(.plain)
 
@@ -214,12 +227,12 @@ private struct BudgetMonthOverviewCard: View {
                             .font(.headline)
                             .foregroundStyle(XPendoTheme.primaryText)
                             .frame(width: 42, height: 42)
-                            .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
                     .buttonStyle(.plain)
                 }
 
-                Text(monthData.totalLimit, format: .currency(code: currencyCode))
+                Text(CurrencyConverter.formatFromTRY(monthData.totalLimit, to: currencyCode))
                     .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -230,13 +243,13 @@ private struct BudgetMonthOverviewCard: View {
                 HStack(spacing: 12) {
                     BudgetSummaryTile(
                         title: "Spent",
-                        value: monthData.totalSpent.formatted(.currency(code: currencyCode)),
+                        value: CurrencyConverter.formatFromTRY(monthData.totalSpent, to: currencyCode),
                         accentColor: XPendoTheme.softPurple
                     )
 
                     BudgetSummaryTile(
                         title: monthData.totalRemaining >= 0 ? "Remaining" : "Over by",
-                        value: abs(monthData.totalRemaining).formatted(.currency(code: currencyCode)),
+                        value: CurrencyConverter.formatFromTRY(abs(monthData.totalRemaining), to: currencyCode),
                         accentColor: monthData.totalRemaining >= 0 ? XPendoTheme.freshGreen : XPendoTheme.coral
                     )
 
@@ -280,7 +293,7 @@ private struct BudgetMonthOverviewCard: View {
 
     private var progressFootnote: String {
         if monthData.trackedBudgetCount == 0 {
-            return "No budgets saved yet"
+            return "Set a budget to start tracking"
         }
 
         return "\(Int((monthData.totalProgress * 100).rounded()))% used"
@@ -340,24 +353,12 @@ private struct BudgetOverviewProgressBar: View {
 private struct BudgetEmptyState: View {
     var body: some View {
         SurfaceCard {
-            VStack(alignment: .leading, spacing: 16) {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(XPendoTheme.accentTeal.opacity(0.12))
-                    .frame(width: 52, height: 52)
-                    .overlay {
-                        Image(systemName: "gauge.with.needle")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.accentTeal)
-                    }
-
-                Text("No Categories Available")
-                    .font(.headline)
-                    .foregroundStyle(XPendoTheme.primaryText)
-
-                Text("The category list will appear here as soon as categories are available for budgeting.")
-                    .font(.subheadline)
-                    .foregroundStyle(XPendoTheme.secondaryText)
-            }
+            StateMessageContent(
+                systemImage: "gauge.with.needle",
+                title: "No Categories Available",
+                description: "Budget tracking becomes available when categories exist for monthly planning.",
+                accentColor: XPendoTheme.accentTeal
+            )
         }
     }
 }

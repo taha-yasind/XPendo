@@ -52,7 +52,7 @@ struct AnalyticsView: View {
     }
 
     private var currencyCode: String {
-        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+        CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 }
 
@@ -92,7 +92,7 @@ private struct AnalyticsInsightsSection: View {
                 VStack(spacing: 12) {
                     AnalyticsInsightRow(
                         title: "Recorded Spend",
-                        value: data.totalSpend.formatted(.currency(code: currencyCode)),
+                        value: CurrencyConverter.formatFromTRY(data.totalSpend, to: currencyCode),
                         detail: "\(data.totalExpenseCount) saved expenses in local storage",
                         accentColor: XPendoTheme.accentTeal,
                         systemImage: "creditcard.fill"
@@ -123,7 +123,7 @@ private struct AnalyticsInsightsSection: View {
             return "Add more expenses to reveal a leading category."
         }
 
-        return "\(shareText(for: topCategory.share)) of total spending • \(topCategory.totalAmount.formatted(.currency(code: currencyCode)))"
+        return "\(shareText(for: topCategory.share)) of total spending • \(CurrencyConverter.formatFromTRY(topCategory.totalAmount, to: currencyCode))"
     }
 
     private var strongestMonthValue: String {
@@ -139,7 +139,7 @@ private struct AnalyticsInsightsSection: View {
             return "Monthly trend will appear after expenses are recorded."
         }
 
-        return strongestMonth.totalAmount.formatted(.currency(code: currencyCode))
+        return CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)
     }
 
     private var topCategoryColor: Color {
@@ -192,7 +192,7 @@ private struct AnalyticsInsightRow: View {
             Spacer()
         }
         .padding(14)
-        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 
@@ -232,7 +232,7 @@ private struct AnalyticsCategoryChartSection: View {
                     .foregroundStyle(categoryColor(for: category))
                     .cornerRadius(10)
                     .annotation(position: .trailing, alignment: .center) {
-                        Text(category.totalAmount, format: .currency(code: currencyCode))
+                        Text(CurrencyConverter.formatFromTRY(category.totalAmount, to: currencyCode))
                             .font(.caption2.weight(.semibold))
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
@@ -243,7 +243,7 @@ private struct AnalyticsCategoryChartSection: View {
                 .chartXScale(domain: 0...chartDomainUpperBound)
                 .chartPlotStyle { content in
                     content
-                        .background(XPendoTheme.background.opacity(0.85))
+                        .background(XPendoTheme.inputBackground.opacity(0.9))
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
             }
@@ -334,11 +334,19 @@ private struct AnalyticsMonthlyTrendSection: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks(position: .leading)
+                    AxisMarks(position: .leading) { value in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel {
+                            if let rawAmount = value.as(Double.self) {
+                                Text(CurrencyConverter.formatFromTRY(rawAmount, to: currencyCode))
+                            }
+                        }
+                    }
                 }
                 .chartPlotStyle { content in
                     content
-                        .background(XPendoTheme.background.opacity(0.85))
+                        .background(XPendoTheme.inputBackground.opacity(0.9))
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
 
@@ -347,7 +355,7 @@ private struct AnalyticsMonthlyTrendSection: View {
                         Image(systemName: "sparkles")
                             .foregroundStyle(XPendoTheme.softPurple)
 
-                        Text("\(strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())) reached \(strongestMonth.totalAmount.formatted(.currency(code: currencyCode))).")
+                        Text("\(strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())) reached \(CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)).")
                             .font(.subheadline)
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
@@ -362,24 +370,12 @@ private struct AnalyticsMonthlyTrendSection: View {
 private struct AnalyticsEmptyState: View {
     var body: some View {
         SurfaceCard {
-            VStack(alignment: .leading, spacing: 16) {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(XPendoTheme.accentTeal.opacity(0.12))
-                    .frame(width: 52, height: 52)
-                    .overlay {
-                        Image(systemName: "chart.bar.xaxis")
-                            .font(.headline)
-                            .foregroundStyle(XPendoTheme.accentTeal)
-                    }
-
-                Text("No Analytics Yet")
-                    .font(.headline)
-                    .foregroundStyle(XPendoTheme.primaryText)
-
-                Text("Add a few expenses to unlock category totals, monthly trend charts, and summary insights.")
-                    .font(.subheadline)
-                    .foregroundStyle(XPendoTheme.secondaryText)
-            }
+            StateMessageContent(
+                systemImage: "chart.bar.xaxis",
+                title: "Analytics Will Appear Here",
+                description: "Save a few expenses to reveal category breakdowns, monthly trends, and quick insights.",
+                accentColor: XPendoTheme.accentTeal
+            )
         }
     }
 }

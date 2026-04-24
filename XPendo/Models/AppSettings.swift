@@ -5,6 +5,7 @@ import SwiftData
 final class AppSettings {
     @Attribute(.unique) var id: UUID
     var currencyCode: String
+    var preferredThemeCode: String?
     var notificationsEnabled: Bool
     var dailyReminderEnabled: Bool
     var budgetWarningEnabled: Bool
@@ -12,12 +13,14 @@ final class AppSettings {
     init(
         id: UUID = UUID(),
         currencyCode: String,
+        preferredThemeCode: String = PreferredTheme.light.rawValue,
         notificationsEnabled: Bool = false,
         dailyReminderEnabled: Bool = false,
         budgetWarningEnabled: Bool = false
     ) {
         self.id = id
         self.currencyCode = currencyCode
+        self.preferredThemeCode = preferredThemeCode
         self.notificationsEnabled = notificationsEnabled
         self.dailyReminderEnabled = dailyReminderEnabled
         self.budgetWarningEnabled = budgetWarningEnabled

@@ -35,12 +35,16 @@ struct ExpensesView: View {
         .sheet(item: deleteExpenseBinding) { expense in
             DeleteExpenseSheet(
                 expense: expense,
-                onDelete: deletePendingExpense,
+                onDelete: {
+                    Task {
+                        await deletePendingExpense()
+                    }
+                },
                 onCancel: { viewModel.expensePendingDelete = nil }
             )
             .presentationDetents([.height(182)])
             .presentationDragIndicator(.hidden)
-            .presentationBackground(.white)
+            .presentationBackground(XPendoTheme.surfaceBackground)
         }
         .alert("Expense could not be deleted", isPresented: deleteErrorBinding) {
             Button("OK", role: .cancel) { }
@@ -115,7 +119,7 @@ struct ExpensesView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
@@ -153,7 +157,7 @@ struct ExpensesView: View {
     }
 
     private var currencyCode: String {
-        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+        CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
     private var editingExpenseBinding: Binding<Expense?> {
@@ -185,9 +189,11 @@ struct ExpensesView: View {
         )
     }
 
-    private func deletePendingExpense() {
+    @MainActor
+    private func deletePendingExpense() async {
         do {
             try viewModel.deletePendingExpense(in: modelContext)
+            try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             deleteErrorMessage = error.localizedDescription
         }
@@ -227,28 +233,14 @@ private struct ExpenseEmptyState: View {
 
     var body: some View {
         SurfaceCard {
-            VStack(alignment: .leading, spacing: 16) {
-                Image(systemName: "tray")
-                    .font(.title2)
-                    .foregroundStyle(XPendoTheme.freshGreen)
-                    .padding(12)
-                    .background(XPendoTheme.freshGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(XPendoTheme.primaryText)
-
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(XPendoTheme.secondaryText)
-
-                if showsResetButton {
-                    Button("Reset Filters", action: onReset)
-                        .buttonStyle(.plain)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(XPendoTheme.accentTeal)
-                }
-            }
+            StateMessageContent(
+                systemImage: "tray.full.fill",
+                title: title,
+                description: description,
+                accentColor: XPendoTheme.freshGreen,
+                actionTitle: showsResetButton ? "Reset Filters" : nil,
+                action: showsResetButton ? onReset : nil
+            )
         }
     }
 }
@@ -289,7 +281,7 @@ private struct DeleteExpenseSheet: View {
                     .foregroundStyle(XPendoTheme.primaryText)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 Button("Delete", action: onDelete)
                     .buttonStyle(.plain)
@@ -304,6 +296,6 @@ private struct DeleteExpenseSheet: View {
         .padding(.top, 16)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(.white)
+        .background(XPendoTheme.surfaceBackground)
     }
 }

@@ -34,7 +34,7 @@ struct HomeView: View {
     }
 
     private var currencyCode: String {
-        settings.first?.currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+        CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
     private var headerSection: some View {
@@ -58,7 +58,7 @@ struct HomeView: View {
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
                     .frame(width: 46, height: 46)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
@@ -100,7 +100,7 @@ private struct HomeOverviewCard: View {
                         .background(XPendoTheme.accentTeal, in: Capsule())
                 }
 
-                Text(dashboard.monthTotal, format: .currency(code: currencyCode))
+                Text(CurrencyConverter.formatFromTRY(dashboard.monthTotal, to: currencyCode))
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -113,7 +113,7 @@ private struct HomeOverviewCard: View {
                         title: "Today's Spending",
                         accentColor: XPendoTheme.accentTeal,
                         primaryContent: {
-                            Text(dashboard.todayTotal, format: .currency(code: currencyCode))
+                            Text(CurrencyConverter.formatFromTRY(dashboard.todayTotal, to: currencyCode))
                         },
                         secondaryText: todayDescription
                     )
@@ -209,16 +209,16 @@ private struct HomeTopCategoryTile: View {
                             Text(topCategory.name)
                                 .font(.subheadline.weight(.bold))
 
-                            Text(topCategory.totalAmount, format: .currency(code: currencyCode))
+                            Text(CurrencyConverter.formatFromTRY(topCategory.totalAmount, to: currencyCode))
                                 .font(.caption.weight(.semibold))
                         }
                     }
                 } else {
-                    Text("No data yet")
+                    Text("Add expenses to reveal a top category")
                 }
             },
             secondaryText: topCategory == nil
-                ? "Your leading category will appear here."
+                ? "Your highest spending category will appear after a few saved expenses."
                 : "Highest spending area this month."
         )
     }
@@ -292,13 +292,13 @@ private struct HomeRecentExpenseRow: View {
 
             Spacer()
 
-            Text(expense.amount, format: .currency(code: currencyCode))
+            Text(CurrencyConverter.formatFromTRY(expense.amount, to: currencyCode))
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(XPendoTheme.primaryText)
                 .multilineTextAlignment(.trailing)
         }
         .padding(14)
-        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     private var categoryColor: Color {
@@ -421,7 +421,7 @@ private struct HomeBudgetStatusCard: View {
                 HStack {
                     Text("Spent")
                     Spacer()
-                    Text(status.spentAmount, format: .currency(code: currencyCode))
+                    Text(CurrencyConverter.formatFromTRY(status.spentAmount, to: currencyCode))
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(XPendoTheme.secondaryText)
@@ -429,7 +429,7 @@ private struct HomeBudgetStatusCard: View {
                 HStack {
                     Text(status.remainingAmount >= 0 ? "Remaining" : "Over by")
                     Spacer()
-                    Text(abs(status.remainingAmount), format: .currency(code: currencyCode))
+                    Text(CurrencyConverter.formatFromTRY(abs(status.remainingAmount), to: currencyCode))
                         .foregroundStyle(accentColor)
                 }
                 .font(.caption.weight(.semibold))
@@ -437,7 +437,7 @@ private struct HomeBudgetStatusCard: View {
                 HStack {
                     Text("Limit")
                     Spacer()
-                    Text(status.limitAmount, format: .currency(code: currencyCode))
+                    Text(CurrencyConverter.formatFromTRY(status.limitAmount, to: currencyCode))
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(XPendoTheme.secondaryText)
@@ -448,7 +448,7 @@ private struct HomeBudgetStatusCard: View {
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
         .padding(16)
-        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 
@@ -497,6 +497,6 @@ private struct HomeInlineEmptyState: View {
             }
         }
         .padding(16)
-        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }

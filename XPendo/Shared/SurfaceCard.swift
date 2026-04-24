@@ -11,7 +11,7 @@ struct SurfaceCard<Content: View>: View {
         content
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)

@@ -60,7 +60,7 @@ struct BudgetStatusCard: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
-                        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
 
                     Spacer(minLength: 0)
@@ -85,7 +85,7 @@ struct BudgetStatusCard: View {
                             .foregroundStyle(XPendoTheme.primaryText)
                     }
                     .padding(12)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(XPendoTheme.coral.opacity(0.16), lineWidth: 1)
@@ -102,7 +102,7 @@ struct BudgetStatusCard: View {
                         HStack {
                             Text("\(Int((entry.progress * 100).rounded()))% of limit used")
                             Spacer()
-                            Text((entry.limitAmount ?? 0), format: .currency(code: currencyCode))
+                            Text(CurrencyConverter.formatFromTRY(entry.limitAmount ?? 0, to: currencyCode))
                         }
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(XPendoTheme.secondaryText)
@@ -112,13 +112,13 @@ struct BudgetStatusCard: View {
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
                         .padding(14)
-                        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
 
                 HStack(spacing: 12) {
                     BudgetStatColumn(
                         title: "Spent",
-                        value: entry.spentAmount.formatted(.currency(code: currencyCode)),
+                        value: CurrencyConverter.formatFromTRY(entry.spentAmount, to: currencyCode),
                         accentColor: statusColor
                     )
 
@@ -159,7 +159,7 @@ struct BudgetStatusCard: View {
             return "Not set"
         }
 
-        return abs(remainingAmount).formatted(.currency(code: currencyCode))
+        return CurrencyConverter.formatFromTRY(abs(remainingAmount), to: currencyCode)
     }
 
     private var limitValue: String {
@@ -167,7 +167,7 @@ struct BudgetStatusCard: View {
             return "Not set"
         }
 
-        return limitAmount.formatted(.currency(code: currencyCode))
+        return CurrencyConverter.formatFromTRY(limitAmount, to: currencyCode)
     }
 
     private var statusColor: Color {
@@ -221,6 +221,6 @@ private struct BudgetStatColumn: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(XPendoTheme.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }

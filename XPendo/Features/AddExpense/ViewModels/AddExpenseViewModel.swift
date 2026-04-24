@@ -5,6 +5,7 @@ import SwiftData
 @Observable
 final class AddExpenseViewModel {
     private let expenseToEdit: Expense?
+    private var didConfigureDisplayAmount = false
 
     var title = ""
     var amountText = ""
@@ -18,7 +19,6 @@ final class AddExpenseViewModel {
 
         if let expenseToEdit {
             title = expenseToEdit.title
-            amountText = Self.amountFormatter.string(from: NSNumber(value: expenseToEdit.amount)) ?? String(expenseToEdit.amount)
             date = expenseToEdit.date
             selectedCategory = expenseToEdit.category
             note = expenseToEdit.note ?? ""
@@ -36,7 +36,23 @@ final class AddExpenseViewModel {
         }
     }
 
-    func saveExpense(in modelContext: ModelContext, categories: [Category]) throws {
+    func prepareForm(categories: [Category], displayCurrencyCode: String) {
+        ensureSelectedCategory(from: categories)
+
+        guard let expenseToEdit, !didConfigureDisplayAmount else {
+            return
+        }
+
+        let displayAmount = CurrencyConverter.displayAmount(fromTRY: expenseToEdit.amount, in: displayCurrencyCode)
+        amountText = Self.amountFormatter.string(from: NSNumber(value: displayAmount)) ?? String(displayAmount)
+        didConfigureDisplayAmount = true
+    }
+
+    func saveExpense(
+        in modelContext: ModelContext,
+        categories: [Category],
+        inputCurrencyCode: String
+    ) throws {
         validationMessage = nil
 
         guard !categories.isEmpty else {
@@ -46,14 +62,16 @@ final class AddExpenseViewModel {
 
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty else {
-            validationMessage = "Please enter a title."
+            validationMessage = "Enter a short title for this expense."
             return
         }
 
         guard let amount = parsedAmount, amount > 0 else {
-            validationMessage = "Please enter a valid amount."
+            validationMessage = "Enter an amount greater than zero."
             return
         }
+
+        let amountInTRY = CurrencyConverter.convertToTRY(amount, from: inputCurrencyCode)
 
         guard let category = selectedCategory ?? categories.first else {
             validationMessage = "Please select a category."
@@ -63,14 +81,14 @@ final class AddExpenseViewModel {
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
         if let expenseToEdit {
             expenseToEdit.title = trimmedTitle
-            expenseToEdit.amount = amount
+            expenseToEdit.amount = amountInTRY
             expenseToEdit.date = date
             expenseToEdit.category = category
             expenseToEdit.note = trimmedNote.isEmpty ? nil : trimmedNote
         } else {
             let expense = Expense(
                 title: trimmedTitle,
-                amount: amount,
+                amount: amountInTRY,
                 date: date,
                 category: category,
                 note: trimmedNote.isEmpty ? nil : trimmedNote

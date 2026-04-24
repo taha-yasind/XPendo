@@ -105,11 +105,15 @@ final class BudgetViewModel {
         selectedMonth.formatted(.dateTime.month(.wide).year())
     }
 
-    func prepare(categories: [Category], budgets: [Budget]) {
+    func prepare(categories: [Category], budgets: [Budget], displayCurrencyCode: String) {
         draftAmountsByCategoryID = Dictionary(
             uniqueKeysWithValues: categories.map { category in
                 let amountText = matchingBudget(for: category.id, in: budgets)
-                    .map { formattedAmount($0.limitAmount) } ?? ""
+                    .map {
+                        formattedAmount(
+                            CurrencyConverter.displayAmount(fromTRY: $0.limitAmount, in: displayCurrencyCode)
+                        )
+                    } ?? ""
                 return (category.id, amountText)
             }
         )
@@ -218,23 +222,26 @@ final class BudgetViewModel {
     func saveBudget(
         for category: Category,
         in modelContext: ModelContext,
-        budgets: [Budget]
+        budgets: [Budget],
+        inputCurrencyCode: String
     ) throws {
         validationMessage = nil
         validationCategoryID = nil
 
         guard let amount = parsedAmount(from: draftAmount(for: category.id)), amount > 0 else {
             validationCategoryID = category.id
-            validationMessage = "Enter a valid budget amount greater than zero."
+            validationMessage = "Enter an amount greater than zero for this category."
             return
         }
 
+        let amountInTRY = CurrencyConverter.convertToTRY(amount, from: inputCurrencyCode)
+
         if let existingBudget = matchingBudget(for: category.id, in: budgets) {
-            existingBudget.limitAmount = amount
+            existingBudget.limitAmount = amountInTRY
         } else {
             let newBudget = Budget(
                 category: category,
-                limitAmount: amount,
+                limitAmount: amountInTRY,
                 month: calendar.component(.month, from: selectedMonth),
                 year: calendar.component(.year, from: selectedMonth)
             )
