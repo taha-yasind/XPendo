@@ -13,7 +13,7 @@ final class AppSettings {
     init(
         id: UUID = UUID(),
         currencyCode: String,
-        preferredThemeCode: String = PreferredTheme.light.rawValue,
+        preferredThemeCode: String = PreferredTheme.system.rawValue,
         notificationsEnabled: Bool = false,
         dailyReminderEnabled: Bool = false,
         budgetWarningEnabled: Bool = false

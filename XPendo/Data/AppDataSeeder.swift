@@ -51,6 +51,6 @@ enum AppDataSeeder {
     }
 
     private static var defaultThemeCode: String {
-        PreferredTheme.light.rawValue
+        PreferredTheme.system.rawValue
     }
 }

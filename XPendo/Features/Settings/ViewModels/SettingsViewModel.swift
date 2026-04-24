@@ -33,7 +33,7 @@ final class SettingsViewModel {
     }
 
     var currencyCode = CurrencyConverter.supportedCurrencyCode(from: Locale.current.currency?.identifier)
-    var preferredThemeCode = PreferredTheme.light.rawValue
+    var preferredThemeCode = PreferredTheme.system.rawValue
     var utilityMessage: UtilityMessage?
     var errorMessage: String?
     var isUpdatingPreferences = false

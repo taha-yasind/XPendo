@@ -4,6 +4,7 @@ import UIKit
 enum PreferredTheme: String, CaseIterable, Identifiable {
     case light
     case dark
+    case system
 
     var id: String { rawValue }
 
@@ -13,6 +14,8 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
             return "Light"
         case .dark:
             return "Dark"
+        case .system:
+            return "System"
         }
     }
 
@@ -22,24 +25,28 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
             return "sun.max.fill"
         case .dark:
             return "moon.fill"
+        case .system:
+            return "circle.lefthalf.filled"
         }
     }
 
-    var colorScheme: ColorScheme {
+    var colorScheme: ColorScheme? {
         switch self {
         case .light:
             return .light
         case .dark:
             return .dark
+        case .system:
+            return nil
         }
     }
 
     static func resolved(from code: String?) -> PreferredTheme {
         guard let code else {
-            return .light
+            return .system
         }
 
-        return PreferredTheme(rawValue: code) ?? .light
+        return PreferredTheme(rawValue: code) ?? .system
     }
 }
 

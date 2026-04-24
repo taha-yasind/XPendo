@@ -69,22 +69,26 @@ struct AppRootView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
-        .preferredColorScheme(preferredTheme.colorScheme)
-        .task(id: scenePhase) {
-            guard scenePhase == .active else {
-                return
+        .preferredColorScheme(preferredColorScheme)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task {
+                    try? await NotificationSyncService.refresh(using: modelContext)
+                }
             }
-
-            try? await NotificationSyncService.refresh(using: modelContext)
         }
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        guard let themeCode = settings.first?.preferredThemeCode else {
+            return nil
+        }
+        let theme = PreferredTheme.resolved(from: themeCode)
+        return theme.colorScheme
     }
 
     private func presentAddExpenseSheet() {
         isShowingAddExpenseSheet = true
-    }
-
-    private var preferredTheme: PreferredTheme {
-        PreferredTheme.resolved(from: settings.first?.preferredThemeCode)
     }
 }
 
