@@ -22,6 +22,14 @@ final class SettingsViewModel {
         var systemImage: String { theme.systemImage }
     }
 
+    struct LanguageOption: Identifiable, Hashable {
+        let language: AppLanguage
+
+        var id: String { language.rawValue }
+        var code: String { language.rawValue }
+        var title: String { language.displayName }
+    }
+
     struct UtilityMessage {
         enum Tone {
             case success
@@ -34,6 +42,7 @@ final class SettingsViewModel {
 
     var currencyCode = CurrencyConverter.supportedCurrencyCode(from: Locale.current.currency?.identifier)
     var preferredThemeCode = PreferredTheme.system.rawValue
+    var preferredLanguageCode = AppLanguage.resolved(from: nil).rawValue
     var utilityMessage: UtilityMessage?
     var errorMessage: String?
     var isUpdatingPreferences = false
@@ -41,34 +50,44 @@ final class SettingsViewModel {
 
     let currencyOptions: [CurrencyOption]
     let themeOptions: [ThemeOption]
+    let languageOptions: [LanguageOption]
 
     init() {
         currencyOptions = Self.makeCurrencyOptions()
         themeOptions = Self.makeThemeOptions()
+        languageOptions = Self.makeLanguageOptions()
     }
 
     func load(from settings: AppSettings?) {
         currencyCode = CurrencyConverter.supportedCurrencyCode(from: settings?.currencyCode)
         preferredThemeCode = PreferredTheme.resolved(from: settings?.preferredThemeCode).rawValue
+        preferredLanguageCode = AppLanguage.resolved(from: settings?.preferredLanguageCode).rawValue
     }
 
     func updateDisplayPreferences(
         currencyCode newCurrencyCode: String,
         preferredThemeCode newThemeCode: String,
+        preferredLanguageCode newLanguageCode: String,
         settings: AppSettings?,
         modelContext: ModelContext
     ) async {
         let resolvedCurrencyCode = CurrencyConverter.supportedCurrencyCode(from: newCurrencyCode)
         let resolvedThemeCode = PreferredTheme.resolved(from: newThemeCode).rawValue
+        let resolvedLanguageCode = AppLanguage.resolved(from: newLanguageCode).rawValue
 
         guard let settings else {
-            errorMessage = "App preferences are currently unavailable."
+            errorMessage = AppLocalization.string("error.preferencesUnavailable")
             return
         }
 
         let currentThemeCode = PreferredTheme.resolved(from: settings.preferredThemeCode).rawValue
+        let currentLanguageCode = AppLanguage.resolved(from: settings.preferredLanguageCode).rawValue
 
-        guard resolvedCurrencyCode != settings.currencyCode || resolvedThemeCode != currentThemeCode else {
+        guard
+            resolvedCurrencyCode != settings.currencyCode ||
+                resolvedThemeCode != currentThemeCode ||
+                resolvedLanguageCode != currentLanguageCode
+        else {
             return
         }
 
@@ -79,19 +98,26 @@ final class SettingsViewModel {
 
         let previousCurrencyCode = settings.currencyCode
         let previousThemeCode = settings.preferredThemeCode
+        let previousLanguageCode = settings.preferredLanguageCode
 
         settings.currencyCode = resolvedCurrencyCode
         settings.preferredThemeCode = resolvedThemeCode
+        settings.preferredLanguageCode = resolvedLanguageCode
         currencyCode = resolvedCurrencyCode
         preferredThemeCode = resolvedThemeCode
+        preferredLanguageCode = resolvedLanguageCode
+        AppLocalization.updateLanguage(code: resolvedLanguageCode)
 
         do {
             try modelContext.save()
         } catch {
             settings.currencyCode = previousCurrencyCode
             settings.preferredThemeCode = previousThemeCode
+            settings.preferredLanguageCode = previousLanguageCode
             currencyCode = previousCurrencyCode
             preferredThemeCode = PreferredTheme.resolved(from: previousThemeCode).rawValue
+            preferredLanguageCode = AppLanguage.resolved(from: previousLanguageCode).rawValue
+            AppLocalization.updateLanguage(code: preferredLanguageCode)
             errorMessage = error.localizedDescription
         }
     }
@@ -108,7 +134,7 @@ final class SettingsViewModel {
 
             guard !expenses.isEmpty || !budgets.isEmpty else {
                 utilityMessage = UtilityMessage(
-                    text: "There is no recorded expense or budget data to clear right now.",
+                    text: AppLocalization.string("settings.utility.nothingToClear"),
                     tone: .info
                 )
                 return
@@ -126,7 +152,7 @@ final class SettingsViewModel {
             try await NotificationSyncService.refresh(using: modelContext)
 
             utilityMessage = UtilityMessage(
-                text: "All saved expenses and budget entries were removed. Categories and preferences were kept.",
+                text: AppLocalization.string("settings.utility.dataCleared"),
                 tone: .success
             )
         } catch {
@@ -140,6 +166,10 @@ final class SettingsViewModel {
 
     var selectedThemeName: String {
         themeName(for: preferredThemeCode)
+    }
+
+    var selectedLanguageName: String {
+        languageName(for: preferredLanguageCode)
     }
 
     var versionValue: String {
@@ -162,6 +192,10 @@ final class SettingsViewModel {
         PreferredTheme.resolved(from: code).displayName
     }
 
+    func languageName(for code: String) -> String {
+        AppLanguage.resolved(from: code).displayName
+    }
+
     private static func makeCurrencyOptions() -> [CurrencyOption] {
         AppCurrency.allCases.map { currency in
             CurrencyOption(code: currency.rawValue, name: currency.displayName)
@@ -171,6 +205,12 @@ final class SettingsViewModel {
     private static func makeThemeOptions() -> [ThemeOption] {
         PreferredTheme.allCases.map { theme in
             ThemeOption(theme: theme)
+        }
+    }
+
+    private static func makeLanguageOptions() -> [LanguageOption] {
+        AppLanguage.allCases.map { language in
+            LanguageOption(language: language)
         }
     }
 }

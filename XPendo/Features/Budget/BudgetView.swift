@@ -47,10 +47,10 @@ struct BudgetView: View {
         .task(id: budgetSyncKey) {
             viewModel.prepare(categories: categories, budgets: budgets, displayCurrencyCode: currencyCode)
         }
-        .alert("Budget action could not be completed", isPresented: saveErrorBinding) {
-            Button("OK", role: .cancel) { }
+        .alert("budget.alert.actionFailed.title", isPresented: saveErrorBinding) {
+            Button("common.ok", role: .cancel) { }
         } message: {
-            Text(saveErrorMessage ?? "Please try again.")
+            Text(saveErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
         .sheet(isPresented: $isResetSheetPresented, onDismiss: {
             pendingResetCategoryID = nil
@@ -115,7 +115,7 @@ struct BudgetView: View {
 
                 Spacer()
 
-                Text("\(categories.count) total")
+                Text(AppLocalization.format("budget.section.categoriesCount", categories.count))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
@@ -193,8 +193,8 @@ struct BudgetView: View {
     }
 
     private func sortCategoryEntriesForDisplay(_ lhs: BudgetCategoryEntry, _ rhs: BudgetCategoryEntry) -> Bool {
-        let lhsIsOther = lhs.categoryName.trimmingCharacters(in: .whitespacesAndNewlines).localizedCaseInsensitiveCompare("Other") == .orderedSame
-        let rhsIsOther = rhs.categoryName.trimmingCharacters(in: .whitespacesAndNewlines).localizedCaseInsensitiveCompare("Other") == .orderedSame
+        let lhsIsOther = CategoryLocalization.isOther(lhs.categoryName)
+        let rhsIsOther = CategoryLocalization.isOther(rhs.categoryName)
 
         if lhsIsOther != rhsIsOther {
             return !lhsIsOther && rhsIsOther
@@ -208,10 +208,14 @@ struct BudgetView: View {
             let categoryID = pendingResetCategoryID,
             let category = categories.first(where: { $0.id == categoryID })
         else {
-            return "This action will clear the budget amount for this category in the selected month."
+            return AppLocalization.string("budget.reset.message.fallback")
         }
 
-        return "This action will clear the budget amount for \(category.name) in \(viewModel.selectedMonthTitle)."
+        return AppLocalization.format(
+            "budget.reset.message.categoryMonth",
+            CategoryLocalization.localizedName(for: category.name),
+            viewModel.selectedMonthTitle
+        )
     }
 
     @MainActor
@@ -269,7 +273,7 @@ private struct ResetBudgetConfirmationSheet: View {
 
                 HStack(spacing: 12) {
                     Button(action: onCancel) {
-                        Text("Cancel")
+                        Text("common.cancel")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(XPendoTheme.primaryText)
                             .frame(maxWidth: .infinity)
@@ -286,7 +290,7 @@ private struct ResetBudgetConfirmationSheet: View {
                     .buttonStyle(.plain)
 
                     Button(action: onConfirm) {
-                        Text("Reset")
+                        Text("common.reset")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -389,19 +393,19 @@ private struct BudgetMonthOverviewCard: View {
 
                 HStack(spacing: 12) {
                     BudgetSummaryTile(
-                        title: "Spent",
+                        title: AppLocalization.string("budget.spent"),
                         value: CurrencyConverter.formatFromTRY(monthData.totalSpent, to: currencyCode),
                         accentColor: XPendoTheme.softPurple
                     )
 
                     BudgetSummaryTile(
-                        title: monthData.totalRemaining >= 0 ? "Remaining" : "Over by",
+                        title: monthData.totalRemaining >= 0 ? AppLocalization.string("budget.remaining") : AppLocalization.string("budget.overBy"),
                         value: CurrencyConverter.formatFromTRY(abs(monthData.totalRemaining), to: currencyCode),
                         accentColor: monthData.totalRemaining >= 0 ? XPendoTheme.freshGreen : XPendoTheme.coral
                     )
 
                     BudgetSummaryTile(
-                        title: "Tracked",
+                        title: AppLocalization.string("budget.tracked"),
                         value: "\(monthData.trackedBudgetCount)",
                         accentColor: XPendoTheme.accentTeal
                     )
@@ -414,7 +418,7 @@ private struct BudgetMonthOverviewCard: View {
                     )
 
                     HStack {
-                        Text("\(monthData.trackedBudgetCount) categories tracked")
+                        Text(AppLocalization.format("budget.overview.trackedCount", monthData.trackedBudgetCount))
                         Spacer()
                         Text(progressFootnote)
                     }
@@ -440,18 +444,18 @@ private struct BudgetMonthOverviewCard: View {
 
     private var progressFootnote: String {
         if monthData.trackedBudgetCount == 0 {
-            return "Set a budget to start tracking"
+            return AppLocalization.string("budget.progressFootnote.empty")
         }
 
-        return "\(Int((monthData.totalProgress * 100).rounded()))% used"
+        return AppLocalization.format("budget.progressFootnote.used", Int((monthData.totalProgress * 100).rounded()))
     }
 
     private var warningText: String {
         if monthData.overspentCount == 1 {
-            return "1 category is already above its monthly limit."
+            return AppLocalization.string("budget.warning.single")
         }
 
-        return "\(monthData.overspentCount) categories are already above their monthly limits."
+        return AppLocalization.format("budget.warning.multiple", monthData.overspentCount)
     }
 }
 
@@ -502,8 +506,8 @@ private struct BudgetEmptyState: View {
         SurfaceCard {
             StateMessageContent(
                 systemImage: "gauge.with.needle",
-                title: "No Categories Available",
-                description: "Budget tracking becomes available when categories exist for monthly planning.",
+                title: AppLocalization.string("No Categories Available"),
+                description: AppLocalization.string("Budget tracking becomes available when categories exist for monthly planning."),
                 accentColor: XPendoTheme.accentTeal
             )
         }

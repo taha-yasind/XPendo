@@ -27,28 +27,28 @@ struct AppRootView: View {
                     HomeView()
                 }
                 .tabItem {
-                    Label("Home", systemImage: "house")
+                    Label("tab.home", systemImage: "house")
                 }
 
                 NavigationStack {
                     ExpensesView()
                 }
                 .tabItem {
-                    Label("Expenses", systemImage: "list.bullet.rectangle")
+                    Label("tab.expenses", systemImage: "list.bullet.rectangle")
                 }
 
                 NavigationStack {
                     BudgetView()
                 }
                 .tabItem {
-                    Label("Budget", systemImage: "wallet.pass")
+                    Label("tab.budget", systemImage: "wallet.pass")
                 }
 
                 NavigationStack {
                     AnalyticsView()
                 }
                 .tabItem {
-                    Label("Analytics", systemImage: "chart.pie")
+                    Label("tab.analytics", systemImage: "chart.pie")
                 }
             }
             .tint(XPendoTheme.accentTeal)
@@ -64,12 +64,20 @@ struct AppRootView: View {
                     .padding(.bottom, 8)
             }
         }
+        .environment(\.locale, appLocale)
+        .id(selectedLanguageCode)
         .sheet(isPresented: $isShowingAddExpenseSheet) {
             AddExpenseView()
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
         .preferredColorScheme(preferredColorScheme)
+        .onAppear {
+            AppLocalization.updateLanguage(code: selectedLanguageCode)
+        }
+        .onChange(of: selectedLanguageCode) { _, newCode in
+            AppLocalization.updateLanguage(code: newCode)
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 Task {
@@ -85,6 +93,14 @@ struct AppRootView: View {
         }
         let theme = PreferredTheme.resolved(from: themeCode)
         return theme.colorScheme
+    }
+
+    private var selectedLanguageCode: String {
+        AppLanguage.resolved(from: settings.first?.preferredLanguageCode).rawValue
+    }
+
+    private var appLocale: Locale {
+        AppLanguage.resolved(from: settings.first?.preferredLanguageCode).locale
     }
 
     private func presentAddExpenseSheet() {

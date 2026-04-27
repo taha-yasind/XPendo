@@ -18,6 +18,7 @@ struct SettingsView: View {
     @State private var draftBudgetWarningEnabled = false
     @State private var draftCurrencyCode = CurrencyConverter.supportedCurrencyCode(from: Locale.current.currency?.identifier)
     @State private var draftThemeCode = PreferredTheme.light.rawValue
+    @State private var draftLanguageCode = AppLanguage.resolved(from: nil).rawValue
 
     var body: some View {
         ScrollView {
@@ -72,12 +73,12 @@ struct SettingsView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(XPendoTheme.surfaceBackground)
         }
-        .alert("Settings could not be updated", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {
+        .alert("settings.alert.updateFailed.title", isPresented: errorBinding) {
+            Button("common.ok", role: .cancel) {
                 clearErrorMessages()
             }
         } message: {
-            Text(activeErrorMessage ?? "Please try again.")
+            Text(activeErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
     }
 
@@ -185,6 +186,31 @@ struct SettingsView: View {
                         isDisabled: currentSettings == nil || isApplyLocked
                     )
                 }
+
+                Menu {
+                    ForEach(settingsViewModel.languageOptions) { option in
+                        Button {
+                            draftLanguageCode = option.code
+                        } label: {
+                            if option.code == draftLanguageCode {
+                                Label(option.title, systemImage: "checkmark")
+                            } else {
+                                Text(option.title)
+                            }
+                        }
+                    }
+                } label: {
+                    SettingsMenuRow(
+                        title: "settings.preferences.language.title",
+                        subtitle: settingsViewModel.languageName(for: draftLanguageCode),
+                        icon: "globe",
+                        value: draftLanguageCode.uppercased(),
+                        accentColor: XPendoTheme.accentTeal,
+                        isLoading: settingsViewModel.isUpdatingPreferences
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(currentSettings == nil || isApplyLocked)
 
                 Menu {
                     ForEach(settingsViewModel.currencyOptions) { option in
@@ -329,6 +355,7 @@ struct SettingsView: View {
             String(describing: scenePhase),
             CurrencyConverter.supportedCurrencyCode(from: appSettings?.currencyCode),
             PreferredTheme.resolved(from: appSettings?.preferredThemeCode).rawValue,
+            AppLanguage.resolved(from: appSettings?.preferredLanguageCode).rawValue,
             String(appSettings?.notificationsEnabled ?? false),
             String(appSettings?.dailyReminderEnabled ?? false),
             String(appSettings?.budgetWarningEnabled ?? false)
@@ -341,10 +368,14 @@ struct SettingsView: View {
 
     private var recordedDataSummary: String {
         if hasRecordedData {
-            return "\(countText(for: expenses.count, singular: "expense", plural: "expenses")) and \(countText(for: budgets.count, singular: "budget entry", plural: "budget entries")) will be removed. Categories and preferences stay."
+            return AppLocalization.format(
+                "settings.utility.summary.withData",
+                countText(for: expenses.count, singularKey: "settings.count.expense.singular", pluralKey: "settings.count.expense.plural"),
+                countText(for: budgets.count, singularKey: "settings.count.budget.singular", pluralKey: "settings.count.budget.plural")
+            )
         }
 
-        return "There are no saved expenses or budgets to clear right now."
+        return AppLocalization.string("settings.utility.summary.empty")
     }
 
     private var hasPendingChanges: Bool {
@@ -354,6 +385,7 @@ struct SettingsView: View {
 
         return draftCurrencyCode != CurrencyConverter.supportedCurrencyCode(from: currentSettings?.currencyCode ?? settingsViewModel.currencyCode)
             || draftThemeCode != PreferredTheme.resolved(from: currentSettings?.preferredThemeCode ?? settingsViewModel.preferredThemeCode).rawValue
+            || draftLanguageCode != AppLanguage.resolved(from: currentSettings?.preferredLanguageCode ?? settingsViewModel.preferredLanguageCode).rawValue
             || draftNotificationsEnabled != (currentSettings?.notificationsEnabled ?? notificationViewModel.notificationsEnabled)
             || draftDailyReminderEnabled != (currentSettings?.dailyReminderEnabled ?? notificationViewModel.dailyReminderEnabled)
             || draftBudgetWarningEnabled != (currentSettings?.budgetWarningEnabled ?? notificationViewModel.budgetWarningEnabled)
@@ -399,11 +431,12 @@ struct SettingsView: View {
         draftBudgetWarningEnabled = notificationViewModel.budgetWarningEnabled
         draftCurrencyCode = settingsViewModel.currencyCode
         draftThemeCode = settingsViewModel.preferredThemeCode
+        draftLanguageCode = settingsViewModel.preferredLanguageCode
     }
 
     private func applyChanges() async {
         guard let currentSettings else {
-            settingsViewModel.errorMessage = "App preferences are currently unavailable."
+            settingsViewModel.errorMessage = AppLocalization.string("error.preferencesUnavailable")
             return
         }
 
@@ -412,6 +445,7 @@ struct SettingsView: View {
         await settingsViewModel.updateDisplayPreferences(
             currencyCode: draftCurrencyCode,
             preferredThemeCode: draftThemeCode,
+            preferredLanguageCode: draftLanguageCode,
             settings: currentSettings,
             modelContext: modelContext
         )
@@ -437,8 +471,9 @@ struct SettingsView: View {
         settingsViewModel.errorMessage = nil
     }
 
-    private func countText(for count: Int, singular: String, plural: String) -> String {
-        "\(count) \(count == 1 ? singular : plural)"
+    private func countText(for count: Int, singularKey: String, pluralKey: String) -> String {
+        let unit = count == 1 ? AppLocalization.string(singularKey) : AppLocalization.string(pluralKey)
+        return "\(count) \(unit)"
     }
 
     private var themeSelectionBinding: Binding<PreferredTheme> {
@@ -463,11 +498,11 @@ private struct SettingsSectionHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.headline)
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text(description)
+            Text(LocalizedStringKey(description))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
@@ -493,11 +528,11 @@ private struct SettingsMenuRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text(subtitle)
+                Text(LocalizedStringKey(subtitle))
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
@@ -509,7 +544,7 @@ private struct SettingsMenuRow: View {
                     .tint(accentColor)
             } else {
                 HStack(spacing: 8) {
-                    Text(value)
+                    Text(LocalizedStringKey(value))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(accentColor)
                         .padding(.horizontal, 12)
@@ -545,11 +580,11 @@ private struct SettingsActionRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text(subtitle)
+                Text(LocalizedStringKey(subtitle))
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
                     .multilineTextAlignment(.leading)
@@ -557,7 +592,7 @@ private struct SettingsActionRow: View {
 
             Spacer()
 
-            Text(actionTitle)
+            Text(LocalizedStringKey(actionTitle))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(accentColor)
                 .padding(.horizontal, 12)
@@ -587,18 +622,18 @@ private struct SettingsInfoRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text(subtitle)
+                Text(LocalizedStringKey(subtitle))
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
 
             Spacer()
 
-            Text(value)
+            Text(LocalizedStringKey(value))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(XPendoTheme.primaryText)
                 .multilineTextAlignment(.trailing)
@@ -654,11 +689,11 @@ private struct NotificationToggleRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(titleColor)
 
-                Text(subtitle)
+                Text(LocalizedStringKey(subtitle))
                     .font(.caption)
                     .foregroundStyle(subtitleColor)
             }
@@ -729,11 +764,13 @@ private struct ResetDataConfirmationSheet: View {
                 .foregroundStyle(XPendoTheme.secondaryText)
 
             HStack(spacing: 12) {
-                Button("Cancel", action: onCancel)
-                    .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                Button(action: onCancel) {
+                    Text("common.cancel")
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 Button(action: onDelete) {
                     HStack(spacing: 8) {
@@ -742,7 +779,7 @@ private struct ResetDataConfirmationSheet: View {
                                 .tint(.white)
                         }
 
-                        Text("Delete")
+                        Text("common.delete")
                             .font(.subheadline.weight(.semibold))
                     }
                     .foregroundStyle(.white)

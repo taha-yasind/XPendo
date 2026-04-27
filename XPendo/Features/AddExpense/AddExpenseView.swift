@@ -39,10 +39,10 @@ struct AddExpenseView: View {
         .task(id: expenseFormSyncKey) {
             viewModel.prepareForm(categories: categories, displayCurrencyCode: currencyCode)
         }
-        .alert("Expense could not be saved", isPresented: saveErrorBinding) {
-            Button("OK", role: .cancel) { }
+        .alert("addExpense.alert.saveFailed.title", isPresented: saveErrorBinding) {
+            Button("common.ok", role: .cancel) { }
         } message: {
-            Text(saveErrorMessage ?? "Please try again.")
+            Text(saveErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
     }
 
@@ -80,14 +80,14 @@ struct AddExpenseView: View {
     private var entryFormSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Expense Details")
+                Text("addExpense.section.details")
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
                 categorySection
 
-                LabeledField(title: "Title", icon: "textformat") {
-                    TextField("Groceries, taxi, coffee...", text: $viewModel.title)
+                LabeledField(title: AppLocalization.string("addExpense.field.title"), icon: "textformat") {
+                    TextField("addExpense.placeholder.title", text: $viewModel.title)
                         .focused($focusedField, equals: .title)
                         .textInputAutocapitalization(.words)
                         .submitLabel(.next)
@@ -96,7 +96,7 @@ struct AddExpenseView: View {
                         }
                 }
 
-                LabeledField(title: "Amount", icon: "creditcard") {
+                LabeledField(title: AppLocalization.string("addExpense.field.amount"), icon: "creditcard") {
                     HStack(spacing: 12) {
                         TextField("0.00", text: $viewModel.amountText)
                             .focused($focusedField, equals: .amount)
@@ -111,9 +111,9 @@ struct AddExpenseView: View {
                     }
                 }
 
-                LabeledField(title: "Date", icon: "calendar") {
+                LabeledField(title: AppLocalization.string("addExpense.field.date"), icon: "calendar") {
                     DatePicker(
-                        "Expense Date",
+                        "addExpense.field.expenseDate",
                         selection: $viewModel.date,
                         displayedComponents: .date
                     )
@@ -122,9 +122,9 @@ struct AddExpenseView: View {
                     .tint(XPendoTheme.accentTeal)
                 }
 
-                LabeledField(title: "Note", icon: "note.text") {
+                LabeledField(title: AppLocalization.string("addExpense.field.note"), icon: "note.text") {
                     TextField(
-                        "Optional note",
+                        "addExpense.placeholder.note",
                         text: $viewModel.note,
                         axis: .vertical
                     )
@@ -136,9 +136,9 @@ struct AddExpenseView: View {
     }
 
     private var categorySection: some View {
-        LabeledField(title: "Category", icon: "tag") {
+        LabeledField(title: AppLocalization.string("addExpense.field.category"), icon: "tag") {
             if categories.isEmpty {
-                Text("No categories are available yet.")
+                Text("addExpense.empty.noCategories")
                     .font(.subheadline)
                     .foregroundStyle(XPendoTheme.secondaryText)
             } else {
@@ -147,7 +147,7 @@ struct AddExpenseView: View {
                         Button {
                             viewModel.selectedCategory = category
                         } label: {
-                            Label(category.name, systemImage: category.icon)
+                            Label(CategoryLocalization.localizedName(for: category.name), systemImage: category.icon)
                         }
                     }
                 } label: {
@@ -157,11 +157,11 @@ struct AddExpenseView: View {
                             .frame(width: 12, height: 12)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(viewModel.selectedCategory?.name ?? "Select Category")
+                            Text(selectedCategoryName)
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(XPendoTheme.primaryText)
 
-                            Text("Choose one of the prepared categories")
+                            Text("addExpense.caption.choosePreparedCategory")
                                 .font(.caption)
                                 .foregroundStyle(XPendoTheme.secondaryText)
                         }
@@ -184,7 +184,7 @@ struct AddExpenseView: View {
     private var saveSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Save")
+                Text("common.save")
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -234,6 +234,14 @@ struct AddExpenseView: View {
         return XPendoTheme.accentTeal
     }
 
+    private var selectedCategoryName: String {
+        guard let selectedCategory = viewModel.selectedCategory else {
+            return AppLocalization.string("addExpense.placeholder.selectCategory")
+        }
+
+        return CategoryLocalization.localizedName(for: selectedCategory.name)
+    }
+
     private var saveErrorBinding: Binding<Bool> {
         Binding(
             get: { saveErrorMessage != nil },
@@ -247,10 +255,10 @@ struct AddExpenseView: View {
 
     private var saveFootnote: String {
         if expenseToEdit == nil {
-            return "After saving, the expense is added to your lists, summaries, and charts automatically."
+            return AppLocalization.string("addExpense.footnote.savedNew")
         }
 
-        return "After saving, the updated expense immediately replaces the previous details."
+        return AppLocalization.string("addExpense.footnote.savedEdited")
     }
 
     private func saveExpense() {

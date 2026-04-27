@@ -25,7 +25,7 @@ struct ExpenseRowCard: View {
                             .foregroundStyle(XPendoTheme.primaryText)
 
                         HStack(spacing: 8) {
-                            Text(expense.category.name)
+                            Text(CategoryLocalization.localizedName(for: expense.category.name))
                             Text("•")
                             Text(expense.date.formatted(date: .abbreviated, time: .omitted))
                         }
@@ -44,8 +44,8 @@ struct ExpenseRowCard: View {
 
                     VStack(alignment: .trailing, spacing: 10) {
                         Menu {
-                            Button("Edit", systemImage: "pencil", action: onEdit)
-                            Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
+                            Button(AppLocalization.string("expenses.menu.edit"), systemImage: "pencil", action: onEdit)
+                            Button(AppLocalization.string("common.delete"), systemImage: "trash", role: .destructive, action: onDelete)
                         } label: {
                             Image(systemName: "ellipsis")
                                 .font(.headline)

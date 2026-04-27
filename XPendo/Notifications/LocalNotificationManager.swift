@@ -70,8 +70,8 @@ enum LocalNotificationManager {
 
     private static func scheduleDailyReminder() async throws {
         let content = UNMutableNotificationContent()
-        content.title = "Daily Expense Reminder"
-        content.body = "Take a moment to record today's spending in Xpendo."
+        content.title = AppLocalization.string("notification.daily.title")
+        content.body = AppLocalization.string("notification.daily.body")
         content.sound = .default
 
         var dateComponents = DateComponents()
@@ -101,10 +101,12 @@ enum LocalNotificationManager {
         }
 
         let content = UNMutableNotificationContent()
-        content.title = overspentCategoryCount == 1 ? "Budget Warning" : "Budget Warnings"
+        content.title = overspentCategoryCount == 1
+            ? AppLocalization.string("notification.budget.single.title")
+            : AppLocalization.string("notification.budget.multiple.title")
         content.body = overspentCategoryCount == 1
-            ? "One category is over its monthly limit. Review it in Xpendo."
-            : "\(overspentCategoryCount) categories are over their monthly limits. Review them in Xpendo."
+            ? AppLocalization.string("notification.budget.single.body")
+            : AppLocalization.format("notification.budget.multiple.body", overspentCategoryCount)
         content.sound = .default
 
         var dateComponents = DateComponents()

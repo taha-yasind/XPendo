@@ -208,7 +208,9 @@ final class BudgetViewModel {
     }
 
     func saveButtonTitle(for categoryID: UUID, budgets: [Budget]) -> String {
-        matchingBudget(for: categoryID, in: budgets) == nil ? "Save" : "Update"
+        matchingBudget(for: categoryID, in: budgets) == nil
+            ? AppLocalization.string("common.save")
+            : AppLocalization.string("common.update")
     }
 
     func isResetEnabled(for categoryID: UUID, budgets: [Budget]) -> Bool {
@@ -239,7 +241,7 @@ final class BudgetViewModel {
 
         guard let amount = parsedAmount(from: draftAmount(for: category.id)), amount > 0 else {
             validationCategoryID = category.id
-            validationMessage = "Enter an amount greater than zero for this category."
+            validationMessage = AppLocalization.string("budget.validation.amountPositive")
             return
         }
 

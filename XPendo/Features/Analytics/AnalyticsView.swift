@@ -67,11 +67,11 @@ struct AnalyticsView: View {
 private struct AnalyticsHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Analytics")
+            Text(AppLocalization.string("analytics.header.title"))
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("Understand category distribution and monthly movement from your real expense data.")
+            Text(AppLocalization.string("analytics.header.subtitle"))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
@@ -85,29 +85,29 @@ private struct AnalyticsInsightsSection: View {
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Quick Insights")
+                Text(AppLocalization.string("analytics.section.quickInsights"))
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
                 VStack(spacing: 12) {
                     AnalyticsInsightRow(
-                        title: "Recorded Spend",
+                        title: AppLocalization.string("analytics.insight.recordedSpend"),
                         value: CurrencyConverter.formatFromTRY(data.totalSpend, to: currencyCode),
-                        detail: "\(data.totalExpenseCount) saved expenses in local storage",
+                        detail: AppLocalization.format("analytics.insight.recordedSpend.detail", data.totalExpenseCount),
                         accentColor: XPendoTheme.accentTeal,
                         systemImage: "creditcard.fill"
                     )
 
                     AnalyticsInsightRow(
-                        title: "Top Category",
-                        value: data.topCategory?.name ?? "No data",
+                        title: AppLocalization.string("analytics.insight.topCategory"),
+                        value: data.topCategory.map { CategoryLocalization.localizedName(for: $0.name) } ?? AppLocalization.string("analytics.insight.topCategory.emptyValue"),
                         detail: topCategoryDetail,
                         accentColor: topCategoryColor,
                         systemImage: data.topCategory?.icon ?? "square.grid.2x2.fill"
                     )
 
                     AnalyticsInsightRow(
-                        title: "Strongest Month",
+                        title: AppLocalization.string("analytics.insight.strongestMonth"),
                         value: strongestMonthValue,
                         detail: strongestMonthDetail,
                         accentColor: XPendoTheme.softPurple,
@@ -120,15 +120,15 @@ private struct AnalyticsInsightsSection: View {
 
     private var topCategoryDetail: String {
         guard let topCategory = data.topCategory else {
-            return "Add more expenses to reveal a leading category."
+            return AppLocalization.string("analytics.insight.topCategory.emptyDetail")
         }
 
-        return "\(shareText(for: topCategory.share)) of total spending • \(CurrencyConverter.formatFromTRY(topCategory.totalAmount, to: currencyCode))"
+        return AppLocalization.format("analytics.insight.topCategory.shareDetail", shareText(for: topCategory.share), CurrencyConverter.formatFromTRY(topCategory.totalAmount, to: currencyCode))
     }
 
     private var strongestMonthValue: String {
         guard let strongestMonth = data.strongestMonth else {
-            return "No data"
+            return AppLocalization.string("analytics.insight.strongestMonth.emptyValue")
         }
 
         return strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())
@@ -136,7 +136,7 @@ private struct AnalyticsInsightsSection: View {
 
     private var strongestMonthDetail: String {
         guard let strongestMonth = data.strongestMonth else {
-            return "Monthly trend will appear after expenses are recorded."
+            return AppLocalization.string("analytics.insight.strongestMonth.emptyDetail")
         }
 
         return CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)
@@ -205,18 +205,18 @@ private struct AnalyticsCategoryChartSection: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Category Breakdown")
+                        Text(AppLocalization.string("analytics.section.categoryBreakdown"))
                             .font(.headline)
                             .foregroundStyle(XPendoTheme.primaryText)
 
-                        Text("Totals grouped by category across all saved expenses.")
+                        Text(AppLocalization.string("analytics.section.categoryBreakdown.subtitle"))
                             .font(.subheadline)
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
 
                     Spacer()
 
-                    Text("\(categories.count) categories")
+                    Text(AppLocalization.format("analytics.category.count", categories.count))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(XPendoTheme.accentTeal)
                         .padding(.horizontal, 12)
@@ -271,11 +271,11 @@ private struct AnalyticsMonthlyTrendSection: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Monthly Trend")
+                        Text(AppLocalization.string("analytics.section.monthlyTrend"))
                             .font(.headline)
                             .foregroundStyle(XPendoTheme.primaryText)
 
-                        Text("Six-month view anchored to your latest recorded expense month.")
+                        Text(AppLocalization.string("analytics.section.monthlyTrend.subtitle"))
                             .font(.subheadline)
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
@@ -355,7 +355,7 @@ private struct AnalyticsMonthlyTrendSection: View {
                         Image(systemName: "sparkles")
                             .foregroundStyle(XPendoTheme.softPurple)
 
-                        Text("\(strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())) reached \(CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)).")
+                        Text(AppLocalization.format("analytics.trend.strongestMonthDetail", strongestMonth.monthStart.formatted(.dateTime.month(.wide).year()), CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)))
                             .font(.subheadline)
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
@@ -372,8 +372,8 @@ private struct AnalyticsEmptyState: View {
         SurfaceCard {
             StateMessageContent(
                 systemImage: "chart.bar.xaxis",
-                title: "Analytics Will Appear Here",
-                description: "Save a few expenses to reveal category breakdowns, monthly trends, and quick insights.",
+                title: AppLocalization.string("analytics.empty.title"),
+                description: AppLocalization.string("analytics.empty.description"),
                 accentColor: XPendoTheme.accentTeal
             )
         }

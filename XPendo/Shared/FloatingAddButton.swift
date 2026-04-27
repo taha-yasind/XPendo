@@ -23,7 +23,7 @@ struct FloatingAddButton: View {
                 }
                 .shadow(color: XPendoTheme.accentTeal.opacity(0.32), radius: 18, x: 0, y: 10)
 
-                Text("Add")
+                Text("common.add")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
             }
@@ -31,6 +31,6 @@ struct FloatingAddButton: View {
             .padding(.top, 6)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Add Expense")
+        .accessibilityLabel(Text("floatingAdd.accessibilityLabel"))
     }
 }

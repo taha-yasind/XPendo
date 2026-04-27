@@ -46,10 +46,10 @@ struct ExpensesView: View {
             .presentationDragIndicator(.hidden)
             .presentationBackground(XPendoTheme.surfaceBackground)
         }
-        .alert("Expense could not be deleted", isPresented: deleteErrorBinding) {
-            Button("OK", role: .cancel) { }
+        .alert("expenses.alert.deleteFailed.title", isPresented: deleteErrorBinding) {
+            Button("common.ok", role: .cancel) { }
         } message: {
-            Text(deleteErrorMessage ?? "Please try again.")
+            Text(deleteErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
     }
 
@@ -59,11 +59,11 @@ struct ExpensesView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Expenses")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(XPendoTheme.primaryText)
+                Text("expenses.title")
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("Review, filter, edit, and delete your saved expenses in one place.")
+            Text("expenses.subtitle")
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
@@ -72,7 +72,7 @@ struct ExpensesView: View {
     private var filterSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Filters")
+                Text("expenses.section.filters")
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -82,7 +82,7 @@ struct ExpensesView: View {
                             viewModel.selectedTimeFilter = filter
                         } label: {
                             FilterChip(
-                                title: filter.rawValue,
+                                title: filter.title,
                                 isHighlighted: viewModel.selectedTimeFilter == filter
                             )
                         }
@@ -91,7 +91,7 @@ struct ExpensesView: View {
                 }
 
                 Menu {
-                    Button("All Categories") {
+                    Button("expenses.filter.allCategories") {
                         viewModel.selectCategory(nil)
                     }
 
@@ -99,7 +99,7 @@ struct ExpensesView: View {
                         Button {
                             viewModel.selectCategory(category)
                         } label: {
-                            Label(category.name, systemImage: category.icon)
+                            Label(CategoryLocalization.localizedName(for: category.name), systemImage: category.icon)
                         }
                     }
                 } label: {
@@ -130,15 +130,15 @@ struct ExpensesView: View {
     private var contentSection: some View {
         if expenses.isEmpty {
             ExpenseEmptyState(
-                title: "No Expenses Yet",
-                description: "Use the main add button to save your first expense. It will appear here once it is recorded.",
+                title: AppLocalization.string("expenses.empty.noExpenses.title"),
+                description: AppLocalization.string("expenses.empty.noExpenses.description"),
                 showsResetButton: false,
                 onReset: { }
             )
         } else if filteredExpenses.isEmpty {
             ExpenseEmptyState(
-                title: "No Matching Expenses",
-                description: "Try changing the current filters to see your saved expenses again.",
+                title: AppLocalization.string("expenses.empty.noMatches.title"),
+                description: AppLocalization.string("expenses.empty.noMatches.description"),
                 showsResetButton: true,
                 onReset: viewModel.resetFilters
             )
@@ -238,7 +238,7 @@ private struct ExpenseEmptyState: View {
                 title: title,
                 description: description,
                 accentColor: XPendoTheme.freshGreen,
-                actionTitle: showsResetButton ? "Reset Filters" : nil,
+                actionTitle: showsResetButton ? AppLocalization.string("expenses.button.resetFilters") : nil,
                 action: showsResetButton ? onReset : nil
             )
         }
@@ -263,11 +263,11 @@ private struct DeleteExpenseSheet: View {
                     }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Delete Expense?")
+                    Text("expenses.deleteSheet.title")
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(XPendoTheme.primaryText)
 
-                    Text("\"\(expense.title)\" will be removed permanently.")
+                    Text(AppLocalization.format("expenses.deleteSheet.message", expense.title))
                         .font(.subheadline)
                         .foregroundStyle(XPendoTheme.secondaryText)
                         .lineLimit(2)
@@ -275,7 +275,7 @@ private struct DeleteExpenseSheet: View {
             }
 
             HStack(spacing: 10) {
-                Button("Cancel", action: onCancel)
+                Button("common.cancel", action: onCancel)
                     .buttonStyle(.plain)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
@@ -283,7 +283,7 @@ private struct DeleteExpenseSheet: View {
                     .frame(height: 44)
                     .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                Button("Delete", action: onDelete)
+                Button("common.delete", action: onDelete)
                     .buttonStyle(.plain)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)

@@ -33,7 +33,8 @@ enum AppDataSeeder {
         if existingSettings.isEmpty {
             let settings = AppSettings(
                 currencyCode: defaultCurrencyCode,
-                preferredThemeCode: defaultThemeCode
+                preferredThemeCode: defaultThemeCode,
+                preferredLanguageCode: defaultLanguageCode
             )
             modelContext.insert(settings)
             return
@@ -42,6 +43,9 @@ enum AppDataSeeder {
         for settings in existingSettings {
             if settings.preferredThemeCode?.isEmpty != false {
                 settings.preferredThemeCode = defaultThemeCode
+            }
+            if settings.preferredLanguageCode?.isEmpty != false {
+                settings.preferredLanguageCode = defaultLanguageCode
             }
         }
     }
@@ -52,5 +56,9 @@ enum AppDataSeeder {
 
     private static var defaultThemeCode: String {
         PreferredTheme.system.rawValue
+    }
+
+    private static var defaultLanguageCode: String {
+        AppLanguage.resolved(from: nil).rawValue
     }
 }

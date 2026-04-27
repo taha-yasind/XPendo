@@ -23,7 +23,7 @@ final class NotificationSettingsViewModel {
         budgetWarningEnabled = settings.budgetWarningEnabled
         permissionState = await LocalNotificationManager.permissionState()
         infoMessage = permissionState == .denied
-            ? "Notification permission is denied in system settings. Xpendo cannot deliver reminders until it is re-enabled."
+            ? AppLocalization.string("settings.notifications.permission.denied.long")
             : nil
     }
 
@@ -57,7 +57,7 @@ final class NotificationSettingsViewModel {
                     permissionState = await LocalNotificationManager.permissionState()
                     settings.notificationsEnabled = granted
                     notificationsEnabled = granted
-                    infoMessage = granted ? nil : "Notification permission was not granted."
+                    infoMessage = granted ? nil : AppLocalization.string("settings.notifications.permission.notGranted")
                 } catch {
                     notificationsEnabled = false
                     settings.notificationsEnabled = false
@@ -67,13 +67,13 @@ final class NotificationSettingsViewModel {
             case .denied:
                 notificationsEnabled = false
                 settings.notificationsEnabled = false
-                infoMessage = "Notification permission is denied in system settings."
+                infoMessage = AppLocalization.string("settings.notifications.permission.denied.short")
             }
         } else {
             settings.notificationsEnabled = false
             notificationsEnabled = false
             infoMessage = permissionState == .denied
-                ? "Notification permission is denied in system settings."
+                ? AppLocalization.string("settings.notifications.permission.denied.short")
                 : nil
         }
 
@@ -131,7 +131,7 @@ final class NotificationSettingsViewModel {
         modelContext: ModelContext
     ) async {
         guard let settings else {
-            errorMessage = "App preferences are currently unavailable."
+            errorMessage = AppLocalization.string("error.preferencesUnavailable")
             return
         }
 
@@ -158,7 +158,7 @@ final class NotificationSettingsViewModel {
                     let granted = try await LocalNotificationManager.requestAuthorization()
                     permissionState = await LocalNotificationManager.permissionState()
                     resolvedNotificationsEnabled = granted
-                    infoMessage = granted ? nil : "Notification permission was not granted."
+                    infoMessage = granted ? nil : AppLocalization.string("settings.notifications.permission.notGranted")
                 } catch {
                     errorMessage = error.localizedDescription
                     restoreState(
@@ -172,10 +172,10 @@ final class NotificationSettingsViewModel {
 
             case .denied:
                 resolvedNotificationsEnabled = false
-                infoMessage = "Notification permission is denied in system settings."
+                infoMessage = AppLocalization.string("settings.notifications.permission.denied.short")
             }
         } else if permissionState == .denied {
-            infoMessage = "Notification permission is denied in system settings."
+            infoMessage = AppLocalization.string("settings.notifications.permission.denied.short")
         }
 
         let resolvedDailyReminderEnabled = resolvedNotificationsEnabled ? requestedDailyReminderEnabled : false
@@ -207,22 +207,22 @@ final class NotificationSettingsViewModel {
     var permissionStatusTitle: String {
         switch permissionState {
         case .authorized:
-            return "Authorized"
+            return AppLocalization.string("settings.notifications.status.authorized")
         case .notDetermined:
-            return "Not Requested"
+            return AppLocalization.string("settings.notifications.status.notRequested")
         case .denied:
-            return "Denied"
+            return AppLocalization.string("settings.notifications.status.denied")
         }
     }
 
     var permissionStatusDescription: String {
         switch permissionState {
         case .authorized:
-            return "Xpendo can schedule local reminders on this device."
+            return AppLocalization.string("settings.notifications.description.authorized")
         case .notDetermined:
-            return "Turn on notifications below to request permission in context."
+            return AppLocalization.string("settings.notifications.description.notRequested")
         case .denied:
-            return "Notification permission is denied. Re-enable it from the system settings if needed."
+            return AppLocalization.string("settings.notifications.description.denied")
         }
     }
 

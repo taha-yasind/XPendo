@@ -44,7 +44,7 @@ struct HomeView: View {
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text("A clean view of today, \(dashboardData.monthLabel), and your latest activity.")
+                Text(AppLocalization.format("home.header.subtitle", dashboardData.monthLabel))
                     .font(.subheadline)
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
@@ -92,7 +92,7 @@ private struct HomeOverviewCard: View {
 
                     Spacer()
 
-                    Text("Overview")
+                    Text("home.overview.pill")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -110,7 +110,7 @@ private struct HomeOverviewCard: View {
 
                 HStack(spacing: 12) {
                     HomeMetricTile(
-                        title: "Today's Spending",
+                        title: AppLocalization.string("home.tile.todaySpending"),
                         accentColor: XPendoTheme.accentTeal,
                         primaryContent: {
                             Text(CurrencyConverter.formatFromTRY(dashboard.todayTotal, to: currencyCode))
@@ -129,18 +129,18 @@ private struct HomeOverviewCard: View {
 
     private var monthDescription: String {
         if dashboard.monthExpenseCount == 0 {
-            return "No expenses recorded this month yet."
+            return AppLocalization.string("home.monthDescription.empty")
         }
 
-        return "\(dashboard.monthExpenseCount) expenses recorded this month."
+        return AppLocalization.format("home.monthDescription.count", dashboard.monthExpenseCount)
     }
 
     private var todayDescription: String {
         if dashboard.todayExpenseCount == 0 {
-            return "No expenses recorded today."
+            return AppLocalization.string("home.todayDescription.empty")
         }
 
-        return "\(dashboard.todayExpenseCount) expenses added today."
+        return AppLocalization.format("home.todayDescription.count", dashboard.todayExpenseCount)
     }
 }
 
@@ -191,7 +191,7 @@ private struct HomeTopCategoryTile: View {
 
     var body: some View {
         HomeMetricTile(
-            title: "Top Category",
+            title: AppLocalization.string("home.tile.topCategory"),
             accentColor: tileColor,
             primaryContent: {
                 if let topCategory {
@@ -206,7 +206,7 @@ private struct HomeTopCategoryTile: View {
                             }
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(topCategory.name)
+                            Text(CategoryLocalization.localizedName(for: topCategory.name))
                                 .font(.subheadline.weight(.bold))
 
                             Text(CurrencyConverter.formatFromTRY(topCategory.totalAmount, to: currencyCode))
@@ -214,12 +214,12 @@ private struct HomeTopCategoryTile: View {
                         }
                     }
                 } else {
-                    Text("Add expenses to reveal a top category")
+                    Text("home.topCategory.empty.title")
                 }
             },
             secondaryText: topCategory == nil
-                ? "Your highest spending category will appear after a few saved expenses."
-                : "Highest spending area this month."
+                ? AppLocalization.string("home.topCategory.empty.description")
+                : AppLocalization.string("home.topCategory.filled.description")
         )
     }
 
@@ -239,15 +239,15 @@ private struct HomeRecentExpensesSection: View {
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Recent Expenses")
+                Text("home.section.recentExpenses")
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
                 if expenses.isEmpty {
                     HomeInlineEmptyState(
                         systemImage: "tray",
-                        title: "No recent activity",
-                        description: "Your latest expenses will appear here after you save them."
+                        title: AppLocalization.string("home.recent.empty.title"),
+                        description: AppLocalization.string("home.recent.empty.description")
                     )
                 } else {
                     VStack(spacing: 12) {
@@ -282,7 +282,7 @@ private struct HomeRecentExpenseRow: View {
                     .foregroundStyle(XPendoTheme.primaryText)
 
                 HStack(spacing: 8) {
-                    Text(expense.category.name)
+                    Text(CategoryLocalization.localizedName(for: expense.category.name))
                     Text("•")
                     Text(expense.date.formatted(date: .abbreviated, time: .omitted))
                 }
@@ -314,7 +314,7 @@ private struct HomeBudgetPreviewSection: View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    Text("Budget Preview")
+                    Text("home.section.budgetPreview")
                         .font(.headline)
                         .foregroundStyle(XPendoTheme.primaryText)
 
@@ -327,8 +327,8 @@ private struct HomeBudgetPreviewSection: View {
                 case .empty:
                     HomeInlineEmptyState(
                         systemImage: "gauge.with.needle",
-                        title: "No monthly budgets yet",
-                        description: "This area is ready to show budget progress and warnings once monthly budgets are available."
+                        title: AppLocalization.string("home.budgetPreview.empty.title"),
+                        description: AppLocalization.string("home.budgetPreview.empty.description")
                     )
 
                 case .tracked(let status):
@@ -336,7 +336,7 @@ private struct HomeBudgetPreviewSection: View {
                         status: status,
                         currencyCode: currencyCode,
                         accentColor: Color(hexString: status.colorHex) ?? XPendoTheme.freshGreen,
-                        footerText: "\(status.trackedBudgetCount) monthly budgets are currently being tracked."
+                        footerText: AppLocalization.format("home.budgetPreview.tracked.footer", status.trackedBudgetCount)
                     )
 
                 case .warning(let status):
@@ -355,21 +355,21 @@ private struct HomeBudgetPreviewSection: View {
     private var budgetStatusPill: some View {
         switch preview {
         case .empty:
-            Text("Ready")
+            Text(AppLocalization.string("budget.status.ready"))
                 .foregroundStyle(XPendoTheme.secondaryText)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(XPendoTheme.placeholder.opacity(0.55), in: Capsule())
 
         case .tracked:
-            Text("On Track")
+            Text(AppLocalization.string("home.budget.pill.onTrack"))
                 .foregroundStyle(XPendoTheme.freshGreen)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(XPendoTheme.freshGreen.opacity(0.12), in: Capsule())
 
         case .warning:
-            Text("Warning")
+            Text(AppLocalization.string("home.budget.pill.warning"))
                 .foregroundStyle(XPendoTheme.coral)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
@@ -379,10 +379,10 @@ private struct HomeBudgetPreviewSection: View {
 
     private func warningDescription(for warningCount: Int) -> String {
         if warningCount <= 1 {
-            return "1 category is currently over its monthly limit."
+            return AppLocalization.string("home.budgetPreview.warning.single")
         }
 
-        return "\(warningCount) categories are currently over their monthly limits."
+        return AppLocalization.format("home.budgetPreview.warning.multiple", warningCount)
     }
 }
 
@@ -405,11 +405,11 @@ private struct HomeBudgetStatusCard: View {
                     }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(status.categoryName)
+                    Text(CategoryLocalization.localizedName(for: status.categoryName))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(XPendoTheme.primaryText)
 
-                    Text(status.remainingAmount >= 0 ? "Remaining budget available." : "Monthly limit exceeded.")
+                    Text(status.remainingAmount >= 0 ? AppLocalization.string("home.budget.status.remainingAvailable") : AppLocalization.string("home.budget.status.limitExceeded"))
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
                 }
@@ -419,7 +419,7 @@ private struct HomeBudgetStatusCard: View {
                 HomeBudgetProgressBar(progress: min(max(status.progress, 0), 1), accentColor: accentColor)
 
                 HStack {
-                    Text("Spent")
+                    Text("budget.spent")
                     Spacer()
                     Text(CurrencyConverter.formatFromTRY(status.spentAmount, to: currencyCode))
                 }
@@ -427,7 +427,7 @@ private struct HomeBudgetStatusCard: View {
                 .foregroundStyle(XPendoTheme.secondaryText)
 
                 HStack {
-                    Text(status.remainingAmount >= 0 ? "Remaining" : "Over by")
+                    Text(status.remainingAmount >= 0 ? AppLocalization.string("budget.remaining") : AppLocalization.string("budget.overBy"))
                     Spacer()
                     Text(CurrencyConverter.formatFromTRY(abs(status.remainingAmount), to: currencyCode))
                         .foregroundStyle(accentColor)
@@ -435,7 +435,7 @@ private struct HomeBudgetStatusCard: View {
                 .font(.caption.weight(.semibold))
 
                 HStack {
-                    Text("Limit")
+                    Text("budget.limit")
                     Spacer()
                     Text(CurrencyConverter.formatFromTRY(status.limitAmount, to: currencyCode))
                 }

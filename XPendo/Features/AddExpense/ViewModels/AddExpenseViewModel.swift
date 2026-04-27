@@ -56,25 +56,25 @@ final class AddExpenseViewModel {
         validationMessage = nil
 
         guard !categories.isEmpty else {
-            validationMessage = "At least one category is required before saving."
+            validationMessage = AppLocalization.string("addExpense.validation.categoryRequired")
             return
         }
 
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty else {
-            validationMessage = "Enter a short title for this expense."
+            validationMessage = AppLocalization.string("addExpense.validation.titleRequired")
             return
         }
 
         guard let amount = parsedAmount, amount > 0 else {
-            validationMessage = "Enter an amount greater than zero."
+            validationMessage = AppLocalization.string("addExpense.validation.amountPositive")
             return
         }
 
         let amountInTRY = CurrencyConverter.convertToTRY(amount, from: inputCurrencyCode)
 
         guard let category = selectedCategory ?? categories.first else {
-            validationMessage = "Please select a category."
+            validationMessage = AppLocalization.string("addExpense.validation.selectCategory")
             return
         }
 
@@ -110,19 +110,23 @@ final class AddExpenseViewModel {
     }
 
     var saveButtonTitle: String {
-        expenseToEdit == nil ? "Save Expense" : "Update Expense"
+        expenseToEdit == nil
+            ? AppLocalization.string("addExpense.button.save")
+            : AppLocalization.string("addExpense.button.update")
     }
 
     var screenTitle: String {
-        expenseToEdit == nil ? "Add Expense" : "Edit Expense"
+        expenseToEdit == nil
+            ? AppLocalization.string("addExpense.title.add")
+            : AppLocalization.string("addExpense.title.edit")
     }
 
     var screenSubtitle: String {
         if expenseToEdit == nil {
-            return "Create a new personal expense with a clear title, amount, date, category, and optional note."
+            return AppLocalization.string("addExpense.subtitle.add")
         }
 
-        return "Update the selected expense and save the latest details."
+        return AppLocalization.string("addExpense.subtitle.edit")
     }
 
     private var parsedAmount: Double? {

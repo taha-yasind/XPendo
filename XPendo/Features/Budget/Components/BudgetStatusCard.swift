@@ -24,7 +24,7 @@ struct BudgetStatusCard: View {
                         }
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(entry.categoryName)
+                        Text(CategoryLocalization.localizedName(for: entry.categoryName))
                             .font(.headline)
                             .foregroundStyle(XPendoTheme.primaryText)
 
@@ -45,7 +45,7 @@ struct BudgetStatusCard: View {
 
                 HStack(alignment: .bottom, spacing: 12) {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Amount")
+                        Text(AppLocalization.string("addExpense.field.amount"))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(XPendoTheme.secondaryText)
 
@@ -78,7 +78,7 @@ struct BudgetStatusCard: View {
                         .buttonStyle(.plain)
 
                         Button(action: onReset) {
-                            Text("Reset")
+                            Text(AppLocalization.string("common.reset"))
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(XPendoTheme.primaryText)
                                 .frame(width: 96, height: 34)
@@ -115,7 +115,7 @@ struct BudgetStatusCard: View {
                         )
 
                         HStack {
-                            Text("\(Int((entry.progress * 100).rounded()))% of limit used")
+                            Text(AppLocalization.format("budget.status.progressDetail", Int((entry.progress * 100).rounded())))
                             Spacer()
                             Text(CurrencyConverter.formatFromTRY(entry.limitAmount ?? 0, to: currencyCode))
                         }
@@ -132,19 +132,19 @@ struct BudgetStatusCard: View {
 
                 HStack(spacing: 12) {
                     BudgetStatColumn(
-                        title: "Spent",
+                        title: AppLocalization.string("budget.spent"),
                         value: CurrencyConverter.formatFromTRY(entry.spentAmount, to: currencyCode),
                         accentColor: statusColor
                     )
 
                     BudgetStatColumn(
-                        title: entry.isOverBudget ? "Over by" : "Remaining",
+                        title: entry.isOverBudget ? AppLocalization.string("budget.overBy") : AppLocalization.string("budget.remaining"),
                         value: remainingValue,
                         accentColor: entry.isOverBudget ? XPendoTheme.coral : XPendoTheme.freshGreen
                     )
 
                     BudgetStatColumn(
-                        title: "Limit",
+                        title: AppLocalization.string("budget.limit"),
                         value: limitValue,
                         accentColor: XPendoTheme.softPurple
                     )
@@ -155,23 +155,25 @@ struct BudgetStatusCard: View {
 
     private var statusLabel: String {
         if !entry.hasBudget {
-            return "Ready"
+            return AppLocalization.string("budget.status.ready")
         }
 
-        return entry.isOverBudget ? "Over" : "Tracked"
+        return entry.isOverBudget ? AppLocalization.string("budget.status.over") : AppLocalization.string("budget.status.tracked")
     }
 
     private var statusDescription: String {
         if !entry.hasBudget {
-            return "Set a monthly amount for this category."
+            return AppLocalization.string("budget.statusDescription.notSet")
         }
 
-        return entry.isOverBudget ? "Monthly limit exceeded" : "Budget is currently on track"
+        return entry.isOverBudget
+            ? AppLocalization.string("budget.statusDescription.exceeded")
+            : AppLocalization.string("budget.statusDescription.onTrack")
     }
 
     private var remainingValue: String {
         guard let remainingAmount = entry.remainingAmount else {
-            return "Not set"
+            return AppLocalization.string("common.notSet")
         }
 
         return CurrencyConverter.formatFromTRY(abs(remainingAmount), to: currencyCode)
@@ -179,7 +181,7 @@ struct BudgetStatusCard: View {
 
     private var limitValue: String {
         guard let limitAmount = entry.limitAmount else {
-            return "Not set"
+            return AppLocalization.string("common.notSet")
         }
 
         return CurrencyConverter.formatFromTRY(limitAmount, to: currencyCode)

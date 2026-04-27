@@ -11,11 +11,11 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .light:
-            return "Light"
+            return AppLocalization.string("theme.light")
         case .dark:
-            return "Dark"
+            return AppLocalization.string("theme.dark")
         case .system:
-            return "System"
+            return AppLocalization.string("theme.system")
         }
     }
 

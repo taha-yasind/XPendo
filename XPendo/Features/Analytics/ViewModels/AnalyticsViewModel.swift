@@ -71,7 +71,7 @@ struct AnalyticsViewModel {
 
                 return AnalyticsCategoryTotal(
                     id: firstExpense.category.id,
-                    name: firstExpense.category.name,
+                    name: CategoryLocalization.localizedName(for: firstExpense.category.name),
                     icon: firstExpense.category.icon,
                     colorHex: firstExpense.category.color,
                     totalAmount: categoryTotal,
@@ -106,7 +106,7 @@ struct AnalyticsViewModel {
     private func makeTrendRangeLabel(from monthlyTotals: [AnalyticsMonthlyTotal]) -> String {
         guard let firstMonth = monthlyTotals.first?.monthStart,
               let lastMonth = monthlyTotals.last?.monthStart else {
-            return "Last 6 Months"
+            return AppLocalization.string("analytics.trend.lastSixMonths")
         }
 
         let firstLabel = firstMonth.formatted(.dateTime.month(.abbreviated).year())

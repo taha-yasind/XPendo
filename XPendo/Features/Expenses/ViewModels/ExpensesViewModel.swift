@@ -4,11 +4,27 @@ import SwiftData
 
 @Observable
 final class ExpensesViewModel {
-    enum TimeFilter: String, CaseIterable, Identifiable {
-        case all = "All"
-        case thisMonth = "This Month"
+    enum TimeFilter: CaseIterable, Identifiable {
+        case all
+        case thisMonth
 
-        var id: String { rawValue }
+        var id: String {
+            switch self {
+            case .all:
+                return "all"
+            case .thisMonth:
+                return "thisMonth"
+            }
+        }
+
+        var title: String {
+            switch self {
+            case .all:
+                return AppLocalization.string("expenses.filter.all")
+            case .thisMonth:
+                return AppLocalization.string("expenses.filter.thisMonth")
+            }
+        }
     }
 
     var selectedTimeFilter: TimeFilter = .all
@@ -24,10 +40,14 @@ final class ExpensesViewModel {
 
     func categoryFilterTitle(from categories: [Category]) -> String {
         guard let selectedCategoryID else {
-            return "All Categories"
+            return AppLocalization.string("expenses.filter.allCategories")
         }
 
-        return categories.first(where: { $0.id == selectedCategoryID })?.name ?? "All Categories"
+        guard let categoryName = categories.first(where: { $0.id == selectedCategoryID })?.name else {
+            return AppLocalization.string("expenses.filter.allCategories")
+        }
+
+        return CategoryLocalization.localizedName(for: categoryName)
     }
 
     func selectCategory(_ category: Category?) {
