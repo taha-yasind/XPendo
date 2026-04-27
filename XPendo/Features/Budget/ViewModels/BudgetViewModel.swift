@@ -211,6 +211,15 @@ final class BudgetViewModel {
         matchingBudget(for: categoryID, in: budgets) == nil ? "Save" : "Update"
     }
 
+    func isResetEnabled(for categoryID: UUID, budgets: [Budget]) -> Bool {
+        if matchingBudget(for: categoryID, in: budgets) != nil {
+            return true
+        }
+
+        let draftAmount = draftAmount(for: categoryID).trimmingCharacters(in: .whitespacesAndNewlines)
+        return !draftAmount.isEmpty
+    }
+
     func validationMessage(for categoryID: UUID) -> String? {
         guard validationCategoryID == categoryID else {
             return nil
@@ -251,6 +260,24 @@ final class BudgetViewModel {
 
         try modelContext.save()
         draftAmountsByCategoryID[category.id] = formattedAmount(amount)
+    }
+
+    func resetBudget(
+        for categoryID: UUID,
+        in modelContext: ModelContext,
+        budgets: [Budget]
+    ) throws {
+        if let existingBudget = matchingBudget(for: categoryID, in: budgets) {
+            modelContext.delete(existingBudget)
+            try modelContext.save()
+        }
+
+        draftAmountsByCategoryID[categoryID] = ""
+
+        if validationCategoryID == categoryID {
+            validationCategoryID = nil
+            validationMessage = nil
+        }
     }
 
     private func budgetsForSelectedMonth(from budgets: [Budget]) -> [Budget] {

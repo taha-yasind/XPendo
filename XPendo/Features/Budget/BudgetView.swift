@@ -22,6 +22,8 @@ struct BudgetView: View {
 
     @State private var viewModel = BudgetViewModel()
     @State private var saveErrorMessage: String?
+    @State private var pendingResetCategoryID: UUID?
+    @State private var isResetSheetPresented = false
 
     var body: some View {
         ScrollView {
@@ -45,10 +47,28 @@ struct BudgetView: View {
         .task(id: budgetSyncKey) {
             viewModel.prepare(categories: categories, budgets: budgets, displayCurrencyCode: currencyCode)
         }
-        .alert("Budget could not be saved", isPresented: saveErrorBinding) {
+        .alert("Budget action could not be completed", isPresented: saveErrorBinding) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(saveErrorMessage ?? "Please try again.")
+        }
+        .sheet(isPresented: $isResetSheetPresented, onDismiss: {
+            pendingResetCategoryID = nil
+        }) {
+            ResetBudgetConfirmationSheet(
+                message: resetConfirmationMessage,
+                onConfirm: {
+                    isResetSheetPresented = false
+                    confirmResetBudget()
+                },
+                onCancel: {
+                    isResetSheetPresented = false
+                    pendingResetCategoryID = nil
+                }
+            )
+            .presentationDetents([.height(240)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(XPendoTheme.background)
         }
     }
 
@@ -61,7 +81,9 @@ struct BudgetView: View {
     }
 
     private var categoryEntries: [BudgetCategoryEntry] {
-        viewModel.makeCategoryEntries(categories: categories, budgets: budgets, expenses: expenses)
+        viewModel
+            .makeCategoryEntries(categories: categories, budgets: budgets, expenses: expenses)
+            .sorted(by: sortCategoryEntriesForDisplay)
     }
 
     private var budgetSyncKey: String {
@@ -112,9 +134,13 @@ struct BudgetView: View {
                             amountText: draftBinding(for: entry.categoryID),
                             currencyCode: currencyCode,
                             saveButtonTitle: viewModel.saveButtonTitle(for: entry.categoryID, budgets: budgets),
+                            isResetEnabled: viewModel.isResetEnabled(for: entry.categoryID, budgets: budgets),
                             validationMessage: viewModel.validationMessage(for: entry.categoryID),
                             onSave: {
                                 saveBudget(for: entry.categoryID)
+                            },
+                            onReset: {
+                                requestResetConfirmation(for: entry.categoryID)
                             }
                         )
                     }
@@ -146,6 +172,48 @@ struct BudgetView: View {
         }
     }
 
+    private func resetBudget(for categoryID: UUID) {
+        Task {
+            await resetBudgetFlow(for: categoryID)
+        }
+    }
+
+    private func requestResetConfirmation(for categoryID: UUID) {
+        pendingResetCategoryID = categoryID
+        isResetSheetPresented = true
+    }
+
+    private func confirmResetBudget() {
+        guard let categoryID = pendingResetCategoryID else {
+            return
+        }
+
+        pendingResetCategoryID = nil
+        resetBudget(for: categoryID)
+    }
+
+    private func sortCategoryEntriesForDisplay(_ lhs: BudgetCategoryEntry, _ rhs: BudgetCategoryEntry) -> Bool {
+        let lhsIsOther = lhs.categoryName.trimmingCharacters(in: .whitespacesAndNewlines).localizedCaseInsensitiveCompare("Other") == .orderedSame
+        let rhsIsOther = rhs.categoryName.trimmingCharacters(in: .whitespacesAndNewlines).localizedCaseInsensitiveCompare("Other") == .orderedSame
+
+        if lhsIsOther != rhsIsOther {
+            return !lhsIsOther && rhsIsOther
+        }
+
+        return lhs.categoryName.localizedCaseInsensitiveCompare(rhs.categoryName) == .orderedAscending
+    }
+
+    private var resetConfirmationMessage: String {
+        guard
+            let categoryID = pendingResetCategoryID,
+            let category = categories.first(where: { $0.id == categoryID })
+        else {
+            return "This action will clear the budget amount for this category in the selected month."
+        }
+
+        return "This action will clear the budget amount for \(category.name) in \(viewModel.selectedMonthTitle)."
+    }
+
     @MainActor
     private func saveBudgetFlow(for categoryID: UUID) async {
         guard let category = categories.first(where: { $0.id == categoryID }) else {
@@ -162,6 +230,85 @@ struct BudgetView: View {
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             saveErrorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func resetBudgetFlow(for categoryID: UUID) async {
+        do {
+            try viewModel.resetBudget(
+                for: categoryID,
+                in: modelContext,
+                budgets: budgets
+            )
+            try await NotificationSyncService.refresh(using: modelContext)
+        } catch {
+            saveErrorMessage = error.localizedDescription
+        }
+    }
+}
+
+private struct ResetBudgetConfirmationSheet: View {
+    let message: String
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            XPendoTheme.background
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Reset Budget")
+                    .font(.headline)
+                    .foregroundStyle(XPendoTheme.primaryText)
+
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+
+                HStack(spacing: 12) {
+                    Button(action: onCancel) {
+                        Text("Cancel")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.primaryText)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 46)
+                            .background(
+                                XPendoTheme.inputBackground,
+                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            )
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
+                            }
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: onConfirm) {
+                        Text("Reset")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 46)
+                            .background(
+                                XPendoTheme.coral,
+                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(18)
+            .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
+            }
+            .shadow(color: XPendoTheme.cardShadow, radius: 18, x: 0, y: 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
         }
     }
 }

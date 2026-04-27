@@ -5,8 +5,10 @@ struct BudgetStatusCard: View {
     @Binding var amountText: String
     let currencyCode: String
     let saveButtonTitle: String
+    let isResetEnabled: Bool
     let validationMessage: String?
     let onSave: () -> Void
+    let onReset: () -> Void
 
     var body: some View {
         SurfaceCard {
@@ -65,14 +67,27 @@ struct BudgetStatusCard: View {
 
                     Spacer(minLength: 0)
 
-                    Button(action: onSave) {
-                        Text(saveButtonTitle)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 96, height: 50)
-                            .background(XPendoTheme.accentTeal, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    VStack(spacing: 8) {
+                        Button(action: onSave) {
+                            Text(saveButtonTitle)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 96, height: 50)
+                                .background(XPendoTheme.accentTeal, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: onReset) {
+                            Text("Reset")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(XPendoTheme.primaryText)
+                                .frame(width: 96, height: 34)
+                                .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!isResetEnabled)
+                        .opacity(isResetEnabled ? 1 : 0.45)
                     }
-                    .buttonStyle(.plain)
                 }
 
                 if let validationMessage {
