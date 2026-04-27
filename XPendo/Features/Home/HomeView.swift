@@ -4,6 +4,8 @@ import SwiftData
 struct HomeView: View {
     let onViewAllExpenses: () -> Void
 
+    @AppStorage(AppModeStore.key) private var isDemoModeEnabled = AppModeStore.isDemoModeEnabled
+
     @Query(
         sort: [
             SortDescriptor(\Expense.date, order: .reverse),
@@ -50,9 +52,23 @@ struct HomeView: View {
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Xpendo")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundStyle(XPendoTheme.primaryText)
+                HStack(spacing: 8) {
+                    Text("Xpendo")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundStyle(XPendoTheme.primaryText)
+
+                    if isDemoModeEnabled {
+                        HStack(spacing: 5) {
+                            Image(systemName: "star.fill")
+                            Text("home.demo.badge")
+                        }
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(XPendoTheme.softPurple)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(XPendoTheme.softPurple.opacity(0.12), in: Capsule())
+                    }
+                }
 
                 Text(AppLocalization.format("home.header.subtitle", dashboardData.monthLabel))
                     .font(.subheadline)

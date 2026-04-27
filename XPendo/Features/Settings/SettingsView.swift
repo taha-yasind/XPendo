@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var notificationViewModel = NotificationSettingsViewModel()
     @State private var settingsViewModel = SettingsViewModel()
     @State private var isShowingResetSheet = false
+    @State private var isShowingDemoActivationSheet = false
     @State private var hasInitializedDraft = false
     @State private var draftNotificationsEnabled = false
     @State private var draftDailyReminderEnabled = false
@@ -53,6 +54,8 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $isShowingResetSheet) {
             ResetDataConfirmationSheet(
+                title: clearDataConfirmationTitle,
+                subtitle: "settings.utility.clear.confirm.subtitle",
                 summary: recordedDataSummary,
                 isDeleting: settingsViewModel.isResettingData,
                 onDelete: {
@@ -70,6 +73,20 @@ struct SettingsView: View {
             )
             .interactiveDismissDisabled(settingsViewModel.isResettingData)
             .presentationDetents([.height(248)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(XPendoTheme.surfaceBackground)
+        }
+        .sheet(isPresented: $isShowingDemoActivationSheet) {
+            DemoModeActivationSheet(
+                onConfirm: {
+                    settingsViewModel.setDemoModeEnabled(true)
+                    isShowingDemoActivationSheet = false
+                },
+                onCancel: {
+                    isShowingDemoActivationSheet = false
+                }
+            )
+            .presentationDetents([.height(250)])
             .presentationDragIndicator(.visible)
             .presentationBackground(XPendoTheme.surfaceBackground)
         }
@@ -248,11 +265,36 @@ struct SettingsView: View {
                     description: "Use this only when you want a clean slate for recorded expenses and monthly budgets."
                 )
 
+                NotificationToggleRow(
+                    title: "settings.demo.toggle.title",
+                    subtitle: "settings.demo.toggle.subtitle",
+                    icon: "wand.and.stars",
+                    isOn: demoModeBinding,
+                    isDisabled: settingsViewModel.isBusy
+                )
+
+                Button {
+                    Task {
+                        await settingsViewModel.loadDemoData(modelContext: modelContext)
+                    }
+                } label: {
+                    SettingsActionRow(
+                        title: "settings.demo.load.title",
+                        subtitle: "settings.demo.load.subtitle",
+                        icon: "tray.and.arrow.down.fill",
+                        accentColor: XPendoTheme.softPurple,
+                        actionTitle: "settings.demo.load.action"
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(demoDataControlsDisabled)
+                .opacity(demoDataControlsDisabled ? 0.58 : 1)
+
                 Button {
                     isShowingResetSheet = true
                 } label: {
                     SettingsActionRow(
-                        title: "Clear Recorded Data",
+                        title: clearDataActionTitle,
                         subtitle: recordedDataSummary,
                         icon: "trash.fill",
                         accentColor: XPendoTheme.coral,
@@ -364,6 +406,22 @@ struct SettingsView: View {
 
     private var hasRecordedData: Bool {
         !expenses.isEmpty || !budgets.isEmpty
+    }
+
+    private var isDemoModeActive: Bool {
+        settingsViewModel.isDemoModeEnabled
+    }
+
+    private var demoDataControlsDisabled: Bool {
+        !isDemoModeActive || settingsViewModel.isBusy
+    }
+
+    private var clearDataActionTitle: String {
+        isDemoModeActive ? "settings.utility.clear.demo.title" : "settings.utility.clear.standard.title"
+    }
+
+    private var clearDataConfirmationTitle: String {
+        isDemoModeActive ? "settings.utility.clear.demo.confirm.title" : "settings.utility.clear.standard.confirm.title"
     }
 
     private var recordedDataSummary: String {
@@ -480,6 +538,21 @@ struct SettingsView: View {
         Binding(
             get: { PreferredTheme.resolved(from: draftThemeCode) },
             set: { draftThemeCode = $0.rawValue }
+        )
+    }
+
+    private var demoModeBinding: Binding<Bool> {
+        Binding(
+            get: { settingsViewModel.isDemoModeEnabled },
+            set: { isEnabled in
+                if isEnabled {
+                    if !settingsViewModel.isDemoModeEnabled {
+                        isShowingDemoActivationSheet = true
+                    }
+                } else {
+                    settingsViewModel.setDemoModeEnabled(false)
+                }
+            }
         )
     }
 }
@@ -732,6 +805,8 @@ private struct NotificationToggleRow: View {
 }
 
 private struct ResetDataConfirmationSheet: View {
+    let title: String
+    let subtitle: String
     let summary: String
     let isDeleting: Bool
     let onDelete: () -> Void
@@ -749,11 +824,11 @@ private struct ResetDataConfirmationSheet: View {
                     }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Clear Recorded Data?")
+                    Text(LocalizedStringKey(title))
                         .font(.headline)
                         .foregroundStyle(XPendoTheme.primaryText)
 
-                    Text("This action cannot be undone.")
+                    Text(LocalizedStringKey(subtitle))
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
                 }
@@ -790,6 +865,64 @@ private struct ResetDataConfirmationSheet: View {
                 .buttonStyle(.plain)
                 .disabled(isDeleting)
                 .opacity(isDeleting ? 0.7 : 1)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(XPendoTheme.surfaceBackground)
+    }
+}
+
+private struct DemoModeActivationSheet: View {
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(XPendoTheme.softPurple.opacity(0.12))
+                    .frame(width: 48, height: 48)
+                    .overlay {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(XPendoTheme.softPurple)
+                    }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("settings.demo.confirm.title")
+                        .font(.headline)
+                        .foregroundStyle(XPendoTheme.primaryText)
+
+                    Text("settings.demo.confirm.subtitle")
+                        .font(.caption)
+                        .foregroundStyle(XPendoTheme.secondaryText)
+                }
+            }
+
+            Text("settings.demo.confirm.description")
+                .font(.subheadline)
+                .foregroundStyle(XPendoTheme.secondaryText)
+
+            HStack(spacing: 12) {
+                Button(action: onCancel) {
+                    Text("common.cancel")
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                Button(action: onConfirm) {
+                    Text("settings.demo.confirm.action")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(XPendoTheme.softPurple, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 20)

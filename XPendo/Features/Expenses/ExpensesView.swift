@@ -17,11 +17,13 @@ struct ExpensesView: View {
     @State private var deleteErrorMessage: String?
 
     var body: some View {
+        let filtered = filteredExpenses
+
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 headerSection
                 filterSection
-                contentSection
+                contentSection(filteredExpenses: filtered)
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -76,19 +78,38 @@ struct ExpensesView: View {
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                HStack(spacing: 10) {
+                Menu {
                     ForEach(ExpensesViewModel.TimeFilter.allCases) { filter in
                         Button {
                             viewModel.selectedTimeFilter = filter
                         } label: {
-                            FilterChip(
-                                title: filter.title,
-                                isHighlighted: viewModel.selectedTimeFilter == filter
-                            )
+                            if viewModel.selectedTimeFilter == filter {
+                                Label(filter.title, systemImage: "checkmark")
+                            } else {
+                                Text(filter.title)
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "calendar.badge.clock")
+                            .foregroundStyle(XPendoTheme.accentTeal)
+
+                        Text(viewModel.selectedTimeFilter.title)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.primaryText)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.secondaryText)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
+                .buttonStyle(.plain)
 
                 Menu {
                     Button("expenses.filter.allCategories") {
@@ -127,7 +148,7 @@ struct ExpensesView: View {
     }
 
     @ViewBuilder
-    private var contentSection: some View {
+    private func contentSection(filteredExpenses: [Expense]) -> some View {
         if expenses.isEmpty {
             ExpenseEmptyState(
                 title: AppLocalization.string("expenses.empty.noExpenses.title"),
@@ -143,7 +164,7 @@ struct ExpensesView: View {
                 onReset: viewModel.resetFilters
             )
         } else {
-            VStack(spacing: 16) {
+            LazyVStack(spacing: 16) {
                 ForEach(filteredExpenses) { expense in
                     ExpenseRowCard(
                         expense: expense,
@@ -206,23 +227,6 @@ struct ExpensesView: View {
             .modelContainer(XPendoModelContainer.shared)
     }
     .background(XPendoTheme.background)
-}
-
-private struct FilterChip: View {
-    let title: String
-    var isHighlighted: Bool = false
-
-    var body: some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(isHighlighted ? .white : XPendoTheme.primaryText)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .background(
-                isHighlighted ? XPendoTheme.accentTeal : XPendoTheme.placeholder.opacity(0.55),
-                in: Capsule()
-            )
-    }
 }
 
 private struct ExpenseEmptyState: View {

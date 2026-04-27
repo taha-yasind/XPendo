@@ -1,20 +1,9 @@
 import SwiftData
 
 enum XPendoModelContainer {
-    static let shared: ModelContainer = {
-        do {
-            return try makeContainer(isStoredInMemoryOnly: false)
-        } catch {
-            print("XPendo persistent container could not be created: \(error)")
-            print("XPendo is falling back to an in-memory store so the app can still launch.")
-
-            do {
-                return try makeContainer(isStoredInMemoryOnly: true)
-            } catch {
-                fatalError("Failed to set up any SwiftData container: \(error)")
-            }
-        }
-    }()
+    static let standard: ModelContainer = makePersistentContainer(for: .standard)
+    static let demo: ModelContainer = makePersistentContainer(for: .demo)
+    static let shared: ModelContainer = standard
 
     private static let schema = Schema([
         Expense.self,
@@ -23,8 +12,33 @@ enum XPendoModelContainer {
         AppSettings.self
     ])
 
-    private static func makeContainer(isStoredInMemoryOnly: Bool) throws -> ModelContainer {
+    static func container(for mode: AppDataMode) -> ModelContainer {
+        switch mode {
+        case .standard:
+            return standard
+        case .demo:
+            return demo
+        }
+    }
+
+    private static func makePersistentContainer(for mode: AppDataMode) -> ModelContainer {
+        do {
+            return try makeContainer(for: mode, isStoredInMemoryOnly: false)
+        } catch {
+            print("XPendo \(mode.configurationName) container could not be created: \(error)")
+            print("XPendo is falling back to an in-memory store so the app can still launch.")
+
+            do {
+                return try makeContainer(for: mode, isStoredInMemoryOnly: true)
+            } catch {
+                fatalError("Failed to set up \(mode.configurationName) container: \(error)")
+            }
+        }
+    }
+
+    private static func makeContainer(for mode: AppDataMode, isStoredInMemoryOnly: Bool) throws -> ModelContainer {
         let configuration = ModelConfiguration(
+            mode.configurationName,
             schema: schema,
             isStoredInMemoryOnly: isStoredInMemoryOnly
         )

@@ -47,6 +47,8 @@ final class SettingsViewModel {
     var errorMessage: String?
     var isUpdatingPreferences = false
     var isResettingData = false
+    var isProcessingDemoData = false
+    var isDemoModeEnabled = AppModeStore.isDemoModeEnabled
 
     let currencyOptions: [CurrencyOption]
     let themeOptions: [ThemeOption]
@@ -160,6 +162,73 @@ final class SettingsViewModel {
         }
     }
 
+    func setDemoModeEnabled(_ isEnabled: Bool) {
+        isDemoModeEnabled = isEnabled
+        AppModeStore.setDemoModeEnabled(isEnabled)
+    }
+
+    func loadDemoData(modelContext: ModelContext) async {
+        errorMessage = nil
+        utilityMessage = nil
+        isProcessingDemoData = true
+        defer { isProcessingDemoData = false }
+
+        do {
+            let result = try DemoDataSeeder.loadDemoData(in: modelContext)
+            setDemoModeEnabled(true)
+            try await NotificationSyncService.refresh(using: modelContext)
+
+            utilityMessage = UtilityMessage(
+                text: AppLocalization.format(
+                    "settings.demo.message.loaded",
+                    result.expenseCount,
+                    result.budgetCount
+                ),
+                tone: .success
+            )
+        } catch let error as DemoDataSeeder.DemoDataError {
+            switch error {
+            case .existingData:
+                utilityMessage = UtilityMessage(
+                    text: AppLocalization.string("settings.demo.message.requiresEmptyState"),
+                    tone: .info
+                )
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func clearDemoData(modelContext: ModelContext) async {
+        errorMessage = nil
+        utilityMessage = nil
+        isProcessingDemoData = true
+        defer { isProcessingDemoData = false }
+
+        do {
+            let result = try DemoDataSeeder.clearDemoData(in: modelContext)
+            try await NotificationSyncService.refresh(using: modelContext)
+
+            if result.expenseCount == 0 && result.budgetCount == 0 {
+                utilityMessage = UtilityMessage(
+                    text: AppLocalization.string("settings.demo.message.noDemoData"),
+                    tone: .info
+                )
+            } else {
+                utilityMessage = UtilityMessage(
+                    text: AppLocalization.format(
+                        "settings.demo.message.cleared",
+                        result.expenseCount,
+                        result.budgetCount
+                    ),
+                    tone: .success
+                )
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     var selectedCurrencyName: String {
         currencyName(for: currencyCode)
     }
@@ -179,7 +248,7 @@ final class SettingsViewModel {
     }
 
     var isBusy: Bool {
-        isUpdatingPreferences || isResettingData
+        isUpdatingPreferences || isResettingData || isProcessingDemoData
     }
 
     func currencyName(for code: String) -> String {
@@ -213,4 +282,5 @@ final class SettingsViewModel {
             LanguageOption(language: language)
         }
     }
+
 }

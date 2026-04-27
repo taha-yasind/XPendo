@@ -56,6 +56,11 @@
 "expenses.section.filters" = "Filtreler";
 "expenses.filter.all" = "Tümü";
 "expenses.filter.thisMonth" = "Bu Ay";
+"expenses.filter.lastMonth" = "Geçen Ay";
+"expenses.filter.last3Months" = "Son 3 Ay";
+"expenses.filter.last6Months" = "Son 6 Ay";
+"expenses.filter.last1Year" = "Son 1 Yıl";
+"expenses.filter.last2Years" = "Son 2 Yıl";
 "expenses.filter.allCategories" = "Tüm Kategoriler";
 "expenses.empty.noExpenses.title" = "Henüz Harcama Yok";
 "expenses.empty.noExpenses.description" = "İlk harcamanızı kaydetmek için ana ekle düğmesini kullanın. Kaydedildiğinde burada görünür.";
@@ -114,6 +119,7 @@
 "home.budget.status.limitExceeded" = "Aylık limit aşıldı.";
 "home.budget.pill.onTrack" = "Takipte";
 "home.budget.pill.warning" = "Uyarı";
+"home.demo.badge" = "DEMO";
 
 "analytics.trend.lastSixMonths" = "Son 6 Ay";
 "analytics.header.title" = "Analiz";
@@ -147,6 +153,27 @@
 "settings.count.expense.plural" = "harcama";
 "settings.count.budget.singular" = "bütçe kaydı";
 "settings.count.budget.plural" = "bütçe kaydı";
+"settings.demo.toggle.title" = "Demo Modu";
+"settings.demo.toggle.subtitle" = "Sunum modunu etkinleştirin ve demo işlemlerini aktif tutun.";
+"settings.demo.load.title" = "Demo Verisini Yükle";
+"settings.demo.load.subtitle" = "Ana Sayfa, Bütçe ve Analiz ekranları için hazır bir veri seti oluşturur.";
+"settings.demo.load.action" = "Yükle";
+"settings.demo.clear.title" = "Demo Verisini Temizle";
+"settings.demo.clear.subtitle" = "Yalnızca demo yükleyici tarafından oluşturulan demo etiketli kayıtları kaldırır.";
+"settings.demo.clear.action" = "Temizle";
+"settings.demo.message.loaded" = "Demo verisi yüklendi: %d harcama ve %d bütçe kaydı eklendi.";
+"settings.demo.message.cleared" = "Demo verisi temizlendi: %d harcama ve %d bütçe kaydı kaldırıldı.";
+"settings.demo.message.noDemoData" = "Temizlenecek demo verisi bulunamadı.";
+"settings.demo.message.requiresEmptyState" = "Demo verisi yalnızca harcama ve bütçe kaydı yokken yüklenebilir. Önce Kayıtlı Verileri Temizle seçeneğini kullanın.";
+"settings.demo.confirm.title" = "Demo Modu Etkinleştirilsin mi?";
+"settings.demo.confirm.subtitle" = "İzole bir demo veri alanına geçiş yapıyorsunuz.";
+"settings.demo.confirm.description" = "Standart mod kayıtlarınız korunur. Demo modunda demo verisini yükleyip temizleyebilir, kişisel kayıtlarınızı etkilemezsiniz.";
+"settings.demo.confirm.action" = "Demo Modunu Aç";
+"settings.utility.clear.standard.title" = "Standart Mod Verilerini Temizle";
+"settings.utility.clear.demo.title" = "Demo Modu Verilerini Temizle";
+"settings.utility.clear.standard.confirm.title" = "Standart Mod Verileri Temizlensin mi?";
+"settings.utility.clear.demo.confirm.title" = "Demo Modu Verileri Temizlensin mi?";
+"settings.utility.clear.confirm.subtitle" = "Bu işlem geri alınamaz.";
 
 "settings.notifications.permission.denied.long" = "Bildirim izni sistem ayarlarında kapalı. Yeniden etkinleştirilene kadar Xpendo hatırlatma gönderemez.";
 "settings.notifications.permission.denied.short" = "Bildirim izni sistem ayarlarında kapalı.";

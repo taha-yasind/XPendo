@@ -56,6 +56,11 @@
 "expenses.section.filters" = "Filters";
 "expenses.filter.all" = "All";
 "expenses.filter.thisMonth" = "This Month";
+"expenses.filter.lastMonth" = "Last Month";
+"expenses.filter.last3Months" = "Last 3 Months";
+"expenses.filter.last6Months" = "Last 6 Months";
+"expenses.filter.last1Year" = "Last 1 Year";
+"expenses.filter.last2Years" = "Last 2 Years";
 "expenses.filter.allCategories" = "All Categories";
 "expenses.empty.noExpenses.title" = "No Expenses Yet";
 "expenses.empty.noExpenses.description" = "Use the main add button to save your first expense. It will appear here once it is recorded.";
@@ -114,6 +119,7 @@
 "home.budget.status.limitExceeded" = "Monthly limit exceeded.";
 "home.budget.pill.onTrack" = "On Track";
 "home.budget.pill.warning" = "Warning";
+"home.demo.badge" = "DEMO";
 
 "analytics.trend.lastSixMonths" = "Last 6 Months";
 "analytics.header.title" = "Analytics";
@@ -147,6 +153,27 @@
 "settings.count.expense.plural" = "expenses";
 "settings.count.budget.singular" = "budget entry";
 "settings.count.budget.plural" = "budget entries";
+"settings.demo.toggle.title" = "Demo Mode";
+"settings.demo.toggle.subtitle" = "Enable presentation mode and keep demo actions active.";
+"settings.demo.load.title" = "Load Demo Data";
+"settings.demo.load.subtitle" = "Creates a prepared data set for Home, Budget, and Analytics screens.";
+"settings.demo.load.action" = "Load";
+"settings.demo.clear.title" = "Clear Demo Data";
+"settings.demo.clear.subtitle" = "Removes only demo-tagged records created by the demo loader.";
+"settings.demo.clear.action" = "Clear";
+"settings.demo.message.loaded" = "Demo data loaded: %d expenses and %d budget entries were added.";
+"settings.demo.message.cleared" = "Demo data cleared: %d expenses and %d budget entries were removed.";
+"settings.demo.message.noDemoData" = "No demo data was found to clear.";
+"settings.demo.message.requiresEmptyState" = "Demo data can only be loaded when no expense or budget records exist. Use Clear Recorded Data first.";
+"settings.demo.confirm.title" = "Enable Demo Mode?";
+"settings.demo.confirm.subtitle" = "You are switching to an isolated demo data space.";
+"settings.demo.confirm.description" = "Your standard mode records stay untouched. In demo mode, you can load and clear demo data without affecting your personal records.";
+"settings.demo.confirm.action" = "Enable Demo";
+"settings.utility.clear.standard.title" = "Clear Standard Mode Data";
+"settings.utility.clear.demo.title" = "Clear Demo Mode Data";
+"settings.utility.clear.standard.confirm.title" = "Clear Standard Mode Data?";
+"settings.utility.clear.demo.confirm.title" = "Clear Demo Mode Data?";
+"settings.utility.clear.confirm.subtitle" = "This action cannot be undone.";
 
 "settings.notifications.permission.denied.long" = "Notification permission is denied in system settings. Xpendo cannot deliver reminders until it is re-enabled.";
 "settings.notifications.permission.denied.short" = "Notification permission is denied in system settings.";

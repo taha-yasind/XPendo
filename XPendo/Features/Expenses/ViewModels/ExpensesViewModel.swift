@@ -7,6 +7,11 @@ final class ExpensesViewModel {
     enum TimeFilter: CaseIterable, Identifiable {
         case all
         case thisMonth
+        case lastMonth
+        case last3Months
+        case last6Months
+        case last1Year
+        case last2Years
 
         var id: String {
             switch self {
@@ -14,6 +19,16 @@ final class ExpensesViewModel {
                 return "all"
             case .thisMonth:
                 return "thisMonth"
+            case .lastMonth:
+                return "lastMonth"
+            case .last3Months:
+                return "last3Months"
+            case .last6Months:
+                return "last6Months"
+            case .last1Year:
+                return "last1Year"
+            case .last2Years:
+                return "last2Years"
             }
         }
 
@@ -23,6 +38,16 @@ final class ExpensesViewModel {
                 return AppLocalization.string("expenses.filter.all")
             case .thisMonth:
                 return AppLocalization.string("expenses.filter.thisMonth")
+            case .lastMonth:
+                return AppLocalization.string("expenses.filter.lastMonth")
+            case .last3Months:
+                return AppLocalization.string("expenses.filter.last3Months")
+            case .last6Months:
+                return AppLocalization.string("expenses.filter.last6Months")
+            case .last1Year:
+                return AppLocalization.string("expenses.filter.last1Year")
+            case .last2Years:
+                return AppLocalization.string("expenses.filter.last2Years")
             }
         }
     }
@@ -78,12 +103,46 @@ final class ExpensesViewModel {
     }
 
     private func matchesTimeFilter(_ expense: Expense) -> Bool {
+        let calendar = Calendar.current
+        let now = Date()
+
         switch selectedTimeFilter {
         case .all:
             return true
         case .thisMonth:
-            return Calendar.current.isDate(expense.date, equalTo: .now, toGranularity: .month)
+            return calendar.isDate(expense.date, equalTo: now, toGranularity: .month)
+        case .lastMonth:
+            guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: now) else {
+                return false
+            }
+            return calendar.isDate(expense.date, equalTo: previousMonth, toGranularity: .month)
+        case .last3Months:
+            return isDate(expense.date, inLastMonths: 3, now: now, calendar: calendar)
+        case .last6Months:
+            return isDate(expense.date, inLastMonths: 6, now: now, calendar: calendar)
+        case .last1Year:
+            return isDate(expense.date, inLastMonths: 12, now: now, calendar: calendar)
+        case .last2Years:
+            return isDate(expense.date, inLastMonths: 24, now: now, calendar: calendar)
         }
+    }
+
+    private func isDate(
+        _ date: Date,
+        inLastMonths monthCount: Int,
+        now: Date,
+        calendar: Calendar
+    ) -> Bool {
+        guard monthCount > 0 else {
+            return false
+        }
+
+        let currentMonthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
+        guard let rangeStart = calendar.date(byAdding: .month, value: -(monthCount - 1), to: currentMonthStart) else {
+            return false
+        }
+
+        return date >= rangeStart && date <= now
     }
 
     private func matchesCategoryFilter(_ expense: Expense) -> Bool {
