@@ -103,6 +103,7 @@
 "home.section.recentExpenses" = "Recent Expenses";
 "home.recent.empty.title" = "No recent activity";
 "home.recent.empty.description" = "Your latest expenses will appear here after you save them.";
+"home.recent.viewAll" = "View All";
 "home.section.budgetPreview" = "Budget Preview";
 "home.budgetPreview.empty.title" = "No monthly budgets yet";
 "home.budgetPreview.empty.description" = "This area is ready to show budget progress and warnings once monthly budgets are available.";

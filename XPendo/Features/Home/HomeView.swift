@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
+    let onViewAllExpenses: () -> Void
+
     @Query(
         sort: [
             SortDescriptor(\Expense.date, order: .reverse),
@@ -13,12 +15,20 @@ struct HomeView: View {
 
     private let viewModel = HomeViewModel()
 
+    init(onViewAllExpenses: @escaping () -> Void = {}) {
+        self.onViewAllExpenses = onViewAllExpenses
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 headerSection
                 HomeOverviewCard(dashboard: dashboardData, currencyCode: currencyCode)
-                HomeRecentExpensesSection(expenses: dashboardData.recentExpenses, currencyCode: currencyCode)
+                HomeRecentExpensesSection(
+                    expenses: dashboardData.recentExpenses,
+                    currencyCode: currencyCode,
+                    onViewAll: onViewAllExpenses
+                )
                 HomeBudgetPreviewSection(preview: dashboardData.budgetPreview, currencyCode: currencyCode)
             }
             .padding(.horizontal, 20)
@@ -235,13 +245,28 @@ private struct HomeTopCategoryTile: View {
 private struct HomeRecentExpensesSection: View {
     let expenses: [Expense]
     let currencyCode: String
+    let onViewAll: () -> Void
 
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
-                Text("home.section.recentExpenses")
-                    .font(.headline)
-                    .foregroundStyle(XPendoTheme.primaryText)
+                HStack {
+                    Text("home.section.recentExpenses")
+                        .font(.headline)
+                        .foregroundStyle(XPendoTheme.primaryText)
+
+                    Spacer()
+
+                    Button(action: onViewAll) {
+                        Text(AppLocalization.string("home.recent.viewAll"))
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(XPendoTheme.accentTeal)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(XPendoTheme.accentTeal.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 if expenses.isEmpty {
                     HomeInlineEmptyState(

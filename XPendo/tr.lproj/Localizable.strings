@@ -103,6 +103,7 @@
 "home.section.recentExpenses" = "Son Harcamalar";
 "home.recent.empty.title" = "Son işlem yok";
 "home.recent.empty.description" = "Kaydettiğiniz son harcamalar burada görünecek.";
+"home.recent.viewAll" = "Tümünü Görüntüle";
 "home.section.budgetPreview" = "Bütçe Önizleme";
 "home.budgetPreview.empty.title" = "Henüz aylık bütçe yok";
 "home.budgetPreview.empty.description" = "Aylık bütçeler hazır olduğunda bütçe ilerlemesi ve uyarılar burada gösterilir.";
