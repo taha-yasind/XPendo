@@ -13,6 +13,7 @@ struct AddExpenseView: View {
     @FocusState private var focusedField: Field?
     @State private var viewModel: AddExpenseViewModel
     @State private var saveErrorMessage: String?
+    @State private var isShowingReceiptScanner = false
 
     init(expenseToEdit: Expense? = nil) {
         self.expenseToEdit = expenseToEdit
@@ -27,6 +28,10 @@ struct AddExpenseView: View {
 
                 if let validationMessage = viewModel.validationMessage {
                     ValidationBanner(message: validationMessage)
+                }
+
+                if let receiptScanMessage = viewModel.receiptScanMessage {
+                    ReceiptSuggestionBanner(message: receiptScanMessage)
                 }
 
                 saveSection
@@ -44,6 +49,14 @@ struct AddExpenseView: View {
         } message: {
             Text(saveErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
+        .sheet(isPresented: $isShowingReceiptScanner) {
+            ReceiptScannerView { result in
+                viewModel.applyReceiptScanResult(result, categories: categories)
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(XPendoTheme.background)
+        }
     }
 
     private var headerSection: some View {
@@ -59,6 +72,25 @@ struct AddExpenseView: View {
             }
 
             Spacer()
+
+            if expenseToEdit == nil {
+                Button {
+                    focusedField = nil
+                    isShowingReceiptScanner = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.headline)
+                        .foregroundStyle(XPendoTheme.accentTeal)
+                        .frame(width: 44, height: 44)
+                        .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(XPendoTheme.cardBorder, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(AppLocalization.string("receiptScan.accessibility.open"))
+            }
 
             Button {
                 dismiss()
@@ -295,6 +327,29 @@ struct AddExpenseView: View {
 #Preview {
     AddExpenseView()
         .modelContainer(XPendoModelContainer.shared)
+}
+
+private struct ReceiptSuggestionBanner: View {
+    let message: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(XPendoTheme.accentTeal)
+
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(XPendoTheme.primaryText)
+
+            Spacer()
+        }
+        .padding(16)
+        .background(XPendoTheme.surfaceBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(XPendoTheme.accentTeal.opacity(0.18), lineWidth: 1)
+        }
+    }
 }
 
 private struct LabeledField<Content: View>: View {

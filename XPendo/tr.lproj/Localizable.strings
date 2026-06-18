@@ -255,3 +255,20 @@
 "Monthly Trend" = "Aylık Eğilim";
 "Six-month view anchored to your latest recorded expense month." = "En son kaydedilen harcama ayına göre son altı ay görünümü.";
 "%@ reached %@." = "%@ ayında %@ harcandı.";
+
+"receiptScan.accessibility.open" = "Fiş tara";
+"receiptScan.navigationTitle" = "Fiş Tarama";
+"receiptScan.title" = "Fiş Tarama Asistanı";
+"receiptScan.description" = "Harcama detaylarını önermek için fiş fotoğrafı çekin veya görsel seçin. Kaydetmeden önce yine siz kontrol edersiniz.";
+"receiptScan.camera.title" = "Fiş Fotoğrafı Çek";
+"receiptScan.camera.subtitle" = "Gerçek cihazda kamerayı kullanır.";
+"receiptScan.camera.unavailableSubtitle" = "Simülatörde kamera kullanılamaz. Aşağıdan fiş görseli seçin.";
+"receiptScan.photo.title" = "Fiş Görseli Seç";
+"receiptScan.photo.subtitle" = "Kayıtlı bir görsel kullanır, simülatörde faydalıdır.";
+"receiptScan.processing" = "Fiş metni okunuyor...";
+"receiptScan.success" = "Fiş değerleri öneri olarak uygulandı.";
+"receiptScan.reviewWarning" = "Taranan değerler öneridir. Kaydetmeden önce lütfen kontrol edin.";
+"receiptScan.error.imageUnavailable" = "Seçilen görsel okunamadı.";
+"receiptScan.error.noTextDetected" = "Okunabilir metin bulunamadı. Manuel devam edebilirsiniz.";
+"receiptScan.error.cameraDenied" = "Kamera erişimi reddedildi. Bunun yerine fiş görseli seçebilirsiniz.";
+"receiptScan.error.cameraUnavailable" = "Bu cihazda kamera kullanılamıyor.";

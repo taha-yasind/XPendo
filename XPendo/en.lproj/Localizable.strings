@@ -255,3 +255,20 @@
 "Monthly Trend" = "Monthly Trend";
 "Six-month view anchored to your latest recorded expense month." = "Six-month view anchored to your latest recorded expense month.";
 "%@ reached %@." = "%@ reached %@.";
+
+"receiptScan.accessibility.open" = "Scan receipt";
+"receiptScan.navigationTitle" = "Receipt Scan";
+"receiptScan.title" = "Receipt Scan Assistant";
+"receiptScan.description" = "Scan or select a receipt image to suggest expense details. You still review and save manually.";
+"receiptScan.camera.title" = "Take Receipt Photo";
+"receiptScan.camera.subtitle" = "Use the camera on a real device.";
+"receiptScan.camera.unavailableSubtitle" = "Camera is not available in Simulator. Choose a receipt image below.";
+"receiptScan.photo.title" = "Choose Receipt Image";
+"receiptScan.photo.subtitle" = "Use a saved image, useful on Simulator.";
+"receiptScan.processing" = "Reading receipt text...";
+"receiptScan.success" = "Receipt values were applied as suggestions.";
+"receiptScan.reviewWarning" = "Scanned values are suggestions. Please review before saving.";
+"receiptScan.error.imageUnavailable" = "The selected image could not be read.";
+"receiptScan.error.noTextDetected" = "No readable text was detected. You can continue manually.";
+"receiptScan.error.cameraDenied" = "Camera access is denied. You can choose a receipt image instead.";
+"receiptScan.error.cameraUnavailable" = "Camera is unavailable on this device.";

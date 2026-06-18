@@ -13,6 +13,7 @@ final class AddExpenseViewModel {
     var selectedCategory: Category?
     var note = ""
     var validationMessage: String?
+    var receiptScanMessage: String?
 
     init(expenseToEdit: Expense? = nil) {
         self.expenseToEdit = expenseToEdit
@@ -107,6 +108,38 @@ final class AddExpenseViewModel {
         }
 
         try modelContext.save()
+    }
+
+    func applyReceiptScanResult(
+        _ result: ReceiptScanResult,
+        categories: [Category]
+    ) {
+        if let scannedTitle = result.title?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !scannedTitle.isEmpty {
+            title = scannedTitle
+        }
+
+        if let amount = result.amount, amount > 0 {
+            amountText = Self.amountFormatter.string(from: NSNumber(value: amount)) ?? String(amount)
+        }
+
+        if let scannedDate = result.date {
+            date = scannedDate
+        }
+
+        if let categoryName = result.categoryName,
+           let matchedCategory = categories.first(where: { $0.name.localizedCaseInsensitiveCompare(categoryName) == .orderedSame }) {
+            selectedCategory = matchedCategory
+        } else if let otherCategory = categories.first(where: { CategoryLocalization.isOther($0.name) }) {
+            selectedCategory = otherCategory
+        }
+
+        if let scannedNote = result.note, !scannedNote.isEmpty, note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            note = scannedNote
+        }
+
+        receiptScanMessage = AppLocalization.string("receiptScan.reviewWarning")
+        validationMessage = nil
     }
 
     var saveButtonTitle: String {
