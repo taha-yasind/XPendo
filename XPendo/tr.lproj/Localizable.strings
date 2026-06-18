@@ -272,3 +272,21 @@
 "receiptScan.error.noTextDetected" = "Okunabilir metin bulunamadı. Manuel devam edebilirsiniz.";
 "receiptScan.error.cameraDenied" = "Kamera erişimi reddedildi. Bunun yerine fiş görseli seçebilirsiniz.";
 "receiptScan.error.cameraUnavailable" = "Bu cihazda kamera kullanılamıyor.";
+
+"onboarding_welcome_title" = "Xpendo’ya Hoş Geldin";
+"onboarding_welcome_description" = "Günlük harcamalarını sade ve düzenli bir şekilde takip et.";
+"onboarding_track_title" = "Harcamalarını Kolayca Takip Et";
+"onboarding_track_description" = "Harcamalarını hızlıca ekle, kategorilere ayır ve işlemlerini istediğin zaman incele.";
+"onboarding_receipt_title" = "Fişleri Tara";
+"onboarding_receipt_description" = "Fiş tarama ile harcama bilgilerini daha hızlı doldur. Kaydetmeden önce önerileri kontrol et.";
+"onboarding_analytics_title" = "Harcama Alışkanlıklarını Anla";
+"onboarding_analytics_description" = "Grafikler ve özetlerle paranı her ay nerelere harcadığını gör.";
+"onboarding_budget_title" = "Bütçeni Kontrol Altında Tut";
+"onboarding_budget_description" = "Kategori bazlı bütçeler belirle ve limit aşımını erken fark et.";
+"onboarding_next" = "İleri";
+"onboarding_get_started" = "Başla";
+"onboarding_done" = "Tamam";
+"settings_show_onboarding_again" = "Onboarding’i Tekrar Göster";
+"settings_show_onboarding_again_subtitle" = "Xpendo’nun ana özelliklerini ve fiş tarama akışını tekrar inceleyin.";
+"settings_show_onboarding_again_action" = "Göster";
+"common.close" = "Kapat";

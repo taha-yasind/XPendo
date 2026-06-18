@@ -272,3 +272,21 @@
 "receiptScan.error.noTextDetected" = "No readable text was detected. You can continue manually.";
 "receiptScan.error.cameraDenied" = "Camera access is denied. You can choose a receipt image instead.";
 "receiptScan.error.cameraUnavailable" = "Camera is unavailable on this device.";
+
+"onboarding_welcome_title" = "Welcome to Xpendo";
+"onboarding_welcome_description" = "Take control of your daily expenses with a simple and clean tracker.";
+"onboarding_track_title" = "Track Expenses Easily";
+"onboarding_track_description" = "Add expenses quickly, organize them by category, and review your transactions anytime.";
+"onboarding_receipt_title" = "Scan Receipts";
+"onboarding_receipt_description" = "Use receipt scanning to suggest expense details faster. Review the suggestions before saving.";
+"onboarding_analytics_title" = "Understand Your Spending";
+"onboarding_analytics_description" = "Use charts and summaries to see where your money goes each month.";
+"onboarding_budget_title" = "Stay on Budget";
+"onboarding_budget_description" = "Set category budgets and notice overspending before it becomes a problem.";
+"onboarding_next" = "Next";
+"onboarding_get_started" = "Get Started";
+"onboarding_done" = "Done";
+"settings_show_onboarding_again" = "Show Onboarding Again";
+"settings_show_onboarding_again_subtitle" = "Review the main Xpendo features and receipt scanning flow.";
+"settings_show_onboarding_again_action" = "Show";
+"common.close" = "Close";

@@ -21,11 +21,46 @@ struct AppRootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query private var settings: [AppSettings]
 
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+
     @State private var isShowingAddExpenseSheet = false
     @State private var isMainChromeHidden = false
     @State private var selectedTab: AppTab = .home
 
     var body: some View {
+        Group {
+            if hasSeenOnboarding {
+                mainAppContent
+            } else {
+                OnboardingView(mode: .firstLaunch) {
+                    hasSeenOnboarding = true
+                }
+            }
+        }
+        .environment(\.locale, appLocale)
+        .id(selectedLanguageCode)
+        .sheet(isPresented: $isShowingAddExpenseSheet) {
+            AddExpenseView()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        .preferredColorScheme(preferredColorScheme)
+        .onAppear {
+            AppLocalization.updateLanguage(code: selectedLanguageCode)
+        }
+        .onChange(of: selectedLanguageCode) { _, newCode in
+            AppLocalization.updateLanguage(code: newCode)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task {
+                    try? await NotificationSyncService.refresh(using: modelContext)
+                }
+            }
+        }
+    }
+
+    private var mainAppContent: some View {
         ZStack(alignment: .bottom) {
             XPendoTheme.background
                 .ignoresSafeArea()
@@ -76,27 +111,6 @@ struct AppRootView: View {
             if !isMainChromeHidden {
                 FloatingAddButton(action: presentAddExpenseSheet)
                     .padding(.bottom, 8)
-            }
-        }
-        .environment(\.locale, appLocale)
-        .id(selectedLanguageCode)
-        .sheet(isPresented: $isShowingAddExpenseSheet) {
-            AddExpenseView()
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
-        .preferredColorScheme(preferredColorScheme)
-        .onAppear {
-            AppLocalization.updateLanguage(code: selectedLanguageCode)
-        }
-        .onChange(of: selectedLanguageCode) { _, newCode in
-            AppLocalization.updateLanguage(code: newCode)
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                Task {
-                    try? await NotificationSyncService.refresh(using: modelContext)
-                }
             }
         }
     }

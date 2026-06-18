@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var settingsViewModel = SettingsViewModel()
     @State private var isShowingResetSheet = false
     @State private var isShowingDemoActivationSheet = false
+    @State private var isShowingOnboardingAgain = false
     @State private var hasInitializedDraft = false
     @State private var draftNotificationsEnabled = false
     @State private var draftDailyReminderEnabled = false
@@ -90,6 +91,12 @@ struct SettingsView: View {
             .presentationDetents([.height(250)])
             .presentationDragIndicator(.visible)
             .presentationBackground(XPendoTheme.surfaceBackground)
+        }
+        .fullScreenCover(isPresented: $isShowingOnboardingAgain) {
+            OnboardingView(mode: .replay) {
+                isShowingOnboardingAgain = false
+            }
+            .environment(\.locale, AppLocalization.locale)
         }
         .alert("settings.alert.updateFailed.title", isPresented: errorBinding) {
             Button("common.ok", role: .cancel) {
@@ -297,6 +304,19 @@ struct SettingsView: View {
                     isOn: demoModeBinding,
                     isDisabled: settingsViewModel.isBusy
                 )
+
+                Button {
+                    isShowingOnboardingAgain = true
+                } label: {
+                    SettingsActionRow(
+                        title: "settings_show_onboarding_again",
+                        subtitle: "settings_show_onboarding_again_subtitle",
+                        icon: "play.circle.fill",
+                        accentColor: XPendoTheme.accentTeal,
+                        actionTitle: "settings_show_onboarding_again_action"
+                    )
+                }
+                .buttonStyle(.plain)
 
                 Button {
                     Task {
