@@ -150,6 +150,6 @@ final class ExpensesViewModel {
             return true
         }
 
-        return expense.category.id == selectedCategoryID
+        return expense.categoryID == selectedCategoryID
     }
 }

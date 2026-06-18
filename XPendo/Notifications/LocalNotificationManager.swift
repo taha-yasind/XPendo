@@ -140,7 +140,7 @@ enum LocalNotificationManager {
         }
 
         let monthExpenses = expenses.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .month) }
-        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.category.id })
+        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.categoryID })
             .mapValues { groupedExpenses in
                 groupedExpenses.reduce(0) { partialResult, expense in
                     partialResult + expense.amount
@@ -148,7 +148,11 @@ enum LocalNotificationManager {
             }
 
         return currentMonthBudgets.filter { budget in
-            (spentByCategoryID[budget.category.id] ?? 0) > budget.limitAmount
+            guard let categoryID = budget.categoryID else {
+                return false
+            }
+
+            return (spentByCategoryID[Optional(categoryID)] ?? 0) > budget.limitAmount
         }.count
     }
 

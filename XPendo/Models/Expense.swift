@@ -3,13 +3,13 @@ import SwiftData
 
 @Model
 final class Expense {
-    @Attribute(.unique) var id: UUID
-    var title: String
-    var amount: Double
-    var date: Date
-    var category: Category
+    var id: UUID = UUID()
+    var title: String = ""
+    var amount: Double = 0
+    var date: Date = Date()
+    var category: Category?
     var note: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
 
     init(
         id: UUID = UUID(),
@@ -27,5 +27,21 @@ final class Expense {
         self.category = category
         self.note = note
         self.createdAt = createdAt
+    }
+
+    var categoryID: UUID? {
+        category?.id
+    }
+
+    var categoryName: String {
+        category?.name ?? "Other"
+    }
+
+    var categoryIcon: String {
+        category?.icon ?? "square.grid.2x2.fill"
+    }
+
+    var categoryColor: String {
+        category?.color ?? "#8E8E93"
     }
 }

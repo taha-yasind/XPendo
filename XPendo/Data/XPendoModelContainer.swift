@@ -40,7 +40,8 @@ enum XPendoModelContainer {
         let configuration = ModelConfiguration(
             mode.configurationName,
             schema: schema,
-            isStoredInMemoryOnly: isStoredInMemoryOnly
+            isStoredInMemoryOnly: isStoredInMemoryOnly,
+            cloudKitDatabase: cloudKitDatabase(for: mode, isStoredInMemoryOnly: isStoredInMemoryOnly)
         )
 
         let container = try ModelContainer(
@@ -50,5 +51,16 @@ enum XPendoModelContainer {
 
         try AppDataSeeder.seedIfNeeded(in: container.mainContext)
         return container
+    }
+
+    private static func cloudKitDatabase(
+        for mode: AppDataMode,
+        isStoredInMemoryOnly: Bool
+    ) -> ModelConfiguration.CloudKitDatabase {
+        guard !isStoredInMemoryOnly, mode == .standard else {
+            return .none
+        }
+
+        return .none
     }
 }

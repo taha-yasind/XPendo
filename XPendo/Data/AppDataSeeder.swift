@@ -17,6 +17,7 @@ enum AppDataSeeder {
 
         for categoryDefinition in DefaultCategoryProvider.categories where !existingNames.contains(categoryDefinition.name) {
             let category = Category(
+                id: categoryDefinition.id,
                 name: categoryDefinition.name,
                 icon: categoryDefinition.icon,
                 color: categoryDefinition.color,
@@ -25,6 +26,8 @@ enum AppDataSeeder {
 
             modelContext.insert(category)
         }
+
+        try deduplicateDefaultCategories(in: modelContext)
     }
 
     private static func seedAppSettings(in modelContext: ModelContext) throws {
@@ -46,6 +49,42 @@ enum AppDataSeeder {
             }
             if settings.preferredLanguageCode?.isEmpty != false {
                 settings.preferredLanguageCode = defaultLanguageCode
+            }
+        }
+
+        for duplicateSettings in existingSettings.dropFirst() {
+            modelContext.delete(duplicateSettings)
+        }
+    }
+
+    private static func deduplicateDefaultCategories(in modelContext: ModelContext) throws {
+        let categories = try modelContext.fetch(FetchDescriptor<Category>())
+        let expenses = try modelContext.fetch(FetchDescriptor<Expense>())
+        let budgets = try modelContext.fetch(FetchDescriptor<Budget>())
+
+        for categoryDefinition in DefaultCategoryProvider.categories {
+            let matchingCategories = categories.filter { $0.name == categoryDefinition.name }
+
+            guard matchingCategories.count > 1 else {
+                continue
+            }
+
+            let preferredCategory = matchingCategories.first(where: { $0.id == categoryDefinition.id }) ?? matchingCategories[0]
+            preferredCategory.id = categoryDefinition.id
+            preferredCategory.icon = categoryDefinition.icon
+            preferredCategory.color = categoryDefinition.color
+            preferredCategory.isDefault = true
+
+            for duplicateCategory in matchingCategories where duplicateCategory !== preferredCategory {
+                for expense in expenses where expense.category?.id == duplicateCategory.id {
+                    expense.category = preferredCategory
+                }
+
+                for budget in budgets where budget.category?.id == duplicateCategory.id {
+                    budget.category = preferredCategory
+                }
+
+                modelContext.delete(duplicateCategory)
             }
         }
     }

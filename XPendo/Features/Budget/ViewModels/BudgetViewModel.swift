@@ -135,7 +135,7 @@ final class BudgetViewModel {
         expenses: [Expense]
     ) -> [BudgetCategoryEntry] {
         let monthExpenses = expenses.filter { calendar.isDate($0.date, equalTo: selectedMonth, toGranularity: .month) }
-        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.category.id })
+        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.categoryID })
             .mapValues { groupedExpenses in
                 groupedExpenses.reduce(0) { partialResult, expense in
                     partialResult + expense.amount
@@ -152,7 +152,7 @@ final class BudgetViewModel {
                 categoryIcon: category.icon,
                 colorHex: category.color,
                 limitAmount: existingBudget?.limitAmount,
-                spentAmount: spentByCategoryID[category.id] ?? 0
+                spentAmount: spentByCategoryID[Optional(category.id)] ?? 0
             )
         }
     }
@@ -160,7 +160,7 @@ final class BudgetViewModel {
     func makeMonthData(budgets: [Budget], expenses: [Expense]) -> BudgetMonthData {
         let monthBudgets = budgetsForSelectedMonth(from: budgets)
         let monthExpenses = expenses.filter { calendar.isDate($0.date, equalTo: selectedMonth, toGranularity: .month) }
-        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.category.id })
+        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.categoryID })
             .mapValues { groupedExpenses in
                 groupedExpenses.reduce(0) { partialResult, expense in
                     partialResult + expense.amount
@@ -168,15 +168,19 @@ final class BudgetViewModel {
             }
 
         let budgetStatuses = monthBudgets
-            .map { budget in
-                let spentAmount = spentByCategoryID[budget.category.id] ?? 0
+            .compactMap { budget -> BudgetCategoryStatus? in
+                guard let categoryID = budget.categoryID else {
+                    return nil
+                }
+
+                let spentAmount = spentByCategoryID[Optional(categoryID)] ?? 0
 
                 return BudgetCategoryStatus(
                     id: budget.id,
-                    categoryID: budget.category.id,
-                    categoryName: budget.category.name,
-                    categoryIcon: budget.category.icon,
-                    colorHex: budget.category.color,
+                    categoryID: categoryID,
+                    categoryName: budget.categoryName,
+                    categoryIcon: budget.categoryIcon,
+                    colorHex: budget.categoryColor,
                     limitAmount: budget.limitAmount,
                     spentAmount: spentAmount,
                     remainingAmount: budget.limitAmount - spentAmount
@@ -290,7 +294,7 @@ final class BudgetViewModel {
     }
 
     private func matchingBudget(for categoryID: UUID, in budgets: [Budget]) -> Budget? {
-        budgetsForSelectedMonth(from: budgets).first(where: { $0.category.id == categoryID })
+        budgetsForSelectedMonth(from: budgets).first(where: { $0.categoryID == categoryID })
     }
 
     private func parsedAmount(from text: String) -> Double? {

@@ -14,7 +14,7 @@ struct ExpenseRowCard: View {
                         .fill(categoryColor.opacity(0.14))
                         .frame(width: 52, height: 52)
                         .overlay {
-                            Image(systemName: expense.category.icon)
+                            Image(systemName: expense.categoryIcon)
                                 .font(.headline)
                                 .foregroundStyle(categoryColor)
                         }
@@ -25,7 +25,7 @@ struct ExpenseRowCard: View {
                             .foregroundStyle(XPendoTheme.primaryText)
 
                         HStack(spacing: 8) {
-                            Text(CategoryLocalization.localizedName(for: expense.category.name))
+                            Text(CategoryLocalization.localizedName(for: expense.categoryName))
                             Text("•")
                             Text(expense.date.formatted(date: .abbreviated, time: .omitted))
                         }
@@ -66,6 +66,6 @@ struct ExpenseRowCard: View {
     }
 
     private var categoryColor: Color {
-        Color(hexString: expense.category.color) ?? XPendoTheme.accentTeal
+        Color(hexString: expense.categoryColor) ?? XPendoTheme.accentTeal
     }
 }

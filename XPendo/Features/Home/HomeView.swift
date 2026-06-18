@@ -312,7 +312,7 @@ private struct HomeRecentExpenseRow: View {
                 .fill(categoryColor.opacity(0.14))
                 .frame(width: 48, height: 48)
                 .overlay {
-                    Image(systemName: expense.category.icon)
+                    Image(systemName: expense.categoryIcon)
                         .font(.headline)
                         .foregroundStyle(categoryColor)
                 }
@@ -323,7 +323,7 @@ private struct HomeRecentExpenseRow: View {
                     .foregroundStyle(XPendoTheme.primaryText)
 
                 HStack(spacing: 8) {
-                    Text(CategoryLocalization.localizedName(for: expense.category.name))
+                    Text(CategoryLocalization.localizedName(for: expense.categoryName))
                     Text("•")
                     Text(expense.date.formatted(date: .abbreviated, time: .omitted))
                 }
@@ -343,7 +343,7 @@ private struct HomeRecentExpenseRow: View {
     }
 
     private var categoryColor: Color {
-        Color(hexString: expense.category.color) ?? XPendoTheme.accentTeal
+        Color(hexString: expense.categoryColor) ?? XPendoTheme.accentTeal
     }
 }
 

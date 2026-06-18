@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class Budget {
-    @Attribute(.unique) var id: UUID
-    var category: Category
-    var limitAmount: Double
-    var month: Int
-    var year: Int
+    var id: UUID = UUID()
+    var category: Category?
+    var limitAmount: Double = 0
+    var month: Int = 1
+    var year: Int = 2026
 
     init(
         id: UUID = UUID(),
@@ -21,5 +21,21 @@ final class Budget {
         self.limitAmount = limitAmount
         self.month = month
         self.year = year
+    }
+
+    var categoryID: UUID? {
+        category?.id
+    }
+
+    var categoryName: String {
+        category?.name ?? "Other"
+    }
+
+    var categoryIcon: String {
+        category?.icon ?? "square.grid.2x2.fill"
+    }
+
+    var categoryColor: String {
+        category?.color ?? "#8E8E93"
     }
 }

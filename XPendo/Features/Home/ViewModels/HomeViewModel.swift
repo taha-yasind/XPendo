@@ -71,15 +71,22 @@ struct HomeViewModel {
     }
 
     private func makeTopCategory(from expenses: [Expense]) -> HomeTopCategorySummary? {
-        let groupedExpenses = Dictionary(grouping: expenses, by: { $0.category.id })
+        let categorizedExpenses = expenses.compactMap { expense -> (category: Category, expense: Expense)? in
+            guard let category = expense.category else {
+                return nil
+            }
+
+            return (category, expense)
+        }
+        let groupedExpenses = Dictionary(grouping: categorizedExpenses, by: { $0.category.id })
 
         let categoryTotals = Array(groupedExpenses.values).map { groupedExpenses in
-            let firstExpense = groupedExpenses[0]
+            let firstItem = groupedExpenses[0]
             return HomeTopCategorySummary(
-                name: firstExpense.category.name,
-                icon: firstExpense.category.icon,
-                colorHex: firstExpense.category.color,
-                totalAmount: totalAmount(of: groupedExpenses)
+                name: firstItem.category.name,
+                icon: firstItem.category.icon,
+                colorHex: firstItem.category.color,
+                totalAmount: totalAmount(of: groupedExpenses.map(\.expense))
             )
         }
 
@@ -99,18 +106,22 @@ struct HomeViewModel {
             return .empty
         }
 
-        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.category.id })
+        let spentByCategoryID = Dictionary(grouping: monthExpenses, by: { $0.categoryID })
             .mapValues { expenses in
                 totalAmount(of: expenses)
             }
 
-        let budgetStatuses = currentMonthBudgets.map { budget in
-            let spentAmount = spentByCategoryID[budget.category.id] ?? 0
+        let budgetStatuses = currentMonthBudgets.compactMap { budget -> HomeBudgetStatus? in
+            guard let categoryID = budget.categoryID else {
+                return nil
+            }
+
+            let spentAmount = spentByCategoryID[Optional(categoryID)] ?? 0
 
             return HomeBudgetStatus(
-                categoryName: budget.category.name,
-                categoryIcon: budget.category.icon,
-                colorHex: budget.category.color,
+                categoryName: budget.categoryName,
+                categoryIcon: budget.categoryIcon,
+                colorHex: budget.categoryColor,
                 spentAmount: spentAmount,
                 limitAmount: budget.limitAmount,
                 remainingAmount: budget.limitAmount - spentAmount,

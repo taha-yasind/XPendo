@@ -27,6 +27,7 @@ struct SettingsView: View {
                 headerSection
                 notificationSection
                 preferencesSection
+                iCloudSyncSection
                 utilitiesSection
                 aboutSection
             }
@@ -96,6 +97,30 @@ struct SettingsView: View {
             }
         } message: {
             Text(activeErrorMessage ?? AppLocalization.string("common.tryAgain"))
+        }
+    }
+
+    private var iCloudSyncSection: some View {
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsSectionHeader(
+                    title: "iCloud Sync",
+                    description: "Prepared for native iCloud backup and restore when CloudKit capability is enabled."
+                )
+
+                SettingsInfoRow(
+                    title: "CloudKit Ready",
+                    subtitle: "Requires Apple Developer Program, iCloud capability, and a CloudKit container before activation.",
+                    icon: "icloud.fill",
+                    value: "Planned",
+                    accentColor: XPendoTheme.accentTeal
+                )
+
+                Text("After activation, synced data can be restored when the app is reinstalled with the same Apple ID.")
+                    .font(.caption)
+                    .foregroundStyle(XPendoTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 

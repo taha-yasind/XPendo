@@ -137,7 +137,7 @@ enum DemoDataSeeder {
                 return false
             }
 
-            guard let baseTarget = demoBudgetTargets[budget.category.name] else {
+            guard let baseTarget = demoBudgetTargets[budget.categoryName] else {
                 return false
             }
 

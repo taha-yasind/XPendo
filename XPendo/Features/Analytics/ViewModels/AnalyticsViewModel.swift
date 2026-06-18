@@ -60,20 +60,27 @@ struct AnalyticsViewModel {
     }
 
     private func makeCategoryTotals(from expenses: [Expense], totalSpend: Double) -> [AnalyticsCategoryTotal] {
-        let groupedExpenses = Dictionary(grouping: expenses, by: { $0.category.id })
+        let categorizedExpenses = expenses.compactMap { expense -> (category: Category, expense: Expense)? in
+            guard let category = expense.category else {
+                return nil
+            }
+
+            return (category, expense)
+        }
+        let groupedExpenses = Dictionary(grouping: categorizedExpenses, by: { $0.category.id })
 
         return groupedExpenses.values
             .map { groupedExpenses in
-                let firstExpense = groupedExpenses[0]
-                let categoryTotal = groupedExpenses.reduce(0) { partialResult, expense in
-                    partialResult + expense.amount
+                let firstItem = groupedExpenses[0]
+                let categoryTotal = groupedExpenses.reduce(0) { partialResult, item in
+                    partialResult + item.expense.amount
                 }
 
                 return AnalyticsCategoryTotal(
-                    id: firstExpense.category.id,
-                    name: CategoryLocalization.localizedName(for: firstExpense.category.name),
-                    icon: firstExpense.category.icon,
-                    colorHex: firstExpense.category.color,
+                    id: firstItem.category.id,
+                    name: CategoryLocalization.localizedName(for: firstItem.category.name),
+                    icon: firstItem.category.icon,
+                    colorHex: firstItem.category.color,
                     totalAmount: categoryTotal,
                     expenseCount: groupedExpenses.count,
                     share: totalSpend > 0 ? categoryTotal / totalSpend : 0

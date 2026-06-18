@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class Category {
-    @Attribute(.unique) var id: UUID
-    var name: String
-    var icon: String
-    var color: String
-    var isDefault: Bool
+    var id: UUID = UUID()
+    var name: String = ""
+    var icon: String = "tag.fill"
+    var color: String = "#8E8E93"
+    var isDefault: Bool = false
 
     init(
         id: UUID = UUID(),

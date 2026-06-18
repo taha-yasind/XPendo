@@ -3,13 +3,13 @@ import SwiftData
 
 @Model
 final class AppSettings {
-    @Attribute(.unique) var id: UUID
-    var currencyCode: String
+    var id: UUID = UUID()
+    var currencyCode: String = "USD"
     var preferredThemeCode: String?
     var preferredLanguageCode: String?
-    var notificationsEnabled: Bool
-    var dailyReminderEnabled: Bool
-    var budgetWarningEnabled: Bool
+    var notificationsEnabled: Bool = false
+    var dailyReminderEnabled: Bool = false
+    var budgetWarningEnabled: Bool = false
 
     init(
         id: UUID = UUID(),
