@@ -1,0 +1,25 @@
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="75%">
+      <stop offset="0%"   stop-color="#1e1c14"/>
+      <stop offset="60%"  stop-color="#111009"/>
+      <stop offset="100%" stop-color="#060504"/>
+    </radialGradient>
+    <pattern id="diamond" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M15 0 L30 15 L15 30 L0 15 Z" fill="none" stroke="rgba(255,255,255,0.045)" stroke-width="0.6"/>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#diamond)"/>
+
+  <text
+    x="960"
+    y="96"
+    fill="#C9A44A"
+    font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+    font-size="38"
+    font-weight="300"
+    letter-spacing="22"
+    text-anchor="middle">CONCLUSION</text>
+</svg>

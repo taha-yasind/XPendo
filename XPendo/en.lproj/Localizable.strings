@@ -6,6 +6,7 @@
 "common.update" = "Update";
 "common.reset" = "Reset";
 "common.add" = "Add";
+"common.done" = "Done";
 "common.notSet" = "Not set";
 
 "tab.home" = "Home";

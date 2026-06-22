@@ -26,6 +26,7 @@ struct BudgetView: View {
     @State private var saveErrorMessage: String?
     @State private var pendingResetCategoryID: UUID?
     @State private var isResetSheetPresented = false
+    @FocusState private var focusedBudgetCategoryID: UUID?
 
     var body: some View {
         ScrollView {
@@ -44,8 +45,24 @@ struct BudgetView: View {
             .padding(.top, 20)
             .padding(.bottom, 130)
         }
-        .background(XPendoTheme.background.ignoresSafeArea())
+        .scrollDismissesKeyboard(.interactively)
+        .background(
+            XPendoTheme.background
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissKeyboard()
+                }
+        )
         .toolbar(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button(AppLocalization.string("common.done")) {
+                    dismissKeyboard()
+                }
+            }
+        }
         .task(id: budgetSyncKey) {
             // Budget, category veya currency değiştiğinde draft limit alanları güncel veriye göre hazırlanır.
             viewModel.prepare(categories: categories, budgets: budgets, displayCurrencyCode: currencyCode)
@@ -142,6 +159,7 @@ struct BudgetView: View {
                             saveButtonTitle: viewModel.saveButtonTitle(for: entry.categoryID, budgets: budgets),
                             isResetEnabled: viewModel.isResetEnabled(for: entry.categoryID, budgets: budgets),
                             validationMessage: viewModel.validationMessage(for: entry.categoryID),
+                            focusedCategoryID: $focusedBudgetCategoryID,
                             onSave: {
                                 saveBudget(for: entry.categoryID)
                             },
@@ -155,11 +173,17 @@ struct BudgetView: View {
         }
     }
 
+    private func dismissKeyboard() {
+        focusedBudgetCategoryID = nil
+    }
+
     private func moveToPreviousMonth() {
+        dismissKeyboard()
         viewModel.moveMonth(by: -1)
     }
 
     private func moveToNextMonth() {
+        dismissKeyboard()
         viewModel.moveMonth(by: 1)
     }
 
@@ -175,12 +199,14 @@ struct BudgetView: View {
 
     // Save aksiyonu async flow'a taşınır; işlem sonrası notification schedule yenilenir.
     private func saveBudget(for categoryID: UUID) {
+        dismissKeyboard()
         Task {
             await saveBudgetFlow(for: categoryID)
         }
     }
 
     private func resetBudget(for categoryID: UUID) {
+        dismissKeyboard()
         Task {
             await resetBudgetFlow(for: categoryID)
         }
@@ -188,6 +214,7 @@ struct BudgetView: View {
 
     // Reset doğrudan yapılmaz; önce confirmation sheet ile kullanıcıdan onay alınır.
     private func requestResetConfirmation(for categoryID: UUID) {
+        dismissKeyboard()
         pendingResetCategoryID = categoryID
         isResetSheetPresented = true
     }

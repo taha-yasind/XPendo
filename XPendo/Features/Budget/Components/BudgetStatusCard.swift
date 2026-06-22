@@ -9,6 +9,7 @@ struct BudgetStatusCard: View {
     let saveButtonTitle: String
     let isResetEnabled: Bool
     let validationMessage: String?
+    let focusedCategoryID: FocusState<UUID?>.Binding
     let onSave: () -> Void
     let onReset: () -> Void
 
@@ -54,6 +55,7 @@ struct BudgetStatusCard: View {
                         HStack(spacing: 12) {
                             TextField("0.00", text: $amountText)
                                 .keyboardType(.decimalPad)
+                                .focused(focusedCategoryID, equals: entry.categoryID)
 
                             Text(currencyCode)
                                 .font(.caption.weight(.semibold))

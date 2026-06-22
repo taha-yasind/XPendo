@@ -6,6 +6,7 @@
 "common.update" = "Güncelle";
 "common.reset" = "Sıfırla";
 "common.add" = "Ekle";
+"common.done" = "Bitti";
 "common.notSet" = "Ayarlanmadı";
 
 "tab.home" = "Ana Sayfa";

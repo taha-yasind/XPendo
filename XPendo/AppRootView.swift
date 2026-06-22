@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 // AppRootView, onboarding kararı, ana tab navigation ve global app ayarlarını yönetir.
 // SwiftData'dan AppSettings okuyarak theme, language ve notification sync akışını başlatır.
@@ -30,6 +31,7 @@ struct AppRootView: View {
 
     @State private var isShowingAddExpenseSheet = false
     @State private var isMainChromeHidden = false
+    @State private var isKeyboardVisible = false
     @State private var selectedTab: AppTab = .home
 
     var body: some View {
@@ -53,6 +55,9 @@ struct AppRootView: View {
         .preferredColorScheme(preferredColorScheme)
         .onAppear {
             AppLocalization.updateLanguage(code: selectedLanguageCode)
+        }
+        .task {
+            await observeKeyboardVisibility()
         }
         .onChange(of: selectedLanguageCode) { _, newCode in
             AppLocalization.updateLanguage(code: newCode)
@@ -120,6 +125,9 @@ struct AppRootView: View {
             if !isMainChromeHidden {
                 FloatingAddButton(action: presentAddExpenseSheet)
                     .padding(.bottom, 8)
+                    .opacity(isKeyboardVisible ? 0 : 1)
+                    .allowsHitTesting(!isKeyboardVisible)
+                    .accessibilityHidden(isKeyboardVisible)
             }
         }
     }
@@ -144,6 +152,34 @@ struct AppRootView: View {
 
     private func presentAddExpenseSheet() {
         isShowingAddExpenseSheet = true
+    }
+
+    private func observeKeyboardVisibility() async {
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+                for await _ in NotificationCenter.default.notifications(named: UIResponder.keyboardWillShowNotification) {
+                    await MainActor.run {
+                        setKeyboardVisible(true)
+                    }
+                }
+            }
+
+            group.addTask {
+                for await _ in NotificationCenter.default.notifications(named: UIResponder.keyboardWillHideNotification) {
+                    await MainActor.run {
+                        setKeyboardVisible(false)
+                    }
+                }
+            }
+        }
+    }
+
+    private func setKeyboardVisible(_ isVisible: Bool) {
+        guard isKeyboardVisible != isVisible else {
+            return
+        }
+
+        isKeyboardVisible = isVisible
     }
 }
 
