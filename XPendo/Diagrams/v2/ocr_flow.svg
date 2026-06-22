@@ -1,0 +1,154 @@
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="mn" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#445566"/>
+    </marker>
+    <marker id="mr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#E74C3C"/>
+    </marker>
+    <marker id="mg" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#27AE60"/>
+    </marker>
+    <marker id="mb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#3498DB"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#0d0d1a"/>
+
+  <!-- TITLE -->
+  <text x="640" y="32" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">OCR Receipt Scanning — Flow Diagram</text>
+  <text x="640" y="54" fill="#667788" font-size="11" text-anchor="middle" font-family="-apple-system,sans-serif">Vision Framework  ·  ReceiptParserService  ·  Suggestion only — no automatic save</text>
+
+  <!-- ══════════════════ ROW 1  (y_center=200) ══════════════════ -->
+
+  <!-- START oval -->
+  <ellipse cx="90" cy="200" rx="78" ry="28" fill="#003d30" stroke="#00BFA5" stroke-width="2.5"/>
+  <text x="90" y="195" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">User taps</text>
+  <text x="90" y="210" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">camera icon</text>
+
+  <line x1="168" y1="200" x2="198" y2="200" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 1: Scanner View -->
+  <rect x="200" y="168" width="180" height="64" rx="8" fill="#001e38" stroke="#3498DB" stroke-width="2"/>
+  <text x="290" y="192" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Scanner Opens</text>
+  <text x="290" y="209" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">ReceiptScannerView</text>
+  <text x="290" y="224" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">presented as sheet</text>
+
+  <line x1="380" y1="200" x2="410" y2="200" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- SOURCE DECISION DIAMOND -->
+  <polygon points="490,162 558,200 490,238 422,200" fill="#001428" stroke="#3498DB" stroke-width="2.5"/>
+  <text x="490" y="195" fill="#ffffff" font-size="10.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Select</text>
+  <text x="490" y="210" fill="#ffffff" font-size="10.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">source</text>
+
+  <!-- Camera branch (above) -->
+  <text x="490" y="148" fill="#3498DB" font-size="10" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Camera</text>
+  <line x1="490" y1="162" x2="490" y2="136" stroke="#3498DB" stroke-width="1.8" marker-end="url(#mb)"/>
+  <rect x="420" y="90" width="140" height="42" rx="7" fill="#001428" stroke="#3498DB" stroke-width="1.5"/>
+  <text x="490" y="108" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle" font-family="-apple-system,sans-serif">Take Photo</text>
+  <text x="490" y="124" fill="#3498DB" font-size="9" text-anchor="middle" font-family="-apple-system,sans-serif">UIImagePickerController</text>
+
+  <!-- Gallery branch (below) -->
+  <text x="490" y="258" fill="#3498DB" font-size="10" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Photo Library</text>
+  <line x1="490" y1="238" x2="490" y2="266" stroke="#3498DB" stroke-width="1.8" marker-end="url(#mb)"/>
+  <rect x="420" y="268" width="140" height="42" rx="7" fill="#001428" stroke="#3498DB" stroke-width="1.5"/>
+  <text x="490" y="286" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle" font-family="-apple-system,sans-serif">Select Photo</text>
+  <text x="490" y="302" fill="#3498DB" font-size="9" text-anchor="middle" font-family="-apple-system,sans-serif">PhotosPickerItem</text>
+
+  <!-- Both merge → UIImage -->
+  <line x1="560" y1="111" x2="620" y2="111" stroke="#3498DB" stroke-width="1.5"/>
+  <line x1="560" y1="289" x2="620" y2="289" stroke="#3498DB" stroke-width="1.5"/>
+  <line x1="620" y1="111" x2="620" y2="200" stroke="#3498DB" stroke-width="1.5"/>
+  <line x1="620" y1="289" x2="620" y2="200" stroke="#3498DB" stroke-width="1.5"/>
+  <line x1="620" y1="200" x2="648" y2="200" stroke="#3498DB" stroke-width="2" marker-end="url(#mb)"/>
+
+  <!-- BOX 2: UIImage ready -->
+  <rect x="650" y="168" width="180" height="64" rx="8" fill="#001e38" stroke="#3498DB" stroke-width="2"/>
+  <text x="740" y="192" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">UIImage Ready</text>
+  <text x="740" y="209" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Image loaded into memory</text>
+  <text x="740" y="224" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">ready for OCR processing</text>
+
+  <line x1="830" y1="200" x2="860" y2="200" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 3: Vision OCR -->
+  <rect x="862" y="168" width="210" height="64" rx="8" fill="#1a0804" stroke="#E74C3C" stroke-width="2"/>
+  <text x="967" y="191" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Vision OCR  (async)</text>
+  <text x="967" y="208" fill="#cc8888" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">VNRecognizeTextRequest · .accurate</text>
+  <text x="967" y="224" fill="#cc8888" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">TR + EN · Task.detached background</text>
+
+  <!-- Right-turn connector to Row 2 -->
+  <line x1="1072" y1="200" x2="1140" y2="200" stroke="#445566" stroke-width="2"/>
+  <line x1="1140" y1="200" x2="1140" y2="400" stroke="#445566" stroke-width="2"/>
+  <line x1="1140" y1="400" x2="1072" y2="400" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- ══════════════════ ROW 2  (y_center=400, R→L) ══════════════════ -->
+
+  <!-- BOX 4: Parser -->
+  <rect x="862" y="368" width="210" height="64" rx="8" fill="#1a0804" stroke="#E74C3C" stroke-width="2"/>
+  <text x="967" y="391" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ReceiptParserService</text>
+  <text x="967" y="408" fill="#cc8888" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Detects: Merchant · Amount</text>
+  <text x="967" y="424" fill="#cc8888" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Date · Category keyword match</text>
+
+  <line x1="862" y1="400" x2="830" y2="400" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 5: Apply suggestions -->
+  <rect x="610" y="368" width="220" height="64" rx="8" fill="#001e38" stroke="#3498DB" stroke-width="2"/>
+  <text x="720" y="391" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Suggestions Applied</text>
+  <text x="720" y="408" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">applyReceiptScanResult()</text>
+  <text x="720" y="424" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Pre-fills Add Expense form</text>
+
+  <line x1="610" y1="400" x2="578" y2="400" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- ACCEPT? DECISION DIAMOND -->
+  <polygon points="490,362 562,400 490,438 418,400" fill="#1a0828" stroke="#9B59B6" stroke-width="2.5"/>
+  <text x="490" y="395" fill="#ffffff" font-size="10.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">User</text>
+  <text x="490" y="410" fill="#ffffff" font-size="10.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">accepts?</text>
+
+  <!-- YES label (left of diamond) -->
+  <text x="380" y="395" fill="#27AE60" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Yes ✓</text>
+  <line x1="418" y1="400" x2="384" y2="400" stroke="#27AE60" stroke-width="2" marker-end="url(#mg)"/>
+
+  <!-- BOX 6: Save -->
+  <rect x="222" y="368" width="158" height="64" rx="8" fill="#002010" stroke="#27AE60" stroke-width="2"/>
+  <text x="301" y="391" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Save Expense</text>
+  <text x="301" y="408" fill="#27AE60" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">saveExpense(in: context)</text>
+  <text x="301" y="424" fill="#27AE60" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">NotificationSync.refresh()</text>
+
+  <line x1="222" y1="400" x2="188" y2="400" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- END oval -->
+  <ellipse cx="118" cy="400" rx="68" ry="28" fill="#003d30" stroke="#00BFA5" stroke-width="2.5"/>
+  <text x="118" y="395" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Expense</text>
+  <text x="118" y="410" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">saved ✓</text>
+
+  <!-- NO / EDIT BRANCH (below diamond) -->
+  <text x="492" y="460" fill="#9B59B6" font-size="10" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">No — Edit</text>
+  <line x1="490" y1="438" x2="490" y2="476" stroke="#9B59B6" stroke-width="2" marker-end="url(#mn)"/>
+  <rect x="390" y="478" width="200" height="52" rx="7" fill="#0e0018" stroke="#9B59B6" stroke-width="1.8"/>
+  <text x="490" y="498" fill="#ffffff" font-size="11.5" font-weight="600" text-anchor="middle" font-family="-apple-system,sans-serif">User edits fields manually</text>
+  <text x="490" y="515" fill="#9B59B6" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Modifies pre-filled suggestions</text>
+  <!-- Edit → Save -->
+  <line x1="390" y1="504" x2="360" y2="504" stroke="#9B59B6" stroke-width="1.8"/>
+  <line x1="360" y1="504" x2="360" y2="400" stroke="#9B59B6" stroke-width="1.8"/>
+  <line x1="360" y1="400" x2="380" y2="400" stroke="#9B59B6" stroke-width="1.8" marker-end="url(#mn)"/>
+
+  <!-- ══ IMPORTANT NOTE ══ -->
+  <rect x="60" y="576" width="760" height="60" rx="8" fill="#0a1010"/>
+  <text x="96" y="598" fill="#E74C3C" font-size="10.5" font-weight="700" font-family="-apple-system,sans-serif">⚠  Suggestion only — NO automatic save</text>
+  <text x="96" y="616" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">OCR results are pre-filled into the form as suggestions. The user must review and explicitly tap Save.</text>
+  <text x="96" y="632" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">OCR can make mistakes — particularly with amounts. All fields remain editable after scanning.</text>
+
+  <!-- ══ LEGEND ══ -->
+  <rect x="860" y="576" width="360" height="60" rx="8" fill="#111820"/>
+  <line x1="880" y1="602" x2="920" y2="602" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+  <text x="930" y="606" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">Normal flow</text>
+  <line x1="880" y1="628" x2="920" y2="628" stroke="#E74C3C" stroke-width="2" marker-end="url(#mr)"/>
+  <text x="930" y="632" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">OCR processing</text>
+  <line x1="1030" y1="602" x2="1070" y2="602" stroke="#27AE60" stroke-width="2" marker-end="url(#mg)"/>
+  <text x="1080" y="606" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">Success path</text>
+  <line x1="1030" y1="628" x2="1070" y2="628" stroke="#9B59B6" stroke-width="2" marker-end="url(#mn)"/>
+  <text x="1080" y="632" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">Edit path</text>
+
+  <text x="640" y="706" fill="#1e2a35" font-size="8" text-anchor="middle" font-family="-apple-system,sans-serif">Xpendo — OCR Receipt Scanning Flow  ·  Vision Framework  ·  ReceiptParserService  ·  Suggestion only</text>
+</svg>

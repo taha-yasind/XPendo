@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
 
+// AppSettings, uygulama genelindeki kullanıcı tercihlerini SwiftData içinde saklar.
+// Currency, theme, language ve notification tercihleri AppRootView ile Settings akışını etkiler.
 @Model
 final class AppSettings {
     var id: UUID = UUID()

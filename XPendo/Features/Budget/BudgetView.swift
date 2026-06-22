@@ -1,6 +1,8 @@
 import SwiftData
 import SwiftUI
 
+// BudgetView, category bazlı aylık harcama limitlerini yönetir.
+// ViewModel hesaplama ve save/reset işlemlerini yaparken bu View liste ve confirmation sheet akışını sunar.
 struct BudgetView: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -45,6 +47,7 @@ struct BudgetView: View {
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .task(id: budgetSyncKey) {
+            // Budget, category veya currency değiştiğinde draft limit alanları güncel veriye göre hazırlanır.
             viewModel.prepare(categories: categories, budgets: budgets, displayCurrencyCode: currencyCode)
         }
         .alert("budget.alert.actionFailed.title", isPresented: saveErrorBinding) {
@@ -72,6 +75,7 @@ struct BudgetView: View {
         }
     }
 
+    // Seçili ayın budget özeti ViewModel tarafından SwiftData verilerinden hesaplanır.
     private var monthData: BudgetMonthData {
         viewModel.makeMonthData(budgets: budgets, expenses: expenses)
     }
@@ -80,12 +84,14 @@ struct BudgetView: View {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
+    // Category listesi, budget durumu ve harcama toplamlarıyla birleştirilerek ekrana verilir.
     private var categoryEntries: [BudgetCategoryEntry] {
         viewModel
             .makeCategoryEntries(categories: categories, budgets: budgets, expenses: expenses)
             .sorted(by: sortCategoryEntriesForDisplay)
     }
 
+    // SwiftUI task'in ne zaman yeniden çalışacağını belirleyen senkronizasyon anahtarıdır.
     private var budgetSyncKey: String {
         let budgetSignature = budgets
             .map { "\($0.id.uuidString)-\($0.limitAmount)-\($0.month)-\($0.year)" }
@@ -157,6 +163,7 @@ struct BudgetView: View {
         viewModel.moveMonth(by: 1)
     }
 
+    // Her category satırındaki TextField, ViewModel'in draft sözlüğüne binding ile bağlanır.
     private func draftBinding(for categoryID: UUID) -> Binding<String> {
         Binding(
             get: { viewModel.draftAmount(for: categoryID) },
@@ -166,6 +173,7 @@ struct BudgetView: View {
         )
     }
 
+    // Save aksiyonu async flow'a taşınır; işlem sonrası notification schedule yenilenir.
     private func saveBudget(for categoryID: UUID) {
         Task {
             await saveBudgetFlow(for: categoryID)
@@ -178,11 +186,13 @@ struct BudgetView: View {
         }
     }
 
+    // Reset doğrudan yapılmaz; önce confirmation sheet ile kullanıcıdan onay alınır.
     private func requestResetConfirmation(for categoryID: UUID) {
         pendingResetCategoryID = categoryID
         isResetSheetPresented = true
     }
 
+    // Reset onaylandıktan sonra seçili category için Budget kaydı silinir.
     private func confirmResetBudget() {
         guard let categoryID = pendingResetCategoryID else {
             return
@@ -192,6 +202,7 @@ struct BudgetView: View {
         resetBudget(for: categoryID)
     }
 
+    // "Other" category en sona alınır, diğerleri alfabetik gösterilir.
     private func sortCategoryEntriesForDisplay(_ lhs: BudgetCategoryEntry, _ rhs: BudgetCategoryEntry) -> Bool {
         let lhsIsOther = CategoryLocalization.isOther(lhs.categoryName)
         let rhsIsOther = CategoryLocalization.isOther(rhs.categoryName)
@@ -218,6 +229,7 @@ struct BudgetView: View {
         )
     }
 
+    // Budget save başarılı olursa budget warning notification'ları yeni limite göre yeniden planlanır.
     @MainActor
     private func saveBudgetFlow(for categoryID: UUID) async {
         guard let category = categories.first(where: { $0.id == categoryID }) else {
@@ -237,6 +249,7 @@ struct BudgetView: View {
         }
     }
 
+    // Budget reset sonrası notification state'i de güncel budget listesine göre yenilenir.
     @MainActor
     private func resetBudgetFlow(for categoryID: UUID) async {
         do {
@@ -252,6 +265,7 @@ struct BudgetView: View {
     }
 }
 
+// ResetBudgetConfirmationSheet, limit silme aksiyonunu yanlışlıkla yapılmaya karşı onaylatır.
 private struct ResetBudgetConfirmationSheet: View {
     let message: String
     let onConfirm: () -> Void
@@ -339,6 +353,7 @@ private struct BudgetHeader: View {
     }
 }
 
+// BudgetMonthOverviewCard, seçili ay için toplam limit/harcama/kalan değerlerini özetler.
 private struct BudgetMonthOverviewCard: View {
     let monthData: BudgetMonthData
     let selectedMonthTitle: String

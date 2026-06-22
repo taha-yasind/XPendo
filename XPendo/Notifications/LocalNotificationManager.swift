@@ -1,6 +1,7 @@
 import Foundation
 import UserNotifications
 
+// NotificationPermissionState, sistem notification permission durumunu app içinde sade bir enum olarak temsil eder.
 enum NotificationPermissionState {
     case notDetermined
     case authorized
@@ -11,6 +12,7 @@ enum NotificationPermissionState {
     }
 }
 
+// NotificationScheduleContext, notification planlama için gerekli settings ve güncel finans verisini taşır.
 struct NotificationScheduleContext {
     let notificationsEnabled: Bool
     let dailyReminderEnabled: Bool
@@ -19,11 +21,14 @@ struct NotificationScheduleContext {
     let expenses: [Expense]
 }
 
+// LocalNotificationManager, UserNotifications framework ile local reminder planlama sorumluluğunu üstlenir.
+// Settings ViewModel yalnızca tercihleri kaydeder; gerçek schedule işlemleri burada yapılır.
 enum LocalNotificationManager {
     private static let notificationCenter = UNUserNotificationCenter.current()
     private static let dailyReminderIdentifier = "xpendo.daily.reminder"
     private static let budgetWarningIdentifier = "xpendo.budget.warning"
 
+    // Sistem permission durumunu okunabilir app enum'una çevirir.
     static func permissionState() async -> NotificationPermissionState {
         let settings = await notificationCenter.notificationSettings()
 
@@ -43,10 +48,12 @@ enum LocalNotificationManager {
         try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
     }
 
+    // Güncel settings'e göre daily reminder ve budget warning requestleri yeniden kurulur veya kaldırılır.
     static func refreshSchedules(using context: NotificationScheduleContext) async throws {
         let permissionState = await permissionState()
 
         guard context.notificationsEnabled, permissionState.isAuthorized else {
+            // Ana izin veya app tercihi kapalıysa bekleyen XPendo notification requestleri temizlenir.
             removeAllRequests()
             return
         }
@@ -68,6 +75,7 @@ enum LocalNotificationManager {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: allIdentifiers)
     }
 
+    // Her gün 20:00'de expense kaydetmeyi hatırlatan local notification planlanır.
     private static func scheduleDailyReminder() async throws {
         let content = UNMutableNotificationContent()
         content.title = AppLocalization.string("notification.daily.title")
@@ -89,6 +97,7 @@ enum LocalNotificationManager {
         try await notificationCenter.add(request)
     }
 
+    // Budget warning sadece mevcut ayda aşım varsa planlanır; aşım yoksa request kaldırılır.
     private static func scheduleBudgetWarningIfNeeded(using context: NotificationScheduleContext) async throws {
         let overspentCategoryCount = currentMonthOverspentCategoryCount(
             budgets: context.budgets,
@@ -124,6 +133,7 @@ enum LocalNotificationManager {
         try await notificationCenter.add(request)
     }
 
+    // Current month budget aşımı, Budget limitleri ile aynı ay Expense toplamları karşılaştırılarak hesaplanır.
     private static func currentMonthOverspentCategoryCount(
         budgets: [Budget],
         expenses: [Expense],

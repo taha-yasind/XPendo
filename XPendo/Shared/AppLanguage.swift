@@ -1,5 +1,6 @@
 import Foundation
 
+// AppLanguage, desteklenen localization dillerini ve ilgili Locale bilgisini temsil eder.
 enum AppLanguage: String, CaseIterable, Identifiable {
     case english = "en"
     case turkish = "tr"
@@ -29,6 +30,8 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     }
 }
 
+// AppLocalization, seçili dili UserDefaults'ta tutar ve string lookup işlemini tek helper'da toplar.
+// Settings dil değiştirince AppRootView locale ve View identity üzerinden UI'yı yeniler.
 enum AppLocalization {
     private static let userDefaultsKey = "xpendo.preferredLanguageCode"
 
@@ -37,6 +40,7 @@ enum AppLocalization {
             ?? AppLanguage.resolved(from: nil).rawValue
     }()
 
+    // Dil tercihi güncellenir ve sonraki localization lookup'ları bu code'u kullanır.
     static func updateLanguage(code: String) {
         let resolved = AppLanguage.resolved(from: code).rawValue
         currentLanguageCode = resolved
@@ -47,6 +51,7 @@ enum AppLocalization {
         AppLanguage.resolved(from: currentLanguageCode).locale
     }
 
+    // Önce seçili dil bundle'ı denenir; key bulunamazsa main bundle fallback olur.
     static func string(_ key: String) -> String {
         let resolvedLanguageCode = AppLanguage.resolved(from: currentLanguageCode).rawValue
         let localizedBundle = bundle(for: resolvedLanguageCode)

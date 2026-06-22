@@ -1,5 +1,6 @@
 import Foundation
 
+// HomeDashboardData, Home ekranında gösterilen özet metrikleri tek modelde toplar.
 struct HomeDashboardData {
     let monthLabel: String
     let todayTotal: Double
@@ -43,10 +44,13 @@ struct HomeBudgetStatus {
     }
 }
 
+// HomeViewModel, SwiftData'dan gelen Expense ve Budget listelerini dashboard verisine dönüştürür.
+// UI kodu hesaplama detaylarını bilmeden hazır özet verileri kullanır.
 struct HomeViewModel {
     private let calendar = Calendar.current
     private let recentExpenseLimit = 4
 
+    // Home ekranı için bugün, bu ay, son harcamalar, top category ve budget preview hesaplanır.
     func makeDashboardData(
         expenses: [Expense],
         budgets: [Budget],
@@ -70,6 +74,7 @@ struct HomeViewModel {
         )
     }
 
+    // Bu ayın harcamaları category bazında gruplanır ve en yüksek toplamlı category seçilir.
     private func makeTopCategory(from expenses: [Expense]) -> HomeTopCategorySummary? {
         let categorizedExpenses = expenses.compactMap { expense -> (category: Category, expense: Expense)? in
             guard let category = expense.category else {
@@ -93,6 +98,7 @@ struct HomeViewModel {
         return categoryTotals.max(by: { $0.totalAmount < $1.totalAmount })
     }
 
+    // Budget preview, mevcut ay budget'larında aşım varsa warning; yoksa en aktif budget durumunu üretir.
     private func makeBudgetPreview(
         from monthExpenses: [Expense],
         budgets: [Budget],

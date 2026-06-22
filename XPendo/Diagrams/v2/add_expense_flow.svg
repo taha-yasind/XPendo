@@ -1,0 +1,124 @@
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="mn" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#445566"/>
+    </marker>
+    <marker id="mr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#E74C3C"/>
+    </marker>
+    <marker id="mg" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <polygon points="0 0,9 4.5,0 9" fill="#27AE60"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#0d0d1a"/>
+
+  <!-- TITLE -->
+  <text x="640" y="32" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Add Expense — Flow Diagram</text>
+  <text x="640" y="54" fill="#667788" font-size="11" text-anchor="middle" font-family="-apple-system,sans-serif">FloatingAddButton  →  Sheet Modal  →  SwiftData  ·  Works for both Add and Edit mode</text>
+
+  <!-- ══ ROW 1: HAPPY PATH (y_center=220, box h=64) ══ -->
+
+  <!-- START oval -->
+  <ellipse cx="100" cy="220" rx="80" ry="28" fill="#003d30" stroke="#00BFA5" stroke-width="2.5"/>
+  <text x="100" y="216" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">User taps</text>
+  <text x="100" y="231" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">+ button</text>
+
+  <!-- Arrow → -->
+  <line x1="180" y1="220" x2="212" y2="220" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 1: Sheet -->
+  <rect x="214" y="188" width="192" height="64" rx="8" fill="#001e38" stroke="#3498DB" stroke-width="2"/>
+  <text x="310" y="213" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Sheet Opens</text>
+  <text x="310" y="230" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">AddExpenseViewModel</text>
+  <text x="310" y="244" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">prepared (add / edit mode)</text>
+
+  <!-- Arrow → -->
+  <line x1="406" y1="220" x2="438" y2="220" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 2: Fill Form -->
+  <rect x="440" y="188" width="200" height="64" rx="8" fill="#001e38" stroke="#3498DB" stroke-width="2"/>
+  <text x="540" y="213" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Fill in Form</text>
+  <text x="540" y="230" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Title · Amount · Date · Category</text>
+  <text x="540" y="244" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Note (optional) · OCR optional</text>
+
+  <!-- Arrow → -->
+  <line x1="640" y1="220" x2="672" y2="220" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- DECISION DIAMOND -->
+  <polygon points="760,178 848,220 760,262 672,220" fill="#1a0828" stroke="#9B59B6" stroke-width="2.5"/>
+  <text x="760" y="215" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Input</text>
+  <text x="760" y="230" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">valid?</text>
+
+  <!-- YES label (right of diamond) -->
+  <text x="868" y="213" fill="#27AE60" font-size="11" font-weight="700" font-family="-apple-system,sans-serif">Yes ✓</text>
+
+  <!-- Arrow YES → right -->
+  <line x1="848" y1="220" x2="880" y2="220" stroke="#27AE60" stroke-width="2" marker-end="url(#mg)"/>
+
+  <!-- BOX 3: Save -->
+  <rect x="882" y="188" width="180" height="64" rx="8" fill="#002010" stroke="#27AE60" stroke-width="2"/>
+  <text x="972" y="211" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Save to SwiftData</text>
+  <text x="972" y="228" fill="#27AE60" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">viewModel.saveExpense(</text>
+  <text x="972" y="244" fill="#27AE60" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">  in: modelContext)</text>
+
+  <!-- Arrow → -->
+  <line x1="1062" y1="220" x2="1094" y2="220" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 4: Notify -->
+  <rect x="1096" y="188" width="170" height="64" rx="8" fill="#001225" stroke="#2980B9" stroke-width="2"/>
+  <text x="1181" y="211" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Sync Notifications</text>
+  <text x="1181" y="228" fill="#2980B9" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">NotificationSyncService</text>
+  <text x="1181" y="244" fill="#2980B9" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">.refresh(using: context)</text>
+
+  <!-- ══ ROW 2: COMPLETION (y_center=460, box h=64) ══ -->
+
+  <!-- Down arrow from Notify to row 2 -->
+  <line x1="1181" y1="252" x2="1181" y2="338" stroke="#445566" stroke-width="2"/>
+  <line x1="1181" y1="338" x2="890" y2="338" stroke="#445566" stroke-width="2"/>
+  <line x1="890" y1="338" x2="890" y2="428" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- BOX 5: Sheet closes + views update -->
+  <rect x="720" y="430" width="340" height="64" rx="8" fill="#001e38" stroke="#3498DB" stroke-width="2"/>
+  <text x="890" y="453" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Sheet Closes  ·  All Views Update</text>
+  <text x="890" y="470" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Home · Expenses · Budget · Analytics</text>
+  <text x="890" y="484" fill="#3498DB" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">@Query automatically re-fetches from SwiftData</text>
+
+  <!-- Arrow → END -->
+  <line x1="720" y1="462" x2="680" y2="462" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+
+  <!-- END oval -->
+  <ellipse cx="610" cy="462" rx="70" ry="28" fill="#003d30" stroke="#00BFA5" stroke-width="2.5"/>
+  <text x="610" y="458" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Expense</text>
+  <text x="610" y="473" fill="#00BFA5" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">saved ✓</text>
+
+  <!-- ══ NO BRANCH (Validation error loop) ══ -->
+  <!-- NO label (below diamond) -->
+  <text x="762" y="282" fill="#E74C3C" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">No ✗</text>
+
+  <!-- No path: diamond bottom → down → left → back up to form -->
+  <path d="M 760 262 V 360 H 540 V 252" stroke="#E74C3C" stroke-width="2" stroke-dasharray="7 4" fill="none" marker-end="url(#mr)"/>
+
+  <!-- Error banner label box -->
+  <rect x="600" y="338" width="220" height="38" rx="7" fill="#1a0808" stroke="#E74C3C" stroke-width="1.5"/>
+  <text x="710" y="354" fill="#E74C3C" font-size="10.5" font-weight="600" text-anchor="middle" font-family="-apple-system,sans-serif">ValidationBanner displayed</text>
+  <text x="710" y="369" fill="#cc5555" font-size="9" text-anchor="middle" font-family="-apple-system,sans-serif">User sees inline error, form stays open</text>
+
+  <!-- ══ LEGEND / NOTES ══ -->
+  <rect x="60" y="580" width="540" height="80" rx="8" fill="#111820"/>
+  <text x="330" y="600" fill="#778899" font-size="10.5" font-weight="600" text-anchor="middle" font-family="-apple-system,sans-serif">Flow Notes</text>
+  <text x="80" y="618" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">• Edit mode: form pre-filled, saveExpense() updates existing record</text>
+  <text x="80" y="634" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">• OCR: optional — receipt scan fills form as suggestion (user confirms)</text>
+  <text x="80" y="650" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">• @Query: views observe SwiftData, re-render automatically on change</text>
+
+  <rect x="640" y="580" width="580" height="80" rx="8" fill="#111820"/>
+  <text x="930" y="600" fill="#778899" font-size="10.5" font-weight="600" text-anchor="middle" font-family="-apple-system,sans-serif">Arrow Legend</text>
+  <line x1="660" y1="622" x2="710" y2="622" stroke="#445566" stroke-width="2" marker-end="url(#mn)"/>
+  <text x="720" y="626" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">Normal flow</text>
+  <line x1="800" y1="622" x2="850" y2="622" stroke="#27AE60" stroke-width="2" marker-end="url(#mg)"/>
+  <text x="860" y="626" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">Valid / success path</text>
+  <line x1="660" y1="648" x2="710" y2="648" stroke="#E74C3C" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#mr)"/>
+  <text x="720" y="652" fill="#556677" font-size="9.5" font-family="-apple-system,sans-serif">Invalid / error loop</text>
+
+  <text x="640" y="706" fill="#1e2a35" font-size="8" text-anchor="middle" font-family="-apple-system,sans-serif">Xpendo — Add Expense Flow  ·  SwiftUI  ·  SwiftData  ·  MVVM  ·  @Observable</text>
+</svg>

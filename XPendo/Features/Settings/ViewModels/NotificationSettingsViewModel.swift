@@ -2,6 +2,8 @@ import Foundation
 import Observation
 import SwiftData
 
+// NotificationSettingsViewModel, permission state ve reminder tercihlerini yönetir.
+// LocalNotificationManager ile konuşur, AppSettings'e kaydeder ve schedule refresh tetikler.
 @MainActor
 @Observable
 final class NotificationSettingsViewModel {
@@ -13,6 +15,7 @@ final class NotificationSettingsViewModel {
     var errorMessage: String?
     var isProcessing = false
 
+    // Settings ekranı açıldığında mevcut AppSettings ve sistem permission durumu okunur.
     func load(from settings: AppSettings?) async {
         guard let settings else {
             return
@@ -27,6 +30,7 @@ final class NotificationSettingsViewModel {
             : nil
     }
 
+    // Ana notification toggle'ı permission isteyebilir; izin yoksa reminder seçenekleri kapalı kalır.
     func setNotificationsEnabled(
         _ isEnabled: Bool,
         settings: AppSettings?,
@@ -123,6 +127,7 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // Apply butonu tüm notification draft tercihlerini tek transaction gibi uygular.
     func applyChanges(
         notificationsEnabled requestedNotificationsEnabled: Bool,
         dailyReminderEnabled requestedDailyReminderEnabled: Bool,
@@ -145,6 +150,7 @@ final class NotificationSettingsViewModel {
 
         permissionState = await LocalNotificationManager.permissionState()
 
+        // Bildirimler isteniyorsa önce sistem permission sonucu çözülür.
         var resolvedNotificationsEnabled = false
         var infoMessage: String?
 
@@ -181,6 +187,7 @@ final class NotificationSettingsViewModel {
         let resolvedDailyReminderEnabled = resolvedNotificationsEnabled ? requestedDailyReminderEnabled : false
         let resolvedBudgetWarningEnabled = resolvedNotificationsEnabled ? requestedBudgetWarningEnabled : false
 
+        // Ana izin kapalıysa alt reminder ayarları da kapalı kaydedilir.
         settings.notificationsEnabled = resolvedNotificationsEnabled
         settings.dailyReminderEnabled = resolvedDailyReminderEnabled
         settings.budgetWarningEnabled = resolvedBudgetWarningEnabled
@@ -230,6 +237,7 @@ final class NotificationSettingsViewModel {
         !notificationsEnabled || !permissionState.isAuthorized || isProcessing
     }
 
+    // Tekil reminder değişikliklerinde ortak save/rollback davranışı bu helper ile paylaşılır.
     private func updatePreference(
         _ isEnabled: Bool,
         currentValue: Bool,

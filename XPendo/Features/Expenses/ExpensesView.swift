@@ -1,6 +1,8 @@
 import SwiftUI
 import SwiftData
 
+// ExpensesView, kayıtlı harcamaları filtreleme, edit ve delete akışlarıyla listeler.
+// Persistence işlemleri ViewModel ve ModelContext üzerinden yapılır.
 struct ExpensesView: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -32,9 +34,11 @@ struct ExpensesView: View {
         .background(XPendoTheme.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(item: editingExpenseBinding) { expense in
+            // Edit flow: seçilen Expense aynı AddExpenseView formuna gönderilir.
             AddExpenseView(expenseToEdit: expense)
         }
         .sheet(item: deleteExpenseBinding) { expense in
+            // Delete flow: önce confirmation sheet gösterilir, sonra ModelContext delete çalışır.
             DeleteExpenseSheet(
                 expense: expense,
                 onDelete: {
@@ -55,6 +59,7 @@ struct ExpensesView: View {
         }
     }
 
+    // Filtrelenmiş liste ViewModel'den gelir; SwiftData sorgusu sıralı ham veriyi sağlar.
     private var filteredExpenses: [Expense] {
         viewModel.filteredExpenses(from: expenses)
     }
@@ -147,6 +152,7 @@ struct ExpensesView: View {
         }
     }
 
+    // Empty state, gerçek veri olmaması ile filtre sonucu eşleşme olmamasını ayrı anlatır.
     @ViewBuilder
     private func contentSection(filteredExpenses: [Expense]) -> some View {
         if expenses.isEmpty {
@@ -181,6 +187,7 @@ struct ExpensesView: View {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
+    // Optional edit state'i sheet(item:) için Binding'e dönüştürülür.
     private var editingExpenseBinding: Binding<Expense?> {
         Binding(
             get: { viewModel.expenseBeingEdited },
@@ -188,6 +195,7 @@ struct ExpensesView: View {
         )
     }
 
+    // Delete confirmation state'i sheet(item:) tarafından izlenir.
     private var deleteExpenseBinding: Binding<Expense?> {
         Binding(
             get: { viewModel.expensePendingDelete },
@@ -210,6 +218,7 @@ struct ExpensesView: View {
         )
     }
 
+    // Delete başarılı olunca budget warning notification'ları da güncel harcama verisine göre yenilenir.
     @MainActor
     private func deletePendingExpense() async {
         do {
@@ -249,6 +258,7 @@ private struct ExpenseEmptyState: View {
     }
 }
 
+// DeleteExpenseSheet, silme işlemini presentation-friendly şekilde onaylatan küçük confirmation View'dur.
 private struct DeleteExpenseSheet: View {
     let expense: Expense
     let onDelete: () -> Void

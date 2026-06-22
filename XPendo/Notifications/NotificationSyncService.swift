@@ -1,8 +1,11 @@
 import Foundation
 import SwiftData
 
+// NotificationSyncService, SwiftData kayıtları ile LocalNotificationManager arasında köprü görevi görür.
+// Expense veya Budget değiştiğinde çağrılarak schedule context'i güncel veriden yeniden oluşturur.
 @MainActor
 enum NotificationSyncService {
+    // AppSettings yoksa notification requestleri temizlenir; varsa budget ve expense verileriyle refresh yapılır.
     static func refresh(using modelContext: ModelContext) async throws {
         guard let settings = try modelContext.fetch(FetchDescriptor<AppSettings>()).first else {
             LocalNotificationManager.removeAllRequests()

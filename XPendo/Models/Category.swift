@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
 
+// Category modeli, harcamaları sınıflandırmak için kullanılan SwiftData varlığıdır.
+// DefaultCategoryProvider tarafından seed edilir ve expense/budget kayıtlarıyla ilişkilendirilir.
 @Model
 final class Category {
     var id: UUID = UUID()

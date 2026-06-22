@@ -2,6 +2,8 @@ import Foundation
 import Observation
 import SwiftData
 
+// AddExpenseViewModel, Add Expense ekranındaki form state'ini ve validation akışını yönetir.
+// Yeni kayıt oluşturma ve mevcut Expense'i edit etme mantığı aynı ViewModel içinde toplanır.
 @Observable
 final class AddExpenseViewModel {
     private let expenseToEdit: Expense?
@@ -15,6 +17,7 @@ final class AddExpenseViewModel {
     var validationMessage: String?
     var receiptScanMessage: String?
 
+    // expenseToEdit doluysa form edit modunda açılır ve mevcut değerlerle başlatılır.
     init(expenseToEdit: Expense? = nil) {
         self.expenseToEdit = expenseToEdit
 
@@ -26,6 +29,7 @@ final class AddExpenseViewModel {
         }
     }
 
+    // Category listesi seed veya SwiftData sorgusu sonrası değişirse seçili category güvenli hale getirilir.
     func ensureSelectedCategory(from categories: [Category]) {
         guard !categories.isEmpty else {
             selectedCategory = nil
@@ -37,6 +41,7 @@ final class AddExpenseViewModel {
         }
     }
 
+    // Edit modunda saklanan TRY tutarı, kullanıcının seçtiği display currency'ye çevrilerek forma yazılır.
     func prepareForm(categories: [Category], displayCurrencyCode: String) {
         ensureSelectedCategory(from: categories)
 
@@ -49,6 +54,7 @@ final class AddExpenseViewModel {
         didConfigureDisplayAmount = true
     }
 
+    // Form validation burada yapılır; geçerliyse Expense SwiftData ModelContext içine kaydedilir.
     func saveExpense(
         in modelContext: ModelContext,
         categories: [Category],
@@ -81,12 +87,14 @@ final class AddExpenseViewModel {
 
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
         if let expenseToEdit {
+            // Edit flow: yeni kayıt oluşturmak yerine mevcut SwiftData modelinin alanları güncellenir.
             expenseToEdit.title = trimmedTitle
             expenseToEdit.amount = amountInTRY
             expenseToEdit.date = date
             expenseToEdit.category = category
             expenseToEdit.note = trimmedNote.isEmpty ? nil : trimmedNote
         } else {
+            // Add flow: kullanıcı inputları TRY taban para birimine çevrilerek yeni Expense kaydı oluşturulur.
             let expense = Expense(
                 title: trimmedTitle,
                 amount: amountInTRY,
@@ -110,6 +118,7 @@ final class AddExpenseViewModel {
         try modelContext.save()
     }
 
+    // OCR sonucu doğrudan kaydedilmez; form alanlarına öneri olarak uygulanır ve kullanıcı onayı beklenir.
     func applyReceiptScanResult(
         _ result: ReceiptScanResult,
         categories: [Category]
@@ -162,6 +171,7 @@ final class AddExpenseViewModel {
         return AppLocalization.string("addExpense.subtitle.edit")
     }
 
+    // Amount parser, hem locale decimal formatını hem de nokta/virgül yazımını destekler.
     private var parsedAmount: Double? {
         let trimmedAmount = amountText.trimmingCharacters(in: .whitespacesAndNewlines)
 

@@ -1,5 +1,6 @@
 import Foundation
 
+// DefaultCategoryDefinition, seed edilecek category için sabit kimlik ve görsel bilgileri taşır.
 struct DefaultCategoryDefinition {
     let id: UUID
     let name: String
@@ -7,6 +8,8 @@ struct DefaultCategoryDefinition {
     let color: String
 }
 
+// DefaultCategoryProvider, uygulamanın başlangıç category listesini merkezi olarak tanımlar.
+// Sabit UUID'ler demo data, budget ve expense ilişkilerinin tutarlı kalmasına yardımcı olur.
 enum DefaultCategoryProvider {
     static let categories: [DefaultCategoryDefinition] = [
         DefaultCategoryDefinition(id: uuid("A75E3E31-33F8-46FB-942B-2D9F0A61B001"), name: "Food", icon: "fork.knife", color: "#00BFA5"),

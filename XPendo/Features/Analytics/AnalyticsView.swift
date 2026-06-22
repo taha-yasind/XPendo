@@ -2,6 +2,8 @@ import Charts
 import SwiftData
 import SwiftUI
 
+// AnalyticsView, harcama verilerini chart ve kısa insight kartları olarak gösterir.
+// Swift Charts kullanır; hesaplama verileri AnalyticsViewModel tarafından hazırlanır.
 struct AnalyticsView: View {
     @Query(
         sort: [
@@ -47,6 +49,7 @@ struct AnalyticsView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
+    // Analytics hesaplaması, güncel SwiftData Expense listesi üzerinden yapılır.
     private var analyticsData: AnalyticsDashboardData {
         viewModel.makeDashboardData(expenses: expenses)
     }
@@ -78,6 +81,7 @@ private struct AnalyticsHeader: View {
     }
 }
 
+// AnalyticsInsightsSection, toplam harcama, top category ve en güçlü ay gibi özetleri gösterir.
 private struct AnalyticsInsightsSection: View {
     let data: AnalyticsDashboardData
     let currencyCode: String
@@ -196,6 +200,7 @@ private struct AnalyticsInsightRow: View {
     }
 }
 
+// AnalyticsCategoryChartSection, category toplamlarını horizontal bar chart olarak sunar.
 private struct AnalyticsCategoryChartSection: View {
     let categories: [AnalyticsCategoryTotal]
     let currencyCode: String
@@ -260,6 +265,7 @@ private struct AnalyticsCategoryChartSection: View {
     }
 }
 
+// AnalyticsMonthlyTrendSection, son ayların toplam harcama trendini area/line chart ile gösterir.
 private struct AnalyticsMonthlyTrendSection: View {
     let monthlyTotals: [AnalyticsMonthlyTotal]
     let trendRangeLabel: String

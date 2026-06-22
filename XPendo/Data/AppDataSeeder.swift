@@ -1,7 +1,10 @@
 import Foundation
 import SwiftData
 
+// AppDataSeeder, uygulama ilk açıldığında gereken başlangıç verilerini oluşturur.
+// Default category ve AppSettings kayıtları eksikse SwiftData ModelContext içine eklenir.
 enum AppDataSeeder {
+    // Seed işlemi ModelContainer kurulurken çağrılır; veri varsa tekrar aynı kayıtları üretmez.
     static func seedIfNeeded(in modelContext: ModelContext) throws {
         try seedDefaultCategories(in: modelContext)
         try seedAppSettings(in: modelContext)
@@ -11,6 +14,7 @@ enum AppDataSeeder {
         }
     }
 
+    // Sunumda: category listesi uygulamanın temel sınıflandırma sistemidir.
     private static func seedDefaultCategories(in modelContext: ModelContext) throws {
         let existingCategories = try modelContext.fetch(FetchDescriptor<Category>())
         let existingNames = Set(existingCategories.map(\.name))
@@ -30,6 +34,7 @@ enum AppDataSeeder {
         try deduplicateDefaultCategories(in: modelContext)
     }
 
+    // Settings kaydı tekil tutulur; theme ve language için varsayılan değerler burada tamamlanır.
     private static func seedAppSettings(in modelContext: ModelContext) throws {
         let existingSettings = try modelContext.fetch(FetchDescriptor<AppSettings>())
 
@@ -57,6 +62,7 @@ enum AppDataSeeder {
         }
     }
 
+    // Eski veya tekrar oluşmuş default category kayıtları varsa ilişkiler korunarak tek kayda indirilir.
     private static func deduplicateDefaultCategories(in modelContext: ModelContext) throws {
         let categories = try modelContext.fetch(FetchDescriptor<Category>())
         let expenses = try modelContext.fetch(FetchDescriptor<Expense>())

@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 
+// PreferredTheme, Settings ekranında seçilen theme tercihini SwiftUI ColorScheme'e dönüştürür.
 enum PreferredTheme: String, CaseIterable, Identifiable {
     case light
     case dark
@@ -50,6 +51,8 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
     }
 }
 
+// XPendoTheme, app genelinde kullanılan renk tokenlarını merkezi olarak tanımlar.
+// Adaptive color kullanıldığı için light/dark mode renkleri aynı çağrı noktalarından yönetilir.
 enum XPendoTheme {
     static let accentTeal = adaptiveColor(light: UIColor(hex: 0x00BFA5), dark: UIColor(hex: 0x25B0B9))
     static let coral = adaptiveColor(light: UIColor(hex: 0xE74C3C), dark: UIColor(hex: 0xFF5C5C))
@@ -77,6 +80,7 @@ enum XPendoTheme {
         dark: UIColor.black.withAlphaComponent(0.28)
     )
 
+    // UIColor dynamic provider ile sistem light/dark değişimine göre Color üretilir.
     private static func adaptiveColor(light: UIColor, dark: UIColor) -> Color {
         Color(
             uiColor: UIColor { traitCollection in
@@ -86,6 +90,7 @@ enum XPendoTheme {
     }
 }
 
+// Hex string extension, category renklerinin SwiftData'da string saklanıp UI'da Color'a çevrilmesini sağlar.
 extension Color {
     init(hex: UInt, alpha: Double = 1.0) {
         self.init(

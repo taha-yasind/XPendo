@@ -1,11 +1,14 @@
 import Foundation
 import SwiftData
 
+// DemoDataOperationResult, demo data yükleme/temizleme sonunda kaç kayıt etkilendiğini bildirir.
 struct DemoDataOperationResult {
     let expenseCount: Int
     let budgetCount: Int
 }
 
+// DemoDataSeeder, teknik sunum ve test amaçlı örnek Expense/Budget verisi üretir.
+// Gerçek kullanıcı verisiyle karışmaması için demo expense title'ları özel prefix ile işaretlenir.
 enum DemoDataSeeder {
     enum DemoDataError: Error {
         case existingData(expenseCount: Int, budgetCount: Int)
@@ -46,6 +49,7 @@ enum DemoDataSeeder {
         "Food", "Transport", "Shopping", "Bills", "Health", "Entertainment", "Education", "Other"
     ]
 
+    // Demo data yalnızca mevcut expense/budget yoksa yüklenir; böylece kullanıcı verisi üzerine yazılmaz.
     static func loadDemoData(in modelContext: ModelContext) throws -> DemoDataOperationResult {
         try AppDataSeeder.seedIfNeeded(in: modelContext)
 
@@ -66,6 +70,7 @@ enum DemoDataSeeder {
 
         let demoEntries = makeDemoEntries(now: now, calendar: calendar)
 
+        // Expense kayıtları default category ilişkileri kullanılarak SwiftData içine eklenir.
         var insertedExpenseCount = 0
         for entry in demoEntries {
             guard let category = categoriesByName[entry.categoryName] else {
@@ -85,6 +90,7 @@ enum DemoDataSeeder {
 
         var insertedBudgetCount = 0
 
+        // Son demoMonthCount ay için category bazlı Budget kayıtları oluşturulur.
         for monthOffset in (-(demoMonthCount - 1))...0 {
             guard let monthDate = calendar.date(byAdding: .month, value: monthOffset, to: now) else {
                 continue
@@ -119,6 +125,7 @@ enum DemoDataSeeder {
         )
     }
 
+    // Clear flow, sadece demo olarak tanınan expense ve budget kayıtlarını hedefler.
     static func clearDemoData(in modelContext: ModelContext) throws -> DemoDataOperationResult {
         let expenses = try modelContext.fetch(FetchDescriptor<Expense>())
         let budgets = try modelContext.fetch(FetchDescriptor<Budget>())
@@ -163,6 +170,7 @@ enum DemoDataSeeder {
         )
     }
 
+    // Deterministic demo entry üretimi, sunumda her yüklemede benzer dağılım elde etmeyi sağlar.
     private static func makeDemoEntries(now: Date, calendar: Calendar) -> [DemoEntry] {
         var entries: [DemoEntry] = []
 

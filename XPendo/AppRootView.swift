@@ -1,6 +1,8 @@
 import SwiftData
 import SwiftUI
 
+// AppRootView, onboarding kararı, ana tab navigation ve global app ayarlarını yönetir.
+// SwiftData'dan AppSettings okuyarak theme, language ve notification sync akışını başlatır.
 struct MainChromeHiddenPreferenceKey: PreferenceKey {
     static let defaultValue = false
 
@@ -9,7 +11,10 @@ struct MainChromeHiddenPreferenceKey: PreferenceKey {
     }
 }
 
+// Uygulamanın ana SwiftUI kök View'udur.
+// İlk açılışta onboarding gösterir; sonrasında Home, Expenses, Budget ve Analytics tablarını sunar.
 struct AppRootView: View {
+    // MainTabView ayrı dosyada değildir; tab state'i bu enum ile AppRootView içinde tutulur.
     private enum AppTab: Hashable {
         case home
         case expenses
@@ -29,6 +34,7 @@ struct AppRootView: View {
 
     var body: some View {
         Group {
+            // Onboarding kararı AppStorage ile kalıcı tutulur ve launch akışını belirler.
             if hasSeenOnboarding {
                 mainAppContent
             } else {
@@ -54,12 +60,14 @@ struct AppRootView: View {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 Task {
+                    // App foreground'a döndüğünde notification schedule güncel harcama/budget verisiyle yenilenir.
                     try? await NotificationSyncService.refresh(using: modelContext)
                 }
             }
         }
     }
 
+    // Ana tab navigation burada kurulur; her tab kendi NavigationStack'i içinde çalışır.
     private var mainAppContent: some View {
         ZStack(alignment: .bottom) {
             XPendoTheme.background
@@ -101,6 +109,7 @@ struct AppRootView: View {
                 .tag(AppTab.analytics)
             }
             .tint(XPendoTheme.accentTeal)
+            // Settings gibi tam ekran odak isteyen ekranlar tab bar ve floating button'ı gizleyebilir.
             .toolbar(isMainChromeHidden ? .hidden : .visible, for: .tabBar)
             .toolbarBackground(.visible, for: .tabBar)
             .toolbarBackground(XPendoTheme.tabBarBackground, for: .tabBar)
@@ -115,6 +124,7 @@ struct AppRootView: View {
         }
     }
 
+    // AppSettings içindeki theme kodu SwiftUI ColorScheme'e çevrilir.
     private var preferredColorScheme: ColorScheme? {
         guard let themeCode = settings.first?.preferredThemeCode else {
             return nil
@@ -123,6 +133,7 @@ struct AppRootView: View {
         return theme.colorScheme
     }
 
+    // Language değiştiğinde View kimliği yenilenerek localized textlerin tekrar çizilmesi sağlanır.
     private var selectedLanguageCode: String {
         AppLanguage.resolved(from: settings.first?.preferredLanguageCode).rawValue
     }

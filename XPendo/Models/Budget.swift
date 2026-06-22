@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
 
+// Budget modeli, belirli bir category için ay ve yıl bazında limit tutarını saklar.
+// Budget ekranı bu modeli günceller; Home, Analytics ve notification akışları bu limitleri okur.
 @Model
 final class Budget {
     var id: UUID = UUID()
@@ -23,6 +25,7 @@ final class Budget {
         self.year = year
     }
 
+    // Category silinmiş veya ilişki eksikse UI'nın çökmeden gösterim yapması için fallback alanları sağlanır.
     var categoryID: UUID? {
         category?.id
     }

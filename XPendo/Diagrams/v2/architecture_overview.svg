@@ -1,0 +1,211 @@
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="av"  markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#445566"/></marker>
+    <marker id="at"  markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#00BFA5"/></marker>
+    <marker id="ab"  markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#3498DB"/></marker>
+    <marker id="ar"  markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#E74C3C"/></marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#0d0d1a"/>
+
+  <!-- ═══ TITLE ═══ -->
+  <text x="640" y="28" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Xpendo — iOS Architecture Overview</text>
+  <text x="640" y="48" fill="#667788" font-size="10.5" text-anchor="middle" font-family="-apple-system,sans-serif">SwiftUI  ·  SwiftData  ·  MVVM  ·  Vision Framework  ·  UserNotifications  ·  Local-first  ·  No backend</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L1  APP ENTRY   band y=56 h=72 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="56" width="1260" height="72" rx="9" fill="#001a15" stroke="#00BFA5" stroke-width="0.8"/>
+  <text x="22" y="70" fill="#00BFA5" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">APP ENTRY</text>
+
+  <!-- Box 0: XPendoApp  x=14 w=618 cx=323 -->
+  <rect x="14" y="64" width="618" height="56" rx="7" fill="#003d30" stroke="#00BFA5" stroke-width="1.8"/>
+  <text x="323" y="84" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">XPendoApp</text>
+  <text x="323" y="101" fill="#00BFA5" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">@main  ·  isDemoModeEnabled  ·  switches between Standard and Demo ModelContainer</text>
+
+  <line x1="632" y1="92" x2="648" y2="92" stroke="#00BFA5" stroke-width="1.8" marker-end="url(#at)"/>
+
+  <!-- Box 1: ModelContainer + Seeder  x=648 w=618 cx=957 -->
+  <rect x="648" y="64" width="618" height="56" rx="7" fill="#003d30" stroke="#00BFA5" stroke-width="1.8"/>
+  <text x="957" y="84" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ModelContainer  +  AppDataSeeder</text>
+  <text x="957" y="101" fill="#00BFA5" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">SwiftData Schema  ·  Standard / Demo Store  ·  8 preset categories + AppSettings seeded on first launch</text>
+
+  <line x1="640" y1="128" x2="640" y2="142" stroke="#445566" stroke-width="2" marker-end="url(#av)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L2  ROOT NAVIGATION   band y=142 h=72 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="142" width="1260" height="72" rx="9" fill="#001625" stroke="#2980B9" stroke-width="0.8"/>
+  <text x="22" y="156" fill="#2980B9" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">ROOT NAVIGATION</text>
+
+  <!-- Box 0: Onboarding  x=14 w=406 cx=217 -->
+  <rect x="14" y="150" width="406" height="56" rx="7" fill="#001e38" stroke="#2980B9" stroke-width="1.8"/>
+  <text x="217" y="170" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">OnboardingView</text>
+  <text x="217" y="188" fill="#2980B9" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">First launch  ·  hasSeenOnboarding @AppStorage</text>
+
+  <line x1="420" y1="178" x2="436" y2="178" stroke="#2980B9" stroke-width="1.8" marker-end="url(#ab)"/>
+
+  <!-- Box 1: AppRootView ★  x=436 w=406 cx=639 -->
+  <rect x="436" y="150" width="406" height="56" rx="7" fill="#002845" stroke="#2980B9" stroke-width="2.5"/>
+  <text x="639" y="170" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">AppRootView  ★</text>
+  <text x="639" y="188" fill="#2980B9" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">TabView  ·  FloatingAddButton  ·  Theme  ·  Locale  ·  ScenePhase  →  NotificationSync</text>
+
+  <line x1="842" y1="178" x2="858" y2="178" stroke="#2980B9" stroke-width="1.8" marker-end="url(#ab)"/>
+
+  <!-- Box 2: Settings  x=858 w=406 cx=1061 -->
+  <rect x="858" y="150" width="406" height="56" rx="7" fill="#001e38" stroke="#2980B9" stroke-width="1.8"/>
+  <text x="1061" y="170" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">SettingsView</text>
+  <text x="1061" y="188" fill="#2980B9" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Currency  ·  Theme  ·  Language  ·  Notifications  ·  Demo Mode</text>
+
+  <line x1="640" y1="214" x2="640" y2="228" stroke="#445566" stroke-width="2" marker-end="url(#av)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L3  TAB SCREENS   band y=228 h=80 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="228" width="1260" height="80" rx="9" fill="#001428" stroke="#3498DB" stroke-width="0.8"/>
+  <text x="22" y="242" fill="#3498DB" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">TAB SCREENS  (NavigationStack per tab)</text>
+
+  <!-- Box 0: HomeView  x=14 w=301 cx=165 -->
+  <rect x="14" y="236" width="301" height="64" rx="7" fill="#001a3a" stroke="#3498DB" stroke-width="1.8"/>
+  <text x="165" y="257" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">HomeView</text>
+  <text x="165" y="272" fill="#3498DB" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Today + Month Summary</text>
+  <text x="165" y="286" fill="#778899" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Recent  ·  Top Category  ·  Budget Preview</text>
+
+  <!-- Box 1: ExpensesView  x=331 w=301 cx=481 -->
+  <rect x="331" y="236" width="301" height="64" rx="7" fill="#001a3a" stroke="#3498DB" stroke-width="1.8"/>
+  <text x="481" y="257" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ExpensesView</text>
+  <text x="481" y="272" fill="#3498DB" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">List  ·  Search  ·  Filter by Category</text>
+  <text x="481" y="286" fill="#778899" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Swipe Delete  ·  Tap to Edit</text>
+
+  <!-- Box 2: BudgetView  x=648 w=301 cx=798 -->
+  <rect x="648" y="236" width="301" height="64" rx="7" fill="#001a3a" stroke="#3498DB" stroke-width="1.8"/>
+  <text x="798" y="257" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">BudgetView</text>
+  <text x="798" y="272" fill="#3498DB" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Monthly category limits</text>
+  <text x="798" y="286" fill="#778899" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Progress bars  ·  Month Navigation</text>
+
+  <!-- Box 3: AnalyticsView  x=965 w=301 cx=1115 -->
+  <rect x="965" y="236" width="301" height="64" rx="7" fill="#001a3a" stroke="#3498DB" stroke-width="1.8"/>
+  <text x="1115" y="257" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">AnalyticsView</text>
+  <text x="1115" y="272" fill="#3498DB" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Category Breakdown Chart</text>
+  <text x="1115" y="286" fill="#778899" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">6-Month Trend  ·  Insights</text>
+
+  <line x1="640" y1="308" x2="640" y2="322" stroke="#445566" stroke-width="2" marker-end="url(#av)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L4  VIEW MODELS   band y=322 h=60 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="322" width="1260" height="60" rx="9" fill="#001408" stroke="#27AE60" stroke-width="0.8"/>
+  <text x="22" y="336" fill="#27AE60" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">VIEW MODELS  (@Observable  ·  Business Logic  ·  Pure Computation for struct VMs)</text>
+
+  <!-- Box 0  x=14 w=301 cx=165 -->
+  <rect x="14" y="330" width="301" height="44" rx="7" fill="#002010" stroke="#27AE60" stroke-width="1.8"/>
+  <text x="165" y="349" fill="#ffffff" font-size="12.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">HomeViewModel</text>
+  <text x="165" y="365" fill="#5dba6e" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">struct  ·  makeDashboardData()  ·  today + month filter</text>
+
+  <!-- Box 1  x=331 w=301 cx=481 -->
+  <rect x="331" y="330" width="301" height="44" rx="7" fill="#002010" stroke="#27AE60" stroke-width="1.8"/>
+  <text x="481" y="349" fill="#ffffff" font-size="12.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ExpensesViewModel</text>
+  <text x="481" y="365" fill="#5dba6e" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">@Observable  ·  search + filter state</text>
+
+  <!-- Box 2  x=648 w=301 cx=798 -->
+  <rect x="648" y="330" width="301" height="44" rx="7" fill="#002010" stroke="#27AE60" stroke-width="1.8"/>
+  <text x="798" y="349" fill="#ffffff" font-size="12.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">BudgetViewModel</text>
+  <text x="798" y="365" fill="#5dba6e" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">@Observable  ·  month nav  ·  save / reset</text>
+
+  <!-- Box 3  x=965 w=301 cx=1115 -->
+  <rect x="965" y="330" width="301" height="44" rx="7" fill="#002010" stroke="#27AE60" stroke-width="1.8"/>
+  <text x="1115" y="349" fill="#ffffff" font-size="12.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">AnalyticsViewModel</text>
+  <text x="1115" y="365" fill="#5dba6e" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">struct  ·  category totals  ·  6-month trend</text>
+
+  <line x1="640" y1="382" x2="640" y2="396" stroke="#445566" stroke-width="2" marker-end="url(#av)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L5  ADD EXPENSE FLOW   band y=396 h=80 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="396" width="1260" height="80" rx="9" fill="#1a0804" stroke="#E74C3C" stroke-width="0.8"/>
+  <text x="22" y="410" fill="#E74C3C" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">ADD EXPENSE FLOW  (Sheet modal  ·  FloatingAddButton  ·  add &amp; edit mode)</text>
+
+  <!-- Box 0: AddExpenseView + VM  x=14 w=406 cx=217 -->
+  <rect x="14" y="404" width="406" height="64" rx="7" fill="#2a0808" stroke="#E74C3C" stroke-width="1.8"/>
+  <text x="217" y="425" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">AddExpenseView  +  ViewModel</text>
+  <text x="217" y="441" fill="#cc9999" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Form  ·  Validation  ·  save / edit mode</text>
+  <text x="217" y="456" fill="#E74C3C" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">CurrencyConverter  ·  NotificationSync on save</text>
+
+  <line x1="420" y1="436" x2="436" y2="436" stroke="#E74C3C" stroke-width="1.8" marker-end="url(#ar)"/>
+
+  <!-- Box 1: Scanner + OCR  x=436 w=406 cx=639 -->
+  <rect x="436" y="404" width="406" height="64" rx="7" fill="#2a0808" stroke="#E74C3C" stroke-width="1.8"/>
+  <text x="639" y="425" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ReceiptScannerView  +  OCRService</text>
+  <text x="639" y="441" fill="#cc9999" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Camera / Photo Picker  →  UIImage</text>
+  <text x="639" y="456" fill="#E74C3C" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Vision VNRecognizeTextRequest  ·  TR + EN  ·  async background</text>
+
+  <line x1="842" y1="436" x2="858" y2="436" stroke="#E74C3C" stroke-width="1.8" marker-end="url(#ar)"/>
+
+  <!-- Box 2: Parser → Result  x=858 w=406 cx=1061 -->
+  <rect x="858" y="404" width="406" height="64" rx="7" fill="#2a0808" stroke="#E74C3C" stroke-width="1.8"/>
+  <text x="1061" y="425" fill="#ffffff" font-size="13.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ReceiptParserService  →  Result</text>
+  <text x="1061" y="441" fill="#cc9999" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">Detects: Merchant  ·  Amount  ·  Date  ·  Category</text>
+  <text x="1061" y="456" fill="#E74C3C" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">Suggestion only  ·  pre-fills form  ·  user must confirm</text>
+
+  <!-- Dashed return arrow (Result → AddExpenseVM) -->
+  <path d="M 1061 468 Q 639 478 217 468" stroke="#E74C3C" stroke-width="1.2" stroke-dasharray="5 4" fill="none" marker-end="url(#ar)"/>
+  <text x="640" y="477" fill="#5a1818" font-size="8.5" text-anchor="middle" font-family="-apple-system,sans-serif">applies suggestion to form (dashed = no automatic save)</text>
+
+  <line x1="640" y1="476" x2="640" y2="490" stroke="#445566" stroke-width="2" marker-end="url(#av)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L6  DATA LAYER   band y=490 h=72 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="490" width="1260" height="72" rx="9" fill="#120015" stroke="#9B59B6" stroke-width="0.8"/>
+  <text x="22" y="504" fill="#9B59B6" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">DATA LAYER  (SwiftData  @Model  ·  All monetary amounts stored in TRY)</text>
+
+  <!-- Box 0: Expense  x=14 w=301 cx=165 -->
+  <rect x="14" y="498" width="301" height="56" rx="7" fill="#1c0028" stroke="#9B59B6" stroke-width="1.8"/>
+  <text x="165" y="518" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Expense</text>
+  <text x="165" y="534" fill="#bb99cc" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">title  ·  amount(TRY)  ·  date</text>
+  <text x="165" y="548" fill="#889" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">category?  ·  note?  ·  createdAt</text>
+
+  <!-- Box 1: Category  x=331 w=301 cx=481 -->
+  <rect x="331" y="498" width="301" height="56" rx="7" fill="#1c0028" stroke="#9B59B6" stroke-width="1.8"/>
+  <text x="481" y="518" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Category</text>
+  <text x="481" y="534" fill="#bb99cc" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">name  ·  icon (SF Symbol)  ·  color (hex)</text>
+  <text x="481" y="548" fill="#889" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">isDefault  ·  8 presets seeded</text>
+
+  <!-- Box 2: Budget  x=648 w=301 cx=798 -->
+  <rect x="648" y="498" width="301" height="56" rx="7" fill="#1c0028" stroke="#9B59B6" stroke-width="1.8"/>
+  <text x="798" y="518" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Budget</text>
+  <text x="798" y="534" fill="#bb99cc" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">category?  ·  limitAmount(TRY)</text>
+  <text x="798" y="548" fill="#889" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">month  ·  year</text>
+
+  <!-- Box 3: AppSettings  x=965 w=301 cx=1115 -->
+  <rect x="965" y="498" width="301" height="56" rx="7" fill="#1c0028" stroke="#9B59B6" stroke-width="1.8"/>
+  <text x="1115" y="518" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">AppSettings</text>
+  <text x="1115" y="534" fill="#bb99cc" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">currencyCode  ·  themeCode  ·  languageCode</text>
+  <text x="1115" y="548" fill="#889" font-size="9.5" text-anchor="middle" font-family="-apple-system,sans-serif">notification flags  ·  singleton</text>
+
+  <line x1="640" y1="562" x2="640" y2="576" stroke="#445566" stroke-width="2" marker-end="url(#av)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- L7  SERVICES   band y=576 h=70 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="10" y="576" width="1260" height="70" rx="9" fill="#111115" stroke="#636e72" stroke-width="0.8"/>
+  <text x="22" y="590" fill="#95a5a6" font-size="8" font-weight="700" letter-spacing="1.4" font-family="-apple-system,sans-serif">SHARED SERVICES  &amp;  UTILITIES</text>
+
+  <!-- Box 0: CurrencyConverter  x=14 w=406 cx=217 -->
+  <rect x="14" y="584" width="406" height="54" rx="7" fill="#191920" stroke="#556" stroke-width="1.2"/>
+  <text x="217" y="604" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">CurrencyConverter</text>
+  <text x="217" y="621" fill="#889" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">TRY base  ·  USD / EUR display  ·  AppCurrency enum  ·  static exchange rates</text>
+
+  <!-- Box 1: Notification System  x=436 w=406 cx=639 -->
+  <rect x="436" y="584" width="406" height="54" rx="7" fill="#191920" stroke="#556" stroke-width="1.2"/>
+  <text x="639" y="604" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Notification System</text>
+  <text x="639" y="621" fill="#889" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">LocalNotificationManager  ·  NotificationSyncService  ·  20:00 daily  &amp;  18:00 budget alert</text>
+
+  <!-- Box 2: Language + Theme  x=858 w=406 cx=1061 -->
+  <rect x="858" y="584" width="406" height="54" rx="7" fill="#191920" stroke="#556" stroke-width="1.2"/>
+  <text x="1061" y="604" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">Language  +  Theme</text>
+  <text x="1061" y="621" fill="#889" font-size="10" text-anchor="middle" font-family="-apple-system,sans-serif">AppLocalization  ·  Localizable.strings TR/EN  ·  XPendoTheme  ·  CategoryLocalization</text>
+
+  <!-- FOOTER -->
+  <text x="640" y="710" fill="#1e2a35" font-size="8" text-anchor="middle" font-family="-apple-system,sans-serif">Xpendo — Graduation Project  ·  Swift / SwiftUI  ·  SwiftData  ·  MVVM  ·  Local-first  ·  No backend  ·  No login required</text>
+</svg>

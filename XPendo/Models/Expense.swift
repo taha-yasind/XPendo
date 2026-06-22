@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
 
+// Expense modeli, kullanıcının kaydettiği tek bir harcama kaydını temsil eder.
+// Add Expense, Expenses, Home, Budget ve Analytics ekranlarının ortak veri kaynağıdır.
 @Model
 final class Expense {
     var id: UUID = UUID()
@@ -29,6 +31,7 @@ final class Expense {
         self.createdAt = createdAt
     }
 
+    // Category ilişkisi optional olduğu için ekranlarda güvenli fallback değerleri kullanılır.
     var categoryID: UUID? {
         category?.id
     }

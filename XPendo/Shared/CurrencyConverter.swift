@@ -1,5 +1,6 @@
 import Foundation
 
+// AppCurrency, XPendo'nun desteklediği currency seçeneklerini ve TRY bazlı dönüşüm oranlarını tutar.
 enum AppCurrency: String, CaseIterable, Identifiable {
     case turkishLira = "TRY"
     case usDollar = "USD"
@@ -31,6 +32,8 @@ enum AppCurrency: String, CaseIterable, Identifiable {
     }
 }
 
+// CurrencyConverter, uygulamanın base currency olarak TRY saklayıp farklı currency'lerde göstermesini sağlar.
+// Persistence TRY üzerinden kalır; Settings sadece display/input currency tercihini değiştirir.
 enum CurrencyConverter {
     static let baseCurrencyCode = AppCurrency.turkishLira.rawValue
 
@@ -43,11 +46,13 @@ enum CurrencyConverter {
         return amountInTRY / currency.tryRate
     }
 
+    // Kullanıcı inputu kaydedilmeden önce base currency olan TRY'ye çevrilir.
     static func convertToTRY(_ amount: Double, from currencyCode: String) -> Double {
         let currency = AppCurrency.resolved(from: currencyCode)
         return amount * currency.tryRate
     }
 
+    // Ekranlarda saklanan TRY tutarı seçili currency formatıyla gösterilir.
     static func formatFromTRY(_ amountInTRY: Double, to currencyCode: String) -> String {
         let resolvedCurrencyCode = supportedCurrencyCode(from: currencyCode)
         let convertedAmount = convertFromTRY(amountInTRY, to: resolvedCurrencyCode)

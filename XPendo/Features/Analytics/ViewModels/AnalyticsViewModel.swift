@@ -1,5 +1,6 @@
 import Foundation
 
+// AnalyticsDashboardData, Analytics ekranındaki chart ve insight verilerini tek yapıda toplar.
 struct AnalyticsDashboardData {
     let totalExpenseCount: Int
     let totalSpend: Double
@@ -18,6 +19,7 @@ struct AnalyticsDashboardData {
     }
 }
 
+// AnalyticsCategoryTotal, category bazlı toplam harcama ve toplam içindeki pay bilgisini taşır.
 struct AnalyticsCategoryTotal: Identifiable {
     let id: UUID
     let name: String
@@ -28,6 +30,7 @@ struct AnalyticsCategoryTotal: Identifiable {
     let share: Double
 }
 
+// AnalyticsMonthlyTotal, aylık trend chart'ı için ay başlangıcı ve toplam tutarı temsil eder.
 struct AnalyticsMonthlyTotal: Identifiable {
     let monthStart: Date
     let totalAmount: Double
@@ -35,10 +38,13 @@ struct AnalyticsMonthlyTotal: Identifiable {
     var id: Date { monthStart }
 }
 
+// AnalyticsViewModel, Expense listesinden sunuma hazır analytics metrikleri üretir.
+// Hesaplama logic'i View'dan ayrıldığı için chart ekranı sadece hazır veriyi çizer.
 struct AnalyticsViewModel {
     private let calendar = Calendar.current
     private let visibleMonthCount = 6
 
+    // Toplam harcama, category dağılımı, aylık trend ve öne çıkan değerler burada hesaplanır.
     func makeDashboardData(expenses: [Expense], now: Date = .now) -> AnalyticsDashboardData {
         let totalSpend = expenses.reduce(0) { partialResult, expense in
             partialResult + expense.amount
@@ -59,6 +65,7 @@ struct AnalyticsViewModel {
         )
     }
 
+    // Harcamalar category ID'ye göre gruplanır ve büyükten küçüğe sıralanır.
     private func makeCategoryTotals(from expenses: [Expense], totalSpend: Double) -> [AnalyticsCategoryTotal] {
         let categorizedExpenses = expenses.compactMap { expense -> (category: Category, expense: Expense)? in
             guard let category = expense.category else {
@@ -89,6 +96,7 @@ struct AnalyticsViewModel {
             .sorted { $0.totalAmount > $1.totalAmount }
     }
 
+    // Son görünen ay aralığı için eksik aylara 0 değer verilerek chart sürekliliği korunur.
     private func makeMonthlyTotals(from expenses: [Expense], anchorDate: Date) -> [AnalyticsMonthlyTotal] {
         let anchorMonth = startOfMonth(for: anchorDate)
         let visibleMonths = (0..<visibleMonthCount).compactMap { index in

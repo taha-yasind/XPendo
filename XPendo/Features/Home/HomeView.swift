@@ -1,6 +1,8 @@
 import SwiftUI
 import SwiftData
 
+// HomeView, uygulamanın dashboard ekranıdır.
+// SwiftData sorgularından gelen expense, budget ve settings verilerini HomeViewModel ile özetler.
 struct HomeView: View {
     let onViewAllExpenses: () -> Void
 
@@ -17,6 +19,7 @@ struct HomeView: View {
 
     private let viewModel = HomeViewModel()
 
+    // onViewAllExpenses callback'i, Home üzerindeki "view all" aksiyonunu Expenses tabına bağlar.
     init(onViewAllExpenses: @escaping () -> Void = {}) {
         self.onViewAllExpenses = onViewAllExpenses
     }
@@ -41,6 +44,7 @@ struct HomeView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
+    // Dashboard verisi her render sırasında güncel SwiftData sonuçlarından türetilir.
     private var dashboardData: HomeDashboardData {
         viewModel.makeDashboardData(expenses: expenses, budgets: budgets)
     }
@@ -104,6 +108,7 @@ struct HomeView: View {
     .background(XPendoTheme.background)
 }
 
+// HomeOverviewCard, aylık toplam, bugünkü harcama ve top category özetini gösterir.
 private struct HomeOverviewCard: View {
     let dashboard: HomeDashboardData
     let currencyCode: String
@@ -258,6 +263,7 @@ private struct HomeTopCategoryTile: View {
     }
 }
 
+// HomeRecentExpensesSection, dashboard için sınırlı sayıda son Expense kaydını listeler.
 private struct HomeRecentExpensesSection: View {
     let expenses: [Expense]
     let currencyCode: String
@@ -347,6 +353,7 @@ private struct HomeRecentExpenseRow: View {
     }
 }
 
+// HomeBudgetPreviewSection, budget durumunu Home ekranında kısa bir karar kartı olarak sunar.
 private struct HomeBudgetPreviewSection: View {
     let preview: HomeBudgetPreview
     let currencyCode: String

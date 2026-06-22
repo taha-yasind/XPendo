@@ -1,5 +1,7 @@
 import Foundation
 
+// ReceiptParserService, OCR'dan gelen raw metni kullanıcıya öneri olacak alanlara ayırır.
+// Parser sonucu doğrudan kaydetmez; AddExpenseViewModel bu sonucu forma uygular.
 enum ReceiptParserService {
     private static let totalKeywords = [
         "GENEL TOPLAM",
@@ -25,6 +27,7 @@ enum ReceiptParserService {
         "toplam"
     ]
 
+    // Recognized text satırlara ayrılır ve title, amount, date, category, note tahminleri üretilir.
     static func parse(_ recognizedText: String) -> ReceiptScanResult {
         let lines = recognizedText
             .components(separatedBy: .newlines)
@@ -47,6 +50,7 @@ enum ReceiptParserService {
         )
     }
 
+    // Merchant title için fiş başındaki açıklayıcı satırlar aranır, toplam/tarih gibi teknik satırlar atlanır.
     private static func detectMerchantTitle(in lines: [String]) -> String? {
         lines.prefix(8).first { line in
             let normalized = line.lowercased()
@@ -56,6 +60,7 @@ enum ReceiptParserService {
         }
     }
 
+    // Toplam tutar önce total keywords çevresinde aranır; bulunamazsa en büyük pozitif tutar fallback olur.
     private static func detectTotalAmount(in lines: [String]) -> Double? {
         for (index, line) in lines.enumerated() {
             let uppercasedLine = line.uppercased()
@@ -94,6 +99,7 @@ enum ReceiptParserService {
         }
     }
 
+    // Amount parser, Türkçe ve İngilizce decimal/thousands separator yazımlarını normalize eder.
     private static func parseAmount(_ rawValue: String) -> Double? {
         let digitsAndSeparators = rawValue.filter { $0.isNumber || $0 == "," || $0 == "." }
         guard !digitsAndSeparators.isEmpty else {
@@ -120,6 +126,7 @@ enum ReceiptParserService {
         return Double(digitsAndSeparators.replacingOccurrences(of: ",", with: ""))
     }
 
+    // Fişlerde yaygın tarih formatları denenerek Date önerisi çıkarılır.
     private static func detectDate(in lines: [String]) -> Date? {
         let text = lines.joined(separator: " ")
         let patterns = [
@@ -162,6 +169,7 @@ enum ReceiptParserService {
         return String(text[matchRange])
     }
 
+    // Basit keyword eşleştirme ile category önerisi yapılır; emin olunamazsa Other döner.
     private static func detectCategoryName(in lines: [String]) -> String {
         let text = lines.joined(separator: " ").lowercased()
 
@@ -188,6 +196,7 @@ enum ReceiptParserService {
         keywords.contains { text.contains($0) }
     }
 
+    // Note alanı, kullanıcıya OCR kaynağını hatırlatacak kısa bir fiş önizlemesi taşır.
     private static func makeNote(from lines: [String]) -> String? {
         let preview = lines.prefix(4).joined(separator: " | ")
         return preview.isEmpty ? nil : preview

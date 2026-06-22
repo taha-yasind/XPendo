@@ -1,5 +1,7 @@
 import SwiftUI
 
+// BudgetStatusCard, Budget ekranında tek category için limit inputu ve kullanım özetini gösterir.
+// Save/reset aksiyonlarını callback olarak alır; SwiftData işlemi ViewModel tarafında yapılır.
 struct BudgetStatusCard: View {
     let entry: BudgetCategoryEntry
     @Binding var amountText: String
@@ -153,6 +155,7 @@ struct BudgetStatusCard: View {
         }
     }
 
+    // Status label, budget var/yok ve limit aşımı durumunu kullanıcıya kısa şekilde anlatır.
     private var statusLabel: String {
         if !entry.hasBudget {
             return AppLocalization.string("budget.status.ready")
@@ -171,6 +174,7 @@ struct BudgetStatusCard: View {
             : AppLocalization.string("budget.statusDescription.onTrack")
     }
 
+    // Kalan veya aşan tutar display currency formatına çevrilerek gösterilir.
     private var remainingValue: String {
         guard let remainingAmount = entry.remainingAmount else {
             return AppLocalization.string("common.notSet")
@@ -196,6 +200,7 @@ struct BudgetStatusCard: View {
     }
 }
 
+// BudgetUsageProgressBar, harcama/limit oranını görsel progress olarak gösterir.
 private struct BudgetUsageProgressBar: View {
     let progress: Double
     let accentColor: Color
@@ -215,6 +220,7 @@ private struct BudgetUsageProgressBar: View {
     }
 }
 
+// BudgetStatColumn, spent/remaining/limit gibi küçük budget metriklerini tekrar kullanılabilir gösterir.
 private struct BudgetStatColumn: View {
     let title: String
     let value: String

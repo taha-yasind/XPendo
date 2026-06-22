@@ -1,5 +1,7 @@
 import SwiftUI
 
+// SurfaceCard, XPendo ekranlarında tekrar kullanılan kart yüzeyi ve spacing standardını sağlar.
+// İçerik değişse de background, border ve shadow tutarlı kalır.
 struct SurfaceCard<Content: View>: View {
     private let content: Content
 

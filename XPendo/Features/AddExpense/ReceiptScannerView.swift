@@ -3,6 +3,8 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
+// ReceiptScannerView, kamera veya fotoğraf seçimiyle fiş OCR akışını başlatır.
+// OCR ve parser sonucu AddExpenseView'a ReceiptScanResult olarak geri döner.
 struct ReceiptScannerView: View {
     let onApply: (ReceiptScanResult) -> Void
 
@@ -86,6 +88,7 @@ struct ReceiptScannerView: View {
         .sheet(isPresented: $isShowingCamera) {
             ReceiptCameraPicker { image in
                 Task {
+                    // Kamera çıktısı OCR pipeline'a gönderilir; UI thread'i bloklanmaz.
                     await process(image)
                 }
             }
@@ -130,6 +133,7 @@ struct ReceiptScannerView: View {
         .opacity(isProcessing ? 0.6 : 1)
     }
 
+    // Kamera açmadan önce cihaz uygunluğu ve video permission durumu kontrol edilir.
     private func openCamera() {
         guard isCameraAvailable else {
             errorMessage = AppLocalization.string("receiptScan.error.cameraUnavailable")
@@ -171,6 +175,7 @@ struct ReceiptScannerView: View {
             : AppLocalization.string("receiptScan.camera.unavailableSubtitle")
     }
 
+    // PhotosPicker'dan gelen görsel Data olarak okunur ve UIImage'a çevrilir.
     private func loadPhoto(from item: PhotosPickerItem) async {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
@@ -185,6 +190,7 @@ struct ReceiptScannerView: View {
         }
     }
 
+    // OCR flow: image -> recognized text -> parser result -> AddExpense form önerileri.
     @MainActor
     private func process(_ image: UIImage) async {
         isProcessing = true
@@ -205,6 +211,7 @@ struct ReceiptScannerView: View {
     }
 }
 
+// ReceiptCameraPicker, UIKit kamera ekranını SwiftUI içinde kullanmak için UIViewControllerRepresentable adapter'ıdır.
 private struct ReceiptCameraPicker: UIViewControllerRepresentable {
     let onImagePicked: (UIImage) -> Void
 

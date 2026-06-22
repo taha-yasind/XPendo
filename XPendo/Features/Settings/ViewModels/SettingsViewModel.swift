@@ -2,9 +2,12 @@ import Foundation
 import Observation
 import SwiftData
 
+// SettingsViewModel, currency, theme, language, demo data ve data reset işlemlerini yönetir.
+// UI draft değerleri bu ViewModel üzerinden AppSettings modeline güvenli şekilde kaydedilir.
 @MainActor
 @Observable
 final class SettingsViewModel {
+    // CurrencyOption, Settings menüsünde gösterilecek desteklenen para birimi bilgisidir.
     struct CurrencyOption: Identifiable, Hashable {
         let code: String
         let name: String
@@ -30,6 +33,7 @@ final class SettingsViewModel {
         var title: String { language.displayName }
     }
 
+    // UtilityMessage, reset/demo işlemlerinden sonra kullanıcıya gösterilecek kısa feedback bilgisidir.
     struct UtilityMessage {
         enum Tone {
             case success
@@ -60,12 +64,14 @@ final class SettingsViewModel {
         languageOptions = Self.makeLanguageOptions()
     }
 
+    // SwiftData'daki AppSettings kaydı okunarak ekrandaki mevcut preference state'i hazırlanır.
     func load(from settings: AppSettings?) {
         currencyCode = CurrencyConverter.supportedCurrencyCode(from: settings?.currencyCode)
         preferredThemeCode = PreferredTheme.resolved(from: settings?.preferredThemeCode).rawValue
         preferredLanguageCode = AppLanguage.resolved(from: settings?.preferredLanguageCode).rawValue
     }
 
+    // Theme, language ve currency değişiklikleri tek apply aksiyonuyla AppSettings'e kaydedilir.
     func updateDisplayPreferences(
         currencyCode newCurrencyCode: String,
         preferredThemeCode newThemeCode: String,
@@ -102,6 +108,7 @@ final class SettingsViewModel {
         let previousThemeCode = settings.preferredThemeCode
         let previousLanguageCode = settings.preferredLanguageCode
 
+        // Önce model ve ViewModel state güncellenir; save hata verirse aşağıda eski değerlere dönülür.
         settings.currencyCode = resolvedCurrencyCode
         settings.preferredThemeCode = resolvedThemeCode
         settings.preferredLanguageCode = resolvedLanguageCode
@@ -124,6 +131,7 @@ final class SettingsViewModel {
         }
     }
 
+    // Kullanıcının kayıtlı Expense ve Budget verilerini temizler; AppSettings ve default category kayıtları korunur.
     func clearRecordedData(modelContext: ModelContext) async {
         errorMessage = nil
         utilityMessage = nil
@@ -162,11 +170,13 @@ final class SettingsViewModel {
         }
     }
 
+    // Demo mode tercihi UserDefaults'a yazılır; app launch sırasında ilgili ModelContainer seçilir.
     func setDemoModeEnabled(_ isEnabled: Bool) {
         isDemoModeEnabled = isEnabled
         AppModeStore.setDemoModeEnabled(isEnabled)
     }
 
+    // Demo data yalnızca uygun durumda yüklenir ve ardından notification schedule güncellenir.
     func loadDemoData(modelContext: ModelContext) async {
         errorMessage = nil
         utilityMessage = nil
@@ -199,6 +209,7 @@ final class SettingsViewModel {
         }
     }
 
+    // Demo data temizleme işlemi Settings üzerinden kullanıcıya feedback mesajı üretir.
     func clearDemoData(modelContext: ModelContext) async {
         errorMessage = nil
         utilityMessage = nil

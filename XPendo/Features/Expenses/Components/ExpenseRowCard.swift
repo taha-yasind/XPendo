@@ -1,5 +1,7 @@
 import SwiftUI
 
+// ExpenseRowCard, Expenses ekranında tek bir Expense kaydını gösteren reusable karttır.
+// Edit ve delete aksiyonlarını callback olarak alır, persistence işlemi yapmaz.
 struct ExpenseRowCard: View {
     let expense: Expense
     let currencyCode: String

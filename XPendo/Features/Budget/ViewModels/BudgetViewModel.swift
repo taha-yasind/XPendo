@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import SwiftData
 
+// BudgetMonthData, seçili ay için toplam limit, harcama ve kategori durumlarını taşır.
 struct BudgetMonthData {
     let trackedBudgetCount: Int
     let overspentCount: Int
@@ -19,6 +20,7 @@ struct BudgetMonthData {
     }
 }
 
+// BudgetCategoryStatus, mevcut bir Budget kaydının o ayki harcamalarla karşılaştırılmış halidir.
 struct BudgetCategoryStatus: Identifiable {
     let id: UUID
     let categoryID: UUID
@@ -46,6 +48,7 @@ struct BudgetCategoryStatus: Identifiable {
     }
 }
 
+// BudgetCategoryEntry, Budget ekranında her category satırının gösterim ve input verisini temsil eder.
 struct BudgetCategoryEntry: Identifiable {
     let id: UUID
     let categoryID: UUID
@@ -88,6 +91,7 @@ struct BudgetCategoryEntry: Identifiable {
     }
 }
 
+// BudgetViewModel, aylık budget state'ini, draft inputları, validation ve persistence akışını yönetir.
 @Observable
 final class BudgetViewModel {
     private let calendar = Calendar.current
@@ -105,6 +109,7 @@ final class BudgetViewModel {
         selectedMonth.formatted(.dateTime.month(.wide).year())
     }
 
+    // Ekran açıldığında mevcut Budget kayıtları display currency'ye çevrilip draft alanlara yazılır.
     func prepare(categories: [Category], budgets: [Budget], displayCurrencyCode: String) {
         draftAmountsByCategoryID = Dictionary(
             uniqueKeysWithValues: categories.map { category in
@@ -121,6 +126,7 @@ final class BudgetViewModel {
         validationMessage = nil
     }
 
+    // Kullanıcı ay değiştirince budget hesaplamaları start-of-month değerine göre yenilenir.
     func moveMonth(by value: Int) {
         guard let movedMonth = calendar.date(byAdding: .month, value: value, to: selectedMonth) else {
             return
@@ -129,6 +135,7 @@ final class BudgetViewModel {
         selectedMonth = BudgetViewModel.startOfMonth(for: movedMonth)
     }
 
+    // Her category için limit var mı, ne kadar harcanmış ve ne kadar kalmış bilgisi üretilir.
     func makeCategoryEntries(
         categories: [Category],
         budgets: [Budget],
@@ -157,6 +164,7 @@ final class BudgetViewModel {
         }
     }
 
+    // Overview kartında kullanılan aylık toplamlar ve over-budget sayısı burada hesaplanır.
     func makeMonthData(budgets: [Budget], expenses: [Expense]) -> BudgetMonthData {
         let monthBudgets = budgetsForSelectedMonth(from: budgets)
         let monthExpenses = expenses.filter { calendar.isDate($0.date, equalTo: selectedMonth, toGranularity: .month) }
@@ -234,6 +242,7 @@ final class BudgetViewModel {
         return validationMessage
     }
 
+    // Budget save flow: input validate edilir, TRY'ye çevrilir, mevcut Budget güncellenir veya yenisi eklenir.
     func saveBudget(
         for category: Category,
         in modelContext: ModelContext,
@@ -252,8 +261,10 @@ final class BudgetViewModel {
         let amountInTRY = CurrencyConverter.convertToTRY(amount, from: inputCurrencyCode)
 
         if let existingBudget = matchingBudget(for: category.id, in: budgets) {
+            // Update flow: aynı ay ve category için mevcut SwiftData kaydı güncellenir.
             existingBudget.limitAmount = amountInTRY
         } else {
+            // Create flow: seçili ay/yıl ve category için yeni Budget kaydı oluşturulur.
             let newBudget = Budget(
                 category: category,
                 limitAmount: amountInTRY,
@@ -268,6 +279,7 @@ final class BudgetViewModel {
         draftAmountsByCategoryID[category.id] = formattedAmount(amount)
     }
 
+    // Reset flow: seçili ay/category Budget kaydı varsa silinir ve draft input temizlenir.
     func resetBudget(
         for categoryID: UUID,
         in modelContext: ModelContext,
@@ -293,10 +305,12 @@ final class BudgetViewModel {
         return budgets.filter { $0.month == month && $0.year == year }
     }
 
+    // Budget eşleşmesi category + seçili ay/yıl üzerinden yapılır.
     private func matchingBudget(for categoryID: UUID, in budgets: [Budget]) -> Budget? {
         budgetsForSelectedMonth(from: budgets).first(where: { $0.categoryID == categoryID })
     }
 
+    // Kullanıcı amount inputu locale formatına veya nokta/virgül yazımına göre parse edilir.
     private func parsedAmount(from text: String) -> Double? {
         let normalizedText = text
             .trimmingCharacters(in: .whitespacesAndNewlines)

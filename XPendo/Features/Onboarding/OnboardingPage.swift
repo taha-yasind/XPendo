@@ -1,11 +1,13 @@
 import Foundation
 
+// OnboardingPage, onboarding ekranındaki her tanıtım sayfasının localized metin keylerini taşır.
 struct OnboardingPage: Identifiable {
     let id: String
     let titleKey: String
     let descriptionKey: String
     let systemImage: String
 
+    // Sayfalar burada merkezi tutulur; OnboardingView bu listeyi TabView içinde gösterir.
     static let pages: [OnboardingPage] = [
         OnboardingPage(
             id: "welcome",

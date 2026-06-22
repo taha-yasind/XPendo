@@ -1,5 +1,6 @@
 import SwiftUI
 
+// StateMessageContent, empty/error/info durumlarını ikon, açıklama ve opsiyonel aksiyonla gösteren ortak View'dur.
 struct StateMessageContent: View {
     let systemImage: String
     let title: String

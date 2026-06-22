@@ -1,6 +1,7 @@
 import UIKit
 import Vision
 
+// ReceiptOCRError, OCR sırasında kullanıcıya gösterilecek localized hata tiplerini tanımlar.
 enum ReceiptOCRError: LocalizedError {
     case imageUnavailable
     case noTextDetected
@@ -15,7 +16,10 @@ enum ReceiptOCRError: LocalizedError {
     }
 }
 
+// ReceiptOCRService, Vision framework ile fiş görselinden metin çıkarır.
+// Bu service yalnızca raw recognized text üretir; amount/date/category yorumlamasını parser yapar.
 enum ReceiptOCRService {
+    // OCR işi background Task üzerinde çalışır ve boş sonuçta noTextDetected hatası döndürür.
     static func recognizeText(in image: UIImage) async throws -> String {
         guard let cgImage = image.cgImage else {
             throw ReceiptOCRError.imageUnavailable

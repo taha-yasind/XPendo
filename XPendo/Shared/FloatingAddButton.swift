@@ -1,5 +1,7 @@
 import SwiftUI
 
+// FloatingAddButton, ana tab ekranlarında ortak Add Expense giriş aksiyonunu temsil eder.
+// AppRootView bu butona basıldığında AddExpenseView sheet'ini açar.
 struct FloatingAddButton: View {
     let action: () -> Void
 

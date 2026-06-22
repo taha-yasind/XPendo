@@ -1,5 +1,7 @@
 import SwiftData
 
+// XPendoModelContainer, SwiftData schema ve ModelContainer kurulumundan sorumludur.
+// App launch sırasında standard veya demo data store seçimini XPendoApp buradan alır.
 enum XPendoModelContainer {
     static let standard: ModelContainer = makePersistentContainer(for: .standard)
     static let demo: ModelContainer = makePersistentContainer(for: .demo)
@@ -21,6 +23,7 @@ enum XPendoModelContainer {
         }
     }
 
+    // Persistent store açılamazsa uygulamanın launch edebilmesi için in-memory fallback denenir.
     private static func makePersistentContainer(for mode: AppDataMode) -> ModelContainer {
         do {
             return try makeContainer(for: mode, isStoredInMemoryOnly: false)
@@ -36,6 +39,7 @@ enum XPendoModelContainer {
         }
     }
 
+    // ModelContainer oluşturulduktan sonra temel category ve settings kayıtları seed edilir.
     private static func makeContainer(for mode: AppDataMode, isStoredInMemoryOnly: Bool) throws -> ModelContainer {
         let configuration = ModelConfiguration(
             mode.configurationName,
@@ -53,6 +57,7 @@ enum XPendoModelContainer {
         return container
     }
 
+    // CloudKit entegrasyonu için karar noktası burada tutulur; şu an local SwiftData store kullanılır.
     private static func cloudKitDatabase(
         for mode: AppDataMode,
         isStoredInMemoryOnly: Bool

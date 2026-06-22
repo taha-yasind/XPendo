@@ -1,10 +1,13 @@
 import SwiftUI
 
+// OnboardingMode, ilk açılış ile Settings içinden tekrar izleme akışını ayırır.
 enum OnboardingMode {
     case firstLaunch
     case replay
 }
 
+// OnboardingView, uygulamanın temel özelliklerini sayfalı bir SwiftUI akışıyla tanıtır.
+// İlk launch sonunda AppRootView'daki hasSeenOnboarding flag'i tamamlanır.
 struct OnboardingView: View {
     let mode: OnboardingMode
     let onFinish: () -> Void
@@ -31,6 +34,7 @@ struct OnboardingView: View {
         .background(XPendoTheme.background.ignoresSafeArea())
     }
 
+    // Replay modunda kapatma butonu görünür; firstLaunch modunda kullanıcı son sayfaya kadar ilerler.
     private var header: some View {
         HStack {
             Text("Xpendo")
@@ -61,6 +65,7 @@ struct OnboardingView: View {
         .padding(.top, 18)
     }
 
+    // Primary button son sayfada finish callback'ini, diğer sayfalarda navigation ilerlemesini çalıştırır.
     private var footer: some View {
         VStack(spacing: 20) {
             pageIndicator
@@ -105,6 +110,7 @@ struct OnboardingView: View {
         return AppLocalization.string("onboarding_next")
     }
 
+    // Onboarding akışındaki tek karar noktası: son sayfadaysa tamamla, değilse sonraki sayfaya geç.
     private func primaryButtonTapped() {
         if isLastPage {
             onFinish()

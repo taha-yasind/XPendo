@@ -1,5 +1,6 @@
 import Foundation
 
+// AppDataMode, standard kullanıcı verisi ile demo data store ayrımını temsil eder.
 enum AppDataMode {
     case standard
     case demo
@@ -14,6 +15,8 @@ enum AppDataMode {
     }
 }
 
+// AppModeStore, demo mode tercihini UserDefaults üzerinde saklayan küçük helper yapıdır.
+// XPendoApp bu değere göre hangi SwiftData ModelContainer'ın kullanılacağını seçer.
 enum AppModeStore {
     static let key = "xpendo.demoModeEnabled"
 

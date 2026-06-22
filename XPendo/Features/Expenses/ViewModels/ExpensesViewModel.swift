@@ -2,8 +2,11 @@ import Foundation
 import Observation
 import SwiftData
 
+// ExpensesViewModel, harcama listesi için filtre, edit ve delete state'ini yönetir.
+// SwiftData sorgusundan gelen listeyi değiştirmez; sadece görünüm için filtrelenmiş sonuç üretir.
 @Observable
 final class ExpensesViewModel {
+    // TimeFilter, kullanıcıya sunulan tarih aralığı seçeneklerini temsil eder.
     enum TimeFilter: CaseIterable, Identifiable {
         case all
         case thisMonth
@@ -57,6 +60,7 @@ final class ExpensesViewModel {
     var expensePendingDelete: Expense?
     var expenseBeingEdited: Expense?
 
+    // Seçili time/category filtreleri birlikte uygulanarak liste görünümü hazırlanır.
     func filteredExpenses(from expenses: [Expense]) -> [Expense] {
         expenses.filter { expense in
             matchesTimeFilter(expense) && matchesCategoryFilter(expense)
@@ -84,14 +88,17 @@ final class ExpensesViewModel {
         selectedCategoryID = nil
     }
 
+    // Edit isteği sheet state'ine aktarılır; gerçek güncelleme AddExpenseView üzerinden yapılır.
     func requestEdit(_ expense: Expense) {
         expenseBeingEdited = expense
     }
 
+    // Delete isteği önce onay sheet'ine taşınır; kayıt hemen silinmez.
     func requestDelete(_ expense: Expense) {
         expensePendingDelete = expense
     }
 
+    // Kullanıcı onayladıktan sonra pending Expense ModelContext'ten silinir ve kaydedilir.
     func deletePendingExpense(in modelContext: ModelContext) throws {
         guard let expensePendingDelete else {
             return
@@ -102,6 +109,7 @@ final class ExpensesViewModel {
         self.expensePendingDelete = nil
     }
 
+    // Tarih filtresi Calendar ile hesaplanır; UI sadece TimeFilter seçimini değiştirir.
     private func matchesTimeFilter(_ expense: Expense) -> Bool {
         let calendar = Calendar.current
         let now = Date()

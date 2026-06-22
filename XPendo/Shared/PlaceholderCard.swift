@@ -1,5 +1,6 @@
 import SwiftUI
 
+// PlaceholderCard, geliştirme veya boş içerik durumlarında aynı kart dilini korumak için kullanılır.
 struct PlaceholderCard: View {
     let title: String
     let systemImage: String

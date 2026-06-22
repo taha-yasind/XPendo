@@ -1,6 +1,8 @@
 import SwiftData
 import SwiftUI
 
+// SettingsView, notification, theme, language, currency ve utility ayarlarının ekranıdır.
+// Draft state kullanır; değişiklikler kullanıcı Apply dediğinde SwiftData AppSettings'e yazılır.
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -41,11 +43,13 @@ struct SettingsView: View {
         .toolbar(.hidden, for: .tabBar)
         .preference(key: MainChromeHiddenPreferenceKey.self, value: true)
         .safeAreaInset(edge: .bottom) {
+            // Pending preference değişikliği varsa ekran altında apply bar gösterilir.
             if hasPendingChanges {
                 applyBar
             }
         }
         .task(id: settingsLoadKey) {
+            // Settings ve permission state SwiftData + system notification state üzerinden yüklenir.
             await notificationViewModel.load(from: currentSettings)
             settingsViewModel.load(from: currentSettings)
 
@@ -93,6 +97,7 @@ struct SettingsView: View {
             .presentationBackground(XPendoTheme.surfaceBackground)
         }
         .fullScreenCover(isPresented: $isShowingOnboardingAgain) {
+            // Kullanıcı onboarding anlatımını Settings içinden tekrar izleyebilir; ilk açılış flag'i değişmez.
             OnboardingView(mode: .replay) {
                 isShowingOnboardingAgain = false
             }
@@ -107,6 +112,7 @@ struct SettingsView: View {
         }
     }
 
+    // iCloud bölümü, CloudKit hazır tasarım kararını açıklar; aktif sync davranışı burada başlatılmaz.
     private var iCloudSyncSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -143,6 +149,7 @@ struct SettingsView: View {
         }
     }
 
+    // Notification section, draft toggle'ları tutar; gerçek kayıt apply akışında yapılır.
     private var notificationSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -199,6 +206,7 @@ struct SettingsView: View {
         }
     }
 
+    // Preferences section, theme/language/currency draft seçimlerini yönetir.
     private var preferencesSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -289,6 +297,7 @@ struct SettingsView: View {
         }
     }
 
+    // Utilities section, demo data, onboarding replay ve recorded data temizleme aksiyonlarını toplar.
     private var utilitiesSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {

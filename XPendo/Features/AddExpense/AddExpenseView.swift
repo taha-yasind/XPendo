@@ -1,6 +1,8 @@
 import SwiftUI
 import SwiftData
 
+// AddExpenseView, harcama ekleme ve düzenleme formunun SwiftUI ekranıdır.
+// ViewModel validation ve persistence işini yaparken bu View form, OCR sheet ve hata durumlarını gösterir.
 struct AddExpenseView: View {
     let expenseToEdit: Expense?
 
@@ -15,6 +17,7 @@ struct AddExpenseView: View {
     @State private var saveErrorMessage: String?
     @State private var isShowingReceiptScanner = false
 
+    // expenseToEdit verilirse ekran edit modunda çalışır; nil ise yeni Expense ekleme akışı başlar.
     init(expenseToEdit: Expense? = nil) {
         self.expenseToEdit = expenseToEdit
         _viewModel = State(initialValue: AddExpenseViewModel(expenseToEdit: expenseToEdit))
@@ -42,6 +45,7 @@ struct AddExpenseView: View {
         }
         .background(XPendoTheme.background.ignoresSafeArea())
         .task(id: expenseFormSyncKey) {
+            // Category veya currency değiştiğinde form state'i ViewModel ile tekrar senkronize edilir.
             viewModel.prepareForm(categories: categories, displayCurrencyCode: currencyCode)
         }
         .alert("addExpense.alert.saveFailed.title", isPresented: saveErrorBinding) {
@@ -51,6 +55,7 @@ struct AddExpenseView: View {
         }
         .sheet(isPresented: $isShowingReceiptScanner) {
             ReceiptScannerView { result in
+                // OCR sonucu form alanlarına aktarılır; kayıt işlemi yine Save butonu ile yapılır.
                 viewModel.applyReceiptScanResult(result, categories: categories)
             }
             .presentationDetents([.medium, .large])
@@ -59,6 +64,7 @@ struct AddExpenseView: View {
         }
     }
 
+    // Header, add/edit moduna göre title değiştirir ve yeni kayıt modunda OCR scanner girişini gösterir.
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 8) {
@@ -109,6 +115,7 @@ struct AddExpenseView: View {
         }
     }
 
+    // Form alanları ViewModel state'ine binding ile bağlıdır; validation ViewModel tarafında kalır.
     private var entryFormSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -167,6 +174,7 @@ struct AddExpenseView: View {
         }
     }
 
+    // Category seçimi SwiftData'dan gelen seed edilmiş category kayıtlarıyla yapılır.
     private var categorySection: some View {
         LabeledField(title: AppLocalization.string("addExpense.field.category"), icon: "tag") {
             if categories.isEmpty {
@@ -213,6 +221,7 @@ struct AddExpenseView: View {
         }
     }
 
+    // Save butonu ViewModel'in add veya edit kararını çalıştırır.
     private var saveSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -249,6 +258,7 @@ struct AddExpenseView: View {
         }
     }
 
+    // Settings içindeki currency tercihi yoksa desteklenen varsayılan currency seçilir.
     private var currencyCode: String {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
@@ -274,6 +284,7 @@ struct AddExpenseView: View {
         return CategoryLocalization.localizedName(for: selectedCategory.name)
     }
 
+    // Binding wrapper, optional error state'ini SwiftUI alert isPresented değerine çevirir.
     private var saveErrorBinding: Binding<Bool> {
         Binding(
             get: { saveErrorMessage != nil },
@@ -293,6 +304,7 @@ struct AddExpenseView: View {
         return AppLocalization.string("addExpense.footnote.savedEdited")
     }
 
+    // Save akışı async tutulur; başarılı kayıt sonrası notification schedule yenilenir ve sheet kapanır.
     private func saveExpense() {
         Task {
             await saveExpenseFlow()

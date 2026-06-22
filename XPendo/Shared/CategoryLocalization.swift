@@ -1,5 +1,7 @@
 import Foundation
 
+// CategoryLocalization, SwiftData'da English saklanan default category adlarını UI diline çevirir.
+// Böylece persistence sabit kalırken ekranda localization uygulanır.
 enum CategoryLocalization {
     static func localizedName(for storedName: String) -> String {
         switch storedName {
