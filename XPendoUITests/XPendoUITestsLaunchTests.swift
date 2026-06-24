@@ -17,6 +17,9 @@ final class XPendoUITestsLaunchTests: XCTestCase {
         continueAfterFailure = false
     }
 
+    // Uygulamanın tüm desteklenen UI konfigürasyonlarında (light/dark mode, farklı cihaz boyutları)
+    // başarıyla açıldığını doğrular ve her konfigürasyon için ekran görüntüsü kaydeder.
+    // runsForEachTargetApplicationUIConfiguration = true sayesinde her tema için ayrı çalışır.
     @MainActor
     func testLaunch() throws {
         let app = XCUIApplication()

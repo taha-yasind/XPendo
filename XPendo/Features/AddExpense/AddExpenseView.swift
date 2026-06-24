@@ -50,6 +50,17 @@ struct AddExpenseView: View {
             .padding(.bottom, 32)
         }
         .background(XPendoTheme.background.ignoresSafeArea())
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button(AppLocalization.string("common.done")) {
+                    focusedField = nil
+                }
+                .fontWeight(.semibold)
+                .foregroundStyle(XPendoTheme.accentTeal)
+            }
+        }
         .task(id: expenseFormSyncKey) {
             // Category veya currency değiştiğinde form state'i ViewModel ile tekrar senkronize edilir.
             viewModel.prepareForm(categories: categories, displayCurrencyCode: currencyCode)

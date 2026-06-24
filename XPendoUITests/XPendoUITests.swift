@@ -22,6 +22,8 @@ final class XPendoUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
+    // Uygulamanın hatasız başladığını ve ilk ekranın yüklendiğini doğrular.
+    // Unit test edilemeyen UI akışları için temel doğrulama noktasıdır.
     @MainActor
     func testExample() throws {
         // UI tests must launch the application that they test.
@@ -33,6 +35,8 @@ final class XPendoUITests: XCTestCase {
         // https://developer.apple.com/documentation/xcuiautomation
     }
 
+    // Uygulamanın açılış süresini ölçer ve performans regresyonlarını tespit eder.
+    // Açılış süresi önceki çalıştırmalardan belirgin şekilde uzarsa test başarısız olur.
     @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.

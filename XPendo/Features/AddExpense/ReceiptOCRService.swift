@@ -35,7 +35,8 @@ enum ReceiptOCRService {
         let lines = try await Task.detached(priority: .userInitiated) {
             let request = VNRecognizeTextRequest()
             request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = true
+            // Fiş metni doğal dil değildir; language correction semboller ve sayıları yanlış "düzeltebilir.
+            request.usesLanguageCorrection = false
             request.recognitionLanguages = ["tr-TR", "en-US"]
 
             let handler = VNImageRequestHandler(cgImage: cgImage)

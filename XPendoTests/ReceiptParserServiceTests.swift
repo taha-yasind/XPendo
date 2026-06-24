@@ -1,7 +1,13 @@
 import XCTest
 @testable import XPendo
 
+// AMAÇ: Vision Framework'ün OCR ile tanıdığı ham metinden ReceiptParserService'in
+// tutar, tarih, başlık ve kategori önerilerini doğru çıkarıp çıkarmadığını doğrular.
+// OCR sonuçları hiçbir zaman otomatik kaydedilmez — bu testler yalnızca öneri mantığını kapsar.
 final class ReceiptParserServiceTests: XCTestCase {
+
+    // Basit bir market fişi metninden başlık, tutar, tarih ve kategori önerisinin doğru çıkarıldığını doğrular.
+    // "GENEL TOPLAM" ifadesi tutarı, "Tarih" ifadesi tarihi, "MARKET" kelimesi Food kategorisini tetikler.
     func testParseSimpleMarketReceiptSuggestsAmountDateAndCategory() throws {
         let recognizedText = """
         ACME MARKET
@@ -23,6 +29,8 @@ final class ReceiptParserServiceTests: XCTestCase {
         XCTAssertEqual(components.day, 12)
     }
 
+    // "METRO CARD" gibi ulaşım anahtar kelimeleri içeren fişin Transport kategorisine eşlendiğini doğrular.
+    // Parser, metin içindeki anahtar kelimelere göre kategori tahmini yapar.
     func testParseTransportReceiptSuggestsTransportCategory() {
         let recognizedText = """
         METRO CARD
@@ -35,6 +43,8 @@ final class ReceiptParserServiceTests: XCTestCase {
         XCTAssertEqual(result.categoryName, "Transport")
     }
 
+    // Boş metin girildiğinde uygulamanın crash vermediğini ve tüm alanların nil döndüğünü doğrular.
+    // OCR kötü ışıkta hiçbir metin tanıyamazsa güvenli bir sonuç dönmeli, kategori "Other" olmalı.
     func testEmptyRecognizedTextDoesNotCrashAndReturnsNoAmount() {
         let result = ReceiptParserService.parse("")
 
@@ -45,6 +55,8 @@ final class ReceiptParserServiceTests: XCTestCase {
         XCTAssertNil(result.note)
     }
 
+    // Parser sonucunun yalnızca öneri verisi içerdiğini doğrular — kayıt işlemi tetiklenmez.
+    // OCR sonucu forma önerilir; kullanıcı Save'e basmadan hiçbir şey SwiftData'ya yazılmaz.
     func testParserReturnsSuggestionDataOnly() {
         let result = ReceiptParserService.parse("COFFEE SHOP\nTOTAL 88.25")
 

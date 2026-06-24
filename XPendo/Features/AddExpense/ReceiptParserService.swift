@@ -8,12 +8,17 @@ import Foundation
 // ReceiptParserService, OCR'dan gelen raw metni kullanıcıya öneri olacak alanlara ayırır.
 // Parser sonucu doğrudan kaydetmez; AddExpenseViewModel bu sonucu forma uygular.
 enum ReceiptParserService {
-    private static let totalKeywords = [
-        "GENEL TOPLAM",
-        "TOPLAM",
-        "TOTAL",
-        "TUTAR",
-        "AMOUNT"
+    // Daha spesifik keyword grupları önce denenir; ilk eşleşen grup kazanır.
+    private static let prioritizedTotalKeywordGroups: [[String]] = [
+        ["GENEL TOPLAM", "GRAND TOTAL"],
+        ["TOPLAM", "TOTAL"],
+        ["TUTAR", "AMOUNT"]
+    ]
+
+    // Bu satırlar hiçbir zaman toplam satırı sayılmaz; KDV, iskonto ve vergi satırları hariçtir.
+    private static let excludedLineKeywords = [
+        "KDV", "TOPKDV", "TAX", "VAT",
+        "ISKONTO", "İNDİRİM", "INDIRIM", "DISCOUNT"
     ]
 
     private static let ignoredTitleKeywords = [
@@ -39,8 +44,14 @@ enum ReceiptParserService {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
+        // DEBUG — Xcode konsolunda OCR çıktısını görmek için
+        print("=== OCR LINES ===")
+        lines.enumerated().forEach { print("[\($0.offset)] \($0.element)") }
+        print("=================")
+
         let title = detectMerchantTitle(in: lines)
         let amount = detectTotalAmount(in: lines)
+        print("=== DETECTED AMOUNT: \(String(describing: amount)) ===")
         let date = detectDate(in: lines)
         let categoryName = detectCategoryName(in: lines)
         let note = makeNote(from: lines)
@@ -65,28 +76,67 @@ enum ReceiptParserService {
         }
     }
 
-    // Toplam tutar önce total keywords çevresinde aranır; bulunamazsa en büyük pozitif tutar fallback olur.
+    // Toplam tutar öncelikli keyword gruplarıyla taranır; daha spesifik grup (GENEL TOPLAM) her zaman önce denenir.
+    // Aynı gruptaki tüm adaylar toplanır ve en büyük tutar seçilir; böylece ara toplam yerine genel toplam alınır.
+    // KDV, iskonto ve vergi satırları exclude listesiyle atlanır. Hiçbir eşleşme yoksa fallback olarak en büyük tutar kullanılır.
     private static func detectTotalAmount(in lines: [String]) -> Double? {
-        for (index, line) in lines.enumerated() {
-            let uppercasedLine = line.uppercased()
-            // Gerekli data eksikse erken çıkış yapar.
-            guard totalKeywords.contains(where: { uppercasedLine.contains($0) }) else {
-                continue
+        let normalized = lines.map(normalizeLine)
+
+        for keywords in prioritizedTotalKeywordGroups {
+            var candidates: [Double] = []
+
+            for (index, line) in normalized.enumerated() {
+                let uppercased = line.uppercased()
+                let isExcluded = excludedLineKeywords.contains { uppercased.contains($0) }
+                let matchesKeyword = keywords.contains { uppercased.contains($0) }
+
+                guard matchesKeyword, !isExcluded else { continue }
+
+                // Anahtar kelime ile aynı satırda tutar varsa direkt kullan.
+                if let amount = extractAmounts(from: line).last {
+                    candidates.append(amount)
+                    continue
+                }
+
+                // Aynı satırda tutar yoksa ±3 satırlık penceredeki tüm tutarları topla.
+                // OCR bazen sütunları karışık sırayla okur; önceki ve sonraki satırları da taramamız gerekir.
+                let windowStart = max(0, index - 3)
+                let windowEnd = min(normalized.count - 1, index + 3)
+                let windowAmounts: [Double] = (windowStart...windowEnd)
+                    .filter { $0 != index }
+                    .compactMap { i -> Double? in
+                        let windowLine = normalized[i]
+                        let windowUpper = windowLine.uppercased()
+                        guard !excludedLineKeywords.contains(where: { windowUpper.contains($0) }) else { return nil }
+                        return extractAmounts(from: windowLine).last
+                    }
+
+                // Penceredeki en büyük tutar genel toplamı temsil eder.
+                if let best = windowAmounts.max() {
+                    candidates.append(best)
+                }
             }
 
-            if let amount = extractAmounts(from: line).last {
-                return amount
-            }
-
-            if index + 1 < lines.count, let amount = extractAmounts(from: lines[index + 1]).last {
-                return amount
+            // Aynı öncelik grubundaki en büyük tutar genel toplamı temsil eder.
+            if let best = candidates.max() {
+                return best
             }
         }
 
-        return lines
+        return normalized
             .flatMap(extractAmounts)
             .filter { $0 > 0 }
             .max()
+    }
+
+    // OCR gürültüsünü (asterisk, fazla boşluk) temizler; keyword ve tutar eşleştirme doğruluğunu artırır.
+    private static func normalizeLine(_ line: String) -> String {
+        line
+            .replacingOccurrences(of: "*", with: " ")
+            .components(separatedBy: .whitespaces)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // Raw input’u structured app data’ya dönüştürür.
