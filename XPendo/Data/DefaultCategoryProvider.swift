@@ -1,3 +1,8 @@
+/*
+ DOSYA: DefaultCategoryProvider.swift
+ AMAÇ: App başlarken veya data resetlenirken kullanılan yerleşik expense category listesini sağlar. Category tanımlarının seederlar arasında tekrarlanmasını önler.
+ KULLANAN: AppDataSeeder, DemoDataSeeder ve category ile ilgili testler tarafından kullanılır.
+*/
 import Foundation
 
 // DefaultCategoryDefinition, seed edilecek category için sabit kimlik ve görsel bilgileri taşır.
@@ -22,6 +27,7 @@ enum DefaultCategoryProvider {
         DefaultCategoryDefinition(id: uuid("A75E3E31-33F8-46FB-942B-2D9F0A61B008"), name: "Other", icon: "square.grid.2x2.fill", color: "#8E8E93")
     ]
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func uuid(_ value: String) -> UUID {
         UUID(uuidString: value) ?? UUID()
     }

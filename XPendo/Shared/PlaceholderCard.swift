@@ -1,3 +1,8 @@
+/*
+ DOSYA: PlaceholderCard.swift
+ AMAÇ: Icon, title ve message içeren reusable empty-state cardları gösterir. Empty screen alanlarına tutarlı bir görsel davranış verir.
+ KULLANAN: HomeView, BudgetView, ExpensesView, AnalyticsView ve SettingsView tarafından kullanılır.
+*/
 import SwiftUI
 
 // PlaceholderCard, geliştirme veya boş içerik durumlarında aynı kart dilini korumak için kullanılır.
@@ -7,6 +12,7 @@ struct PlaceholderCard: View {
     let description: String
     var accentColor: Color = XPendoTheme.accentTeal
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             HStack(alignment: .top, spacing: 14) {

@@ -1,3 +1,8 @@
+/*
+ DOSYA: ReceiptScanResult.swift
+ AMAÇ: Receipt scanning sonucunda üretilen structured result modelini tanımlar. Parsed receipt alanlarını add-expense formuna taşır.
+ KULLANAN: ReceiptParserService, ReceiptScannerView ve AddExpenseViewModel tarafından kullanılır.
+*/
 import Foundation
 
 // ReceiptScanResult, OCR + parser pipeline'ının AddExpense formuna döndürdüğü öneri modelidir.

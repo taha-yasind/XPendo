@@ -1,3 +1,8 @@
+/*
+ DOSYA: HomeView.swift
+ AMAÇ: Onboarding sonrası gösterilen dashboard’u quick total, recent spending ve budget status ile kurar. Kullanıcının günlük overview ekranı olarak çalışır.
+ KULLANAN: AppRootView tab navigation, HomeViewModel, AddExpenseView ve shared UI componentleri tarafından kullanılır.
+*/
 import SwiftUI
 import SwiftData
 
@@ -24,6 +29,7 @@ struct HomeView: View {
         self.onViewAllExpenses = onViewAllExpenses
     }
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -49,10 +55,12 @@ struct HomeView: View {
         viewModel.makeDashboardData(expenses: expenses, budgets: budgets)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var currencyCode: String {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 8) {
@@ -64,7 +72,7 @@ struct HomeView: View {
                     if isDemoModeEnabled {
                         HStack(spacing: 5) {
                             Image(systemName: "star.fill")
-                            Text("home.demo.badge")
+                            Text(AppLocalization.string("home.demo.badge"))
                         }
                         .font(.caption2.weight(.bold))
                         .foregroundStyle(XPendoTheme.softPurple)
@@ -113,6 +121,7 @@ private struct HomeOverviewCard: View {
     let dashboard: HomeDashboardData
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 20) {
@@ -123,7 +132,7 @@ private struct HomeOverviewCard: View {
 
                     Spacer()
 
-                    Text("home.overview.pill")
+                    Text(AppLocalization.string("home.overview.pill"))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -158,6 +167,7 @@ private struct HomeOverviewCard: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var monthDescription: String {
         if dashboard.monthExpenseCount == 0 {
             return AppLocalization.string("home.monthDescription.empty")
@@ -166,6 +176,7 @@ private struct HomeOverviewCard: View {
         return AppLocalization.format("home.monthDescription.count", dashboard.monthExpenseCount)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var todayDescription: String {
         if dashboard.todayExpenseCount == 0 {
             return AppLocalization.string("home.todayDescription.empty")
@@ -175,12 +186,14 @@ private struct HomeOverviewCard: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct HomeMetricTile<PrimaryContent: View>: View {
     let title: String
     let accentColor: Color
     let primaryContent: PrimaryContent
     let secondaryText: String
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(
         title: String,
         accentColor: Color,
@@ -193,6 +206,7 @@ private struct HomeMetricTile<PrimaryContent: View>: View {
         self.secondaryText = secondaryText
     }
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -216,10 +230,12 @@ private struct HomeMetricTile<PrimaryContent: View>: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct HomeTopCategoryTile: View {
     let topCategory: HomeTopCategorySummary?
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HomeMetricTile(
             title: AppLocalization.string("home.tile.topCategory"),
@@ -245,7 +261,7 @@ private struct HomeTopCategoryTile: View {
                         }
                     }
                 } else {
-                    Text("home.topCategory.empty.title")
+                    Text(AppLocalization.string("home.topCategory.empty.title"))
                 }
             },
             secondaryText: topCategory == nil
@@ -254,7 +270,9 @@ private struct HomeTopCategoryTile: View {
         )
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var tileColor: Color {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let colorHex = topCategory?.colorHex else {
             return XPendoTheme.softPurple
         }
@@ -269,11 +287,12 @@ private struct HomeRecentExpensesSection: View {
     let currencyCode: String
     let onViewAll: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    Text("home.section.recentExpenses")
+                    Text(AppLocalization.string("home.section.recentExpenses"))
                         .font(.headline)
                         .foregroundStyle(XPendoTheme.primaryText)
 
@@ -308,10 +327,12 @@ private struct HomeRecentExpensesSection: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct HomeRecentExpenseRow: View {
     let expense: Expense
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -331,7 +352,7 @@ private struct HomeRecentExpenseRow: View {
                 HStack(spacing: 8) {
                     Text(CategoryLocalization.localizedName(for: expense.categoryName))
                     Text("•")
-                    Text(expense.date.formatted(date: .abbreviated, time: .omitted))
+                    Text(expense.date.formatted(.dateTime.day().month(.abbreviated).year().locale(AppLocalization.locale)))
                 }
                 .font(.caption)
                 .foregroundStyle(XPendoTheme.secondaryText)
@@ -348,6 +369,7 @@ private struct HomeRecentExpenseRow: View {
         .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var categoryColor: Color {
         Color(hexString: expense.categoryColor) ?? XPendoTheme.accentTeal
     }
@@ -358,11 +380,12 @@ private struct HomeBudgetPreviewSection: View {
     let preview: HomeBudgetPreview
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    Text("home.section.budgetPreview")
+                    Text(AppLocalization.string("home.section.budgetPreview"))
                         .font(.headline)
                         .foregroundStyle(XPendoTheme.primaryText)
 
@@ -400,6 +423,7 @@ private struct HomeBudgetPreviewSection: View {
     }
 
     @ViewBuilder
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var budgetStatusPill: some View {
         switch preview {
         case .empty:
@@ -425,6 +449,7 @@ private struct HomeBudgetPreviewSection: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func warningDescription(for warningCount: Int) -> String {
         if warningCount <= 1 {
             return AppLocalization.string("home.budgetPreview.warning.single")
@@ -434,12 +459,14 @@ private struct HomeBudgetPreviewSection: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct HomeBudgetStatusCard: View {
     let status: HomeBudgetStatus
     let currencyCode: String
     let accentColor: Color
     let footerText: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
@@ -467,7 +494,7 @@ private struct HomeBudgetStatusCard: View {
                 HomeBudgetProgressBar(progress: min(max(status.progress, 0), 1), accentColor: accentColor)
 
                 HStack {
-                    Text("budget.spent")
+                    Text(AppLocalization.string("budget.spent"))
                     Spacer()
                     Text(CurrencyConverter.formatFromTRY(status.spentAmount, to: currencyCode))
                 }
@@ -483,7 +510,7 @@ private struct HomeBudgetStatusCard: View {
                 .font(.caption.weight(.semibold))
 
                 HStack {
-                    Text("budget.limit")
+                    Text(AppLocalization.string("budget.limit"))
                     Spacer()
                     Text(CurrencyConverter.formatFromTRY(status.limitAmount, to: currencyCode))
                 }
@@ -500,10 +527,12 @@ private struct HomeBudgetStatusCard: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct HomeBudgetProgressBar: View {
     let progress: Double
     let accentColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
@@ -519,11 +548,13 @@ private struct HomeBudgetProgressBar: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct HomeInlineEmptyState: View {
     let systemImage: String
     let title: String
     let description: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             RoundedRectangle(cornerRadius: 16, style: .continuous)

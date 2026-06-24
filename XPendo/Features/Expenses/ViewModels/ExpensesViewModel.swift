@@ -1,3 +1,8 @@
+/*
+ DOSYA: ExpensesViewModel.swift
+ AMAÇ: Expense listesi için search, filtering, grouping ve delete davranışını yönetir. ExpensesView için expense datasını hazırlar.
+ KULLANAN: ExpensesView, ExpenseRowCard ve SwiftData expense queryleri tarafından kullanılır.
+*/
 import Foundation
 import Observation
 import SwiftData
@@ -5,6 +10,7 @@ import SwiftData
 // ExpensesViewModel, harcama listesi için filtre, edit ve delete state'ini yönetir.
 // SwiftData sorgusundan gelen listeyi değiştirmez; sadece görünüm için filtrelenmiş sonuç üretir.
 @Observable
+// Screen state ve user actionları SwiftUI layout’tan ayrı tutar.
 final class ExpensesViewModel {
     // TimeFilter, kullanıcıya sunulan tarih aralığı seçeneklerini temsil eder.
     enum TimeFilter: CaseIterable, Identifiable {
@@ -16,6 +22,7 @@ final class ExpensesViewModel {
         case last1Year
         case last2Years
 
+        // Bu type için odaklı bir davranış parçasını yönetir.
         var id: String {
             switch self {
             case .all:
@@ -35,6 +42,7 @@ final class ExpensesViewModel {
             }
         }
 
+        // Bu type için odaklı bir davranış parçasını yönetir.
         var title: String {
             switch self {
             case .all:
@@ -67,11 +75,14 @@ final class ExpensesViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func categoryFilterTitle(from categories: [Category]) -> String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let selectedCategoryID else {
             return AppLocalization.string("expenses.filter.allCategories")
         }
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let categoryName = categories.first(where: { $0.id == selectedCategoryID })?.name else {
             return AppLocalization.string("expenses.filter.allCategories")
         }
@@ -79,10 +90,12 @@ final class ExpensesViewModel {
         return CategoryLocalization.localizedName(for: categoryName)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func selectCategory(_ category: Category?) {
         selectedCategoryID = category?.id
     }
 
+    // Bu state’i default değerlerine geri döndürür.
     func resetFilters() {
         selectedTimeFilter = .all
         selectedCategoryID = nil
@@ -100,6 +113,7 @@ final class ExpensesViewModel {
 
     // Kullanıcı onayladıktan sonra pending Expense ModelContext'ten silinir ve kaydedilir.
     func deletePendingExpense(in modelContext: ModelContext) throws {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let expensePendingDelete else {
             return
         }
@@ -120,6 +134,7 @@ final class ExpensesViewModel {
         case .thisMonth:
             return calendar.isDate(expense.date, equalTo: now, toGranularity: .month)
         case .lastMonth:
+            // Gerekli data eksikse erken çıkış yapar.
             guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: now) else {
                 return false
             }
@@ -135,17 +150,20 @@ final class ExpensesViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func isDate(
         _ date: Date,
         inLastMonths monthCount: Int,
         now: Date,
         calendar: Calendar
     ) -> Bool {
+        // Gerekli data eksikse erken çıkış yapar.
         guard monthCount > 0 else {
             return false
         }
 
         let currentMonthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
+        // Gerekli data eksikse erken çıkış yapar.
         guard let rangeStart = calendar.date(byAdding: .month, value: -(monthCount - 1), to: currentMonthStart) else {
             return false
         }
@@ -153,7 +171,9 @@ final class ExpensesViewModel {
         return date >= rangeStart && date <= now
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func matchesCategoryFilter(_ expense: Expense) -> Bool {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let selectedCategoryID else {
             return true
         }

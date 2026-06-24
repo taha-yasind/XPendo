@@ -1,3 +1,8 @@
+/*
+ DOSYA: AppLanguage.swift
+ AMAÇ: Desteklenen app language seçeneklerini ve display label değerlerini listeler. Settings ve localization koduna shared language type sağlar.
+ KULLANAN: SettingsViewModel, SettingsView ve localized text helperları tarafından kullanılır.
+*/
 import Foundation
 
 // AppLanguage, desteklenen localization dillerini ve ilgili Locale bilgisini temsil eder.
@@ -7,10 +12,12 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var locale: Locale {
         Locale(identifier: rawValue)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var displayName: String {
         switch self {
         case .english:
@@ -20,7 +27,9 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func resolved(from code: String?) -> AppLanguage {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let code else {
             let preferredCode = Locale.current.language.languageCode?.identifier ?? AppLanguage.english.rawValue
             return AppLanguage(rawValue: preferredCode) ?? .english
@@ -47,6 +56,7 @@ enum AppLocalization {
         UserDefaults.standard.set(resolved, forKey: userDefaultsKey)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static var locale: Locale {
         AppLanguage.resolved(from: currentLanguageCode).locale
     }
@@ -55,19 +65,30 @@ enum AppLocalization {
     static func string(_ key: String) -> String {
         let resolvedLanguageCode = AppLanguage.resolved(from: currentLanguageCode).rawValue
         let localizedBundle = bundle(for: resolvedLanguageCode)
-        let localizedValue = localizedBundle.localizedString(forKey: key, value: nil, table: nil)
 
-        guard localizedValue == key, localizedBundle != .main else {
+        // Sentinel ile key-not-found durumu doğru tespit edilir.
+        // Boş string key olarak kullanılamaz, bu yüzden güvenli sentinel'dır.
+        let sentinel = "___xpendo_missing___"
+        let localizedValue = localizedBundle.localizedString(forKey: key, value: sentinel, table: nil)
+
+        // Key dil bundle'ında bulundu; direkt döndür (değer key ile aynı olsa bile).
+        if localizedValue != sentinel {
             return localizedValue
         }
 
-        return Bundle.main.localizedString(forKey: key, value: nil, table: nil)
+        // Key bulunamadı; main bundle'a fallback yap (sonsuz döngüden kaçınmak için kontrol).
+        guard localizedBundle !== Bundle.main else {
+            return key
+        }
+        return Bundle.main.localizedString(forKey: key, value: key, table: nil)
     }
 
+    // Raw value değerlerini interface’te gösterim için formatlar.
     static func format(_ key: String, _ arguments: CVarArg...) -> String {
         String(format: string(key), locale: locale, arguments: arguments)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func bundle(for languageCode: String) -> Bundle {
         guard
             let path = Bundle.main.path(forResource: languageCode, ofType: "lproj"),

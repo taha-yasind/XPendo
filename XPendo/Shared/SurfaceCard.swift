@@ -1,3 +1,8 @@
+/*
+ DOSYA: SurfaceCard.swift
+ AMAÇ: App’in reusable card container styling yapısını tanımlar. Panel ve grouped content görünümlerini tutarlı tutar.
+ KULLANAN: HomeView, BudgetView, ExpensesView, AnalyticsView, SettingsView ve shared componentler tarafından kullanılır.
+*/
 import SwiftUI
 
 // SurfaceCard, XPendo ekranlarında tekrar kullanılan kart yüzeyi ve spacing standardını sağlar.
@@ -5,10 +10,12 @@ import SwiftUI
 struct SurfaceCard<Content: View>: View {
     private let content: Content
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         content
             .padding(20)

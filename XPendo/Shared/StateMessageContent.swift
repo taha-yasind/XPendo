@@ -1,3 +1,8 @@
+/*
+ DOSYA: StateMessageContent.swift
+ AMAÇ: Loading, empty ve error message alanları için reusable content tanımlar. State messaging davranışını feature ekranları arasında tutarlı tutar.
+ KULLANAN: PlaceholderCard, feature viewleri ve shared empty-state UI tarafından kullanılır.
+*/
 import SwiftUI
 
 // StateMessageContent, empty/error/info durumlarını ikon, açıklama ve opsiyonel aksiyonla gösteren ortak View'dur.
@@ -9,6 +14,7 @@ struct StateMessageContent: View {
     let actionTitle: String?
     let action: (() -> Void)?
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(
         systemImage: String,
         title: String,
@@ -25,6 +31,7 @@ struct StateMessageContent: View {
         self.action = action
     }
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)

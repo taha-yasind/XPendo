@@ -1,3 +1,8 @@
+/*
+ DOSYA: XPendoModelContainer.swift
+ AMAÇ: App’in kullandığı SwiftData model container ve schema yapılandırmasını yapar. Launch kodu küçük kalsın diye persistence setup işlemini merkezileştirir.
+ KULLANAN: XPendoApp, previewler ve shared SwiftData store’a ihtiyaç duyan kodlar tarafından kullanılır.
+*/
 import SwiftData
 
 // XPendoModelContainer, SwiftData schema ve ModelContainer kurulumundan sorumludur.
@@ -14,6 +19,7 @@ enum XPendoModelContainer {
         AppSettings.self
     ])
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func container(for mode: AppDataMode) -> ModelContainer {
         switch mode {
         case .standard:
@@ -25,12 +31,14 @@ enum XPendoModelContainer {
 
     // Persistent store açılamazsa uygulamanın launch edebilmesi için in-memory fallback denenir.
     private static func makePersistentContainer(for mode: AppDataMode) -> ModelContainer {
+        // Error fırlatabilecek işi başlatır.
         do {
             return try makeContainer(for: mode, isStoredInMemoryOnly: false)
         } catch {
             print("XPendo \(mode.configurationName) container could not be created: \(error)")
             print("XPendo is falling back to an in-memory store so the app can still launch.")
 
+            // Error fırlatabilecek işi başlatır.
             do {
                 return try makeContainer(for: mode, isStoredInMemoryOnly: true)
             } catch {
@@ -62,6 +70,7 @@ enum XPendoModelContainer {
         for mode: AppDataMode,
         isStoredInMemoryOnly: Bool
     ) -> ModelConfiguration.CloudKitDatabase {
+        // Gerekli data eksikse erken çıkış yapar.
         guard !isStoredInMemoryOnly, mode == .standard else {
             return .none
         }

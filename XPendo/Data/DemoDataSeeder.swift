@@ -1,3 +1,8 @@
+/*
+ DOSYA: DemoDataSeeder.swift
+ AMAÇ: Demo mode için gerçekçi sample budget, expense ve category verileri oluşturur. Kullanıcı önce data girmeden app’in sunuma hazır görünmesini sağlar.
+ KULLANAN: AppRootView, SettingsViewModel ve SwiftData preview/demo akışları tarafından kullanılır.
+*/
 import Foundation
 import SwiftData
 
@@ -10,6 +15,7 @@ struct DemoDataOperationResult {
 // DemoDataSeeder, teknik sunum ve test amaçlı örnek Expense/Budget verisi üretir.
 // Gerçek kullanıcı verisiyle karışmaması için demo expense title'ları özel prefix ile işaretlenir.
 enum DemoDataSeeder {
+    // App’in bu bölümünde kullanılan supported value listesini tanımlar.
     enum DemoDataError: Error {
         case existingData(expenseCount: Int, budgetCount: Int)
     }
@@ -56,6 +62,7 @@ enum DemoDataSeeder {
         let existingExpenses = try modelContext.fetch(FetchDescriptor<Expense>())
         let existingBudgets = try modelContext.fetch(FetchDescriptor<Budget>())
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard existingExpenses.isEmpty, existingBudgets.isEmpty else {
             throw DemoDataError.existingData(
                 expenseCount: existingExpenses.count,
@@ -73,6 +80,7 @@ enum DemoDataSeeder {
         // Expense kayıtları default category ilişkileri kullanılarak SwiftData içine eklenir.
         var insertedExpenseCount = 0
         for entry in demoEntries {
+            // Gerekli data eksikse erken çıkış yapar.
             guard let category = categoriesByName[entry.categoryName] else {
                 continue
             }
@@ -92,6 +100,7 @@ enum DemoDataSeeder {
 
         // Son demoMonthCount ay için category bazlı Budget kayıtları oluşturulur.
         for monthOffset in (-(demoMonthCount - 1))...0 {
+            // Gerekli data eksikse erken çıkış yapar.
             guard let monthDate = calendar.date(byAdding: .month, value: monthOffset, to: now) else {
                 continue
             }
@@ -100,6 +109,7 @@ enum DemoDataSeeder {
             let year = calendar.component(.year, from: monthDate)
 
             for definition in demoBudgetDefinitions {
+                // Gerekli data eksikse erken çıkış yapar.
                 guard let category = categoriesByName[definition.categoryName] else {
                     continue
                 }
@@ -144,6 +154,7 @@ enum DemoDataSeeder {
                 return false
             }
 
+            // Gerekli data eksikse erken çıkış yapar.
             guard let baseTarget = demoBudgetTargets[budget.categoryName] else {
                 return false
             }
@@ -175,6 +186,7 @@ enum DemoDataSeeder {
         var entries: [DemoEntry] = []
 
         for monthOffset in (-(demoMonthCount - 1))...0 {
+            // Gerekli data eksikse erken çıkış yapar.
             guard let monthDate = calendar.date(byAdding: .month, value: monthOffset, to: now),
                   let dayRange = calendar.range(of: .day, in: .month, for: monthDate) else {
                 continue
@@ -183,6 +195,7 @@ enum DemoDataSeeder {
             let monthSeed = abs(monthOffset) + 1
 
             for day in dayRange {
+                // Gerekli data eksikse erken çıkış yapar.
                 guard let dayDate = date(
                     yearMonthFrom: monthDate,
                     day: day,
@@ -194,6 +207,7 @@ enum DemoDataSeeder {
                 }
 
                 let weekday = calendar.component(.weekday, from: dayDate)
+                // Gerekli data eksikse erken çıkış yapar.
                 guard demoWeekdaySet.contains(weekday) else {
                     continue
                 }
@@ -209,6 +223,7 @@ enum DemoDataSeeder {
                     let amountSeed = monthSeed * 1000 + day * 10 + entryIndex
                     let amount = amountInRange(amountRange, seed: amountSeed)
 
+                    // Gerekli data eksikse erken çıkış yapar.
                     guard let entryDate = date(
                         yearMonthFrom: monthDate,
                         day: day,
@@ -234,12 +249,14 @@ enum DemoDataSeeder {
         return entries
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func amountInRange(_ range: ClosedRange<Double>, seed: Int) -> Double {
         let normalized = Double((seed * 37) % 100) / 100
         let rawAmount = range.lowerBound + ((range.upperBound - range.lowerBound) * normalized)
         return (rawAmount * 100).rounded() / 100
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func demoBudgetAmount(base: Double, monthOffset: Int) -> Double {
         let magnitude = abs(monthOffset)
         let adjustment = 1 + (Double(magnitude) * 0.03)
@@ -247,6 +264,7 @@ enum DemoDataSeeder {
         return (amount * 100).rounded() / 100
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func date(
         yearMonthFrom monthDate: Date,
         day: Int,
@@ -262,6 +280,7 @@ enum DemoDataSeeder {
         return calendar.date(from: components)
     }
 
+    // App tarafından kullanılan lightweight value type tanımlar.
     private struct DemoEntry {
         let title: String
         let amount: Double

@@ -1,3 +1,8 @@
+/*
+ DOSYA: LocalNotificationManager.swift
+ AMAÇ: Local notification permission request ve scheduling işlemlerini sarar. UserNotifications detaylarını async-friendly methodların arkasında gizler.
+ KULLANAN: NotificationSettingsViewModel ve NotificationSyncService tarafından kullanılır.
+*/
 import Foundation
 import UserNotifications
 
@@ -7,6 +12,7 @@ enum NotificationPermissionState {
     case authorized
     case denied
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var isAuthorized: Bool {
         self == .authorized
     }
@@ -44,7 +50,9 @@ enum LocalNotificationManager {
         }
     }
 
+    // System’den permission veya updated status ister.
     static func requestAuthorization() async throws -> Bool {
+        // Async operation tamamlanana kadar bekler.
         try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
     }
 
@@ -52,6 +60,7 @@ enum LocalNotificationManager {
     static func refreshSchedules(using context: NotificationScheduleContext) async throws {
         let permissionState = await permissionState()
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard context.notificationsEnabled, permissionState.isAuthorized else {
             // Ana izin veya app tercihi kapalıysa bekleyen XPendo notification requestleri temizlenir.
             removeAllRequests()
@@ -59,18 +68,21 @@ enum LocalNotificationManager {
         }
 
         if context.dailyReminderEnabled {
+            // Async operation tamamlanana kadar bekler.
             try await scheduleDailyReminder()
         } else {
             removeDailyReminder()
         }
 
         if context.budgetWarningEnabled {
+            // Async operation tamamlanana kadar bekler.
             try await scheduleBudgetWarningIfNeeded(using: context)
         } else {
             removeBudgetWarning()
         }
     }
 
+    // User action’ı onayladıktan sonra saved datayı siler.
     static func removeAllRequests() {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: allIdentifiers)
     }
@@ -94,6 +106,7 @@ enum LocalNotificationManager {
         )
 
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [dailyReminderIdentifier])
+        // Async operation tamamlanana kadar bekler.
         try await notificationCenter.add(request)
     }
 
@@ -104,6 +117,7 @@ enum LocalNotificationManager {
             expenses: context.expenses
         )
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard overspentCategoryCount > 0 else {
             removeBudgetWarning()
             return
@@ -130,6 +144,7 @@ enum LocalNotificationManager {
         )
 
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [budgetWarningIdentifier])
+        // Async operation tamamlanana kadar bekler.
         try await notificationCenter.add(request)
     }
 
@@ -145,6 +160,7 @@ enum LocalNotificationManager {
             $0.year == calendar.component(.year, from: now)
         }
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard !currentMonthBudgets.isEmpty else {
             return 0
         }
@@ -158,6 +174,7 @@ enum LocalNotificationManager {
             }
 
         return currentMonthBudgets.filter { budget in
+            // Gerekli data eksikse erken çıkış yapar.
             guard let categoryID = budget.categoryID else {
                 return false
             }
@@ -166,14 +183,17 @@ enum LocalNotificationManager {
         }.count
     }
 
+    // User action’ı onayladıktan sonra saved datayı siler.
     private static func removeDailyReminder() {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [dailyReminderIdentifier])
     }
 
+    // User action’ı onayladıktan sonra saved datayı siler.
     private static func removeBudgetWarning() {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [budgetWarningIdentifier])
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static var allIdentifiers: [String] {
         [dailyReminderIdentifier, budgetWarningIdentifier]
     }

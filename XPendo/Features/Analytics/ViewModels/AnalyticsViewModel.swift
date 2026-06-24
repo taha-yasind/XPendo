@@ -1,3 +1,8 @@
+/*
+ DOSYA: AnalyticsViewModel.swift
+ AMAÇ: Saklanan expense ve budget verilerinden analytics summary değerlerini hesaplar. AnalyticsView için chart-ready değerler hazırlar.
+ KULLANAN: AnalyticsView, Expense, Budget ve Category modelleri tarafından kullanılır.
+*/
 import Foundation
 
 // AnalyticsDashboardData, Analytics ekranındaki chart ve insight verilerini tek yapıda toplar.
@@ -10,7 +15,9 @@ struct AnalyticsDashboardData {
     let strongestMonth: AnalyticsMonthlyTotal?
     let trendRangeLabel: String
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var averageExpense: Double {
+        // Gerekli data eksikse erken çıkış yapar.
         guard totalExpenseCount > 0 else {
             return 0
         }
@@ -41,7 +48,11 @@ struct AnalyticsMonthlyTotal: Identifiable {
 // AnalyticsViewModel, Expense listesinden sunuma hazır analytics metrikleri üretir.
 // Hesaplama logic'i View'dan ayrıldığı için chart ekranı sadece hazır veriyi çizer.
 struct AnalyticsViewModel {
-    private let calendar = Calendar.current
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.locale = AppLocalization.locale
+        return calendar
+    }
     private let visibleMonthCount = 6
 
     // Toplam harcama, category dağılımı, aylık trend ve öne çıkan değerler burada hesaplanır.
@@ -68,6 +79,7 @@ struct AnalyticsViewModel {
     // Harcamalar category ID'ye göre gruplanır ve büyükten küçüğe sıralanır.
     private func makeCategoryTotals(from expenses: [Expense], totalSpend: Double) -> [AnalyticsCategoryTotal] {
         let categorizedExpenses = expenses.compactMap { expense -> (category: Category, expense: Expense)? in
+            // Gerekli data eksikse erken çıkış yapar.
             guard let category = expense.category else {
                 return nil
             }
@@ -118,17 +130,20 @@ struct AnalyticsViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func makeTrendRangeLabel(from monthlyTotals: [AnalyticsMonthlyTotal]) -> String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let firstMonth = monthlyTotals.first?.monthStart,
               let lastMonth = monthlyTotals.last?.monthStart else {
             return AppLocalization.string("analytics.trend.lastSixMonths")
         }
 
-        let firstLabel = firstMonth.formatted(.dateTime.month(.abbreviated).year())
-        let lastLabel = lastMonth.formatted(.dateTime.month(.abbreviated).year())
+        let firstLabel = firstMonth.formatted(.dateTime.month(.abbreviated).year().locale(AppLocalization.locale))
+        let lastLabel = lastMonth.formatted(.dateTime.month(.abbreviated).year().locale(AppLocalization.locale))
         return "\(firstLabel) – \(lastLabel)"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func startOfMonth(for date: Date) -> Date {
         calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
     }

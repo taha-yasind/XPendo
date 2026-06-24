@@ -1,3 +1,8 @@
+/*
+ DOSYA: ExpensesView.swift
+ AMAÇ: Expense kayıtlarını filtering, search, edit ve delete akışlarıyla listeler. Kullanıcı harcamaları için ana history ekranıdır.
+ KULLANAN: AppRootView tab navigation, ExpensesViewModel, AddExpenseView ve ExpenseRowCard tarafından kullanılır.
+*/
 import SwiftUI
 import SwiftData
 
@@ -18,6 +23,7 @@ struct ExpensesView: View {
     @State private var viewModel = ExpensesViewModel()
     @State private var deleteErrorMessage: String?
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         let filtered = filteredExpenses
 
@@ -42,7 +48,9 @@ struct ExpensesView: View {
             DeleteExpenseSheet(
                 expense: expense,
                 onDelete: {
+                    // Bu synchronous context içinden async work çalıştırır.
                     Task {
+                        // Async operation tamamlanana kadar bekler.
                         await deletePendingExpense()
                     }
                 },
@@ -52,8 +60,8 @@ struct ExpensesView: View {
             .presentationDragIndicator(.hidden)
             .presentationBackground(XPendoTheme.surfaceBackground)
         }
-        .alert("expenses.alert.deleteFailed.title", isPresented: deleteErrorBinding) {
-            Button("common.ok", role: .cancel) { }
+        .alert(AppLocalization.string("expenses.alert.deleteFailed.title"), isPresented: deleteErrorBinding) {
+            Button(AppLocalization.string("common.ok"), role: .cancel) { }
         } message: {
             Text(deleteErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
@@ -64,22 +72,24 @@ struct ExpensesView: View {
         viewModel.filteredExpenses(from: expenses)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-                Text("expenses.title")
+                Text(AppLocalization.string("expenses.title"))
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("expenses.subtitle")
+            Text(AppLocalization.string("expenses.subtitle"))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var filterSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 16) {
-                Text("expenses.section.filters")
+                Text(AppLocalization.string("expenses.section.filters"))
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -117,7 +127,7 @@ struct ExpensesView: View {
                 .buttonStyle(.plain)
 
                 Menu {
-                    Button("expenses.filter.allCategories") {
+                    Button(AppLocalization.string("expenses.filter.allCategories")) {
                         viewModel.selectCategory(nil)
                     }
 
@@ -154,6 +164,7 @@ struct ExpensesView: View {
 
     // Empty state, gerçek veri olmaması ile filtre sonucu eşleşme olmamasını ayrı anlatır.
     @ViewBuilder
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func contentSection(filteredExpenses: [Expense]) -> some View {
         if expenses.isEmpty {
             ExpenseEmptyState(
@@ -183,6 +194,7 @@ struct ExpensesView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var currencyCode: String {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
@@ -207,6 +219,7 @@ struct ExpensesView: View {
         )
     }
 
+    // User action’ı onayladıktan sonra saved datayı siler.
     private var deleteErrorBinding: Binding<Bool> {
         Binding(
             get: { deleteErrorMessage != nil },
@@ -220,9 +233,12 @@ struct ExpensesView: View {
 
     // Delete başarılı olunca budget warning notification'ları da güncel harcama verisine göre yenilenir.
     @MainActor
+    // User action’ı onayladıktan sonra saved datayı siler.
     private func deletePendingExpense() async {
+        // Error fırlatabilecek işi başlatır.
         do {
             try viewModel.deletePendingExpense(in: modelContext)
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             deleteErrorMessage = error.localizedDescription
@@ -238,12 +254,14 @@ struct ExpensesView: View {
     .background(XPendoTheme.background)
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct ExpenseEmptyState: View {
     let title: String
     let description: String
     let showsResetButton: Bool
     let onReset: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             StateMessageContent(
@@ -264,6 +282,7 @@ private struct DeleteExpenseSheet: View {
     let onDelete: () -> Void
     let onCancel: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 10) {
@@ -277,7 +296,7 @@ private struct DeleteExpenseSheet: View {
                     }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("expenses.deleteSheet.title")
+                    Text(AppLocalization.string("expenses.deleteSheet.title"))
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(XPendoTheme.primaryText)
 
@@ -289,7 +308,7 @@ private struct DeleteExpenseSheet: View {
             }
 
             HStack(spacing: 10) {
-                Button("common.cancel", action: onCancel)
+                Button(AppLocalization.string("common.cancel"), action: onCancel)
                     .buttonStyle(.plain)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
@@ -297,7 +316,7 @@ private struct DeleteExpenseSheet: View {
                     .frame(height: 44)
                     .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                Button("common.delete", action: onDelete)
+                Button(AppLocalization.string("common.delete"), action: onDelete)
                     .buttonStyle(.plain)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)

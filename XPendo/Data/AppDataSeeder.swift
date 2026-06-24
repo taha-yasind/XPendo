@@ -1,3 +1,8 @@
+/*
+ DOSYA: AppDataSeeder.swift
+ AMAÇ: Yeni kurulum için category ve app settings gibi gerekli default datayı oluşturur. Startup data setup işlemini tek ve öngörülebilir yerde tutar.
+ KULLANAN: App launch sırasında AppRootView ve SwiftData model context tarafından kullanılır.
+*/
 import Foundation
 import SwiftData
 
@@ -71,6 +76,7 @@ enum AppDataSeeder {
         for categoryDefinition in DefaultCategoryProvider.categories {
             let matchingCategories = categories.filter { $0.name == categoryDefinition.name }
 
+            // Gerekli data eksikse erken çıkış yapar.
             guard matchingCategories.count > 1 else {
                 continue
             }
@@ -95,14 +101,17 @@ enum AppDataSeeder {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static var defaultCurrencyCode: String {
         CurrencyConverter.supportedCurrencyCode(from: Locale.current.currency?.identifier)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static var defaultThemeCode: String {
         PreferredTheme.system.rawValue
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static var defaultLanguageCode: String {
         AppLanguage.resolved(from: nil).rawValue
     }

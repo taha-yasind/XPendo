@@ -175,6 +175,12 @@
 "settings.utility.clear.standard.confirm.title" = "Standart Mod Verileri Temizlensin mi?";
 "settings.utility.clear.demo.confirm.title" = "Demo Modu Verileri Temizlensin mi?";
 "settings.utility.clear.confirm.subtitle" = "Bu işlem geri alınamaz.";
+"settings.icloud.title" = "iCloud Senkronizasyonu";
+"settings.icloud.description" = "CloudKit capability etkinleştirildiğinde yerel iCloud yedekleme ve geri yükleme için hazırlanmıştır.";
+"settings.icloud.ready.title" = "CloudKit Hazır";
+"settings.icloud.ready.subtitle" = "Etkinleştirme için Apple Developer Program, iCloud capability ve CloudKit container gerekir.";
+"settings.icloud.status.planned" = "Planlandı";
+"settings.icloud.footnote" = "Etkinleştirme sonrası, uygulama aynı Apple ID ile yeniden yüklendiğinde senkronize veri geri yüklenebilir.";
 
 "settings.notifications.permission.denied.long" = "Bildirim izni sistem ayarlarında kapalı. Yeniden etkinleştirilene kadar Xpendo hatırlatma gönderemez.";
 "settings.notifications.permission.denied.short" = "Bildirim izni sistem ayarlarında kapalı.";

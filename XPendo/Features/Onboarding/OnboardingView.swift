@@ -1,3 +1,8 @@
+/*
+ DOSYA: OnboardingView tarafından kullanılır.swift
+ AMAÇ: İlk açılış onboarding carousel ve completion aksiyonunu sunar. Kullanıcının main app’e ne zaman geçeceğini kontrol eder.
+ KULLANAN: AppRootView ve OnboardingPageView tarafından kullanılır.
+*/
 import SwiftUI
 
 // OnboardingMode, ilk açılış ile Settings içinden tekrar izleme akışını ayırır.
@@ -17,6 +22,7 @@ struct OnboardingView: View {
 
     private let pages = OnboardingPage.pages
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -85,6 +91,7 @@ struct OnboardingView: View {
         .padding(.bottom, 28)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var pageIndicator: some View {
         HStack(spacing: 8) {
             ForEach(pages.indices, id: \.self) { index in
@@ -96,10 +103,12 @@ struct OnboardingView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var isLastPage: Bool {
         selectedIndex == pages.count - 1
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var primaryButtonTitle: String {
         if isLastPage {
             return mode == .firstLaunch

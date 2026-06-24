@@ -1,3 +1,8 @@
+/*
+ DOSYA: SettingsViewModel.swift
+ AMAÇ: Currency, language ve demo mode gibi app-wide settings değerlerini load, update ve persist eder. Settings değişikliklerini persistence serviceleriyle koordine eder.
+ KULLANAN: SettingsView, AppModeStore, AppDataSeeder, DemoDataSeeder ve NotificationSyncService tarafından kullanılır.
+*/
 import Foundation
 import Observation
 import SwiftData
@@ -6,6 +11,7 @@ import SwiftData
 // UI draft değerleri bu ViewModel üzerinden AppSettings modeline güvenli şekilde kaydedilir.
 @MainActor
 @Observable
+// Screen state ve user actionları SwiftUI layout’tan ayrı tutar.
 final class SettingsViewModel {
     // CurrencyOption, Settings menüsünde gösterilecek desteklenen para birimi bilgisidir.
     struct CurrencyOption: Identifiable, Hashable {
@@ -16,6 +22,7 @@ final class SettingsViewModel {
         var displayTitle: String { "\(code) • \(name)" }
     }
 
+    // App tarafından kullanılan lightweight value type tanımlar.
     struct ThemeOption: Identifiable, Hashable {
         let theme: PreferredTheme
 
@@ -25,6 +32,7 @@ final class SettingsViewModel {
         var systemImage: String { theme.systemImage }
     }
 
+    // App tarafından kullanılan lightweight value type tanımlar.
     struct LanguageOption: Identifiable, Hashable {
         let language: AppLanguage
 
@@ -35,6 +43,7 @@ final class SettingsViewModel {
 
     // UtilityMessage, reset/demo işlemlerinden sonra kullanıcıya gösterilecek kısa feedback bilgisidir.
     struct UtilityMessage {
+        // App’in bu bölümünde kullanılan supported value listesini tanımlar.
         enum Tone {
             case success
             case info
@@ -58,6 +67,7 @@ final class SettingsViewModel {
     let themeOptions: [ThemeOption]
     let languageOptions: [LanguageOption]
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init() {
         currencyOptions = Self.makeCurrencyOptions()
         themeOptions = Self.makeThemeOptions()
@@ -83,6 +93,7 @@ final class SettingsViewModel {
         let resolvedThemeCode = PreferredTheme.resolved(from: newThemeCode).rawValue
         let resolvedLanguageCode = AppLanguage.resolved(from: newLanguageCode).rawValue
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let settings else {
             errorMessage = AppLocalization.string("error.preferencesUnavailable")
             return
@@ -117,6 +128,7 @@ final class SettingsViewModel {
         preferredLanguageCode = resolvedLanguageCode
         AppLocalization.updateLanguage(code: resolvedLanguageCode)
 
+        // Error fırlatabilecek işi başlatır.
         do {
             try modelContext.save()
         } catch {
@@ -138,10 +150,12 @@ final class SettingsViewModel {
         isResettingData = true
         defer { isResettingData = false }
 
+        // Error fırlatabilecek işi başlatır.
         do {
             let expenses = try modelContext.fetch(FetchDescriptor<Expense>())
             let budgets = try modelContext.fetch(FetchDescriptor<Budget>())
 
+            // Gerekli data eksikse erken çıkış yapar.
             guard !expenses.isEmpty || !budgets.isEmpty else {
                 utilityMessage = UtilityMessage(
                     text: AppLocalization.string("settings.utility.nothingToClear"),
@@ -159,6 +173,7 @@ final class SettingsViewModel {
             }
 
             try modelContext.save()
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
 
             utilityMessage = UtilityMessage(
@@ -183,9 +198,11 @@ final class SettingsViewModel {
         isProcessingDemoData = true
         defer { isProcessingDemoData = false }
 
+        // Error fırlatabilecek işi başlatır.
         do {
             let result = try DemoDataSeeder.loadDemoData(in: modelContext)
             setDemoModeEnabled(true)
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
 
             utilityMessage = UtilityMessage(
@@ -216,8 +233,10 @@ final class SettingsViewModel {
         isProcessingDemoData = true
         defer { isProcessingDemoData = false }
 
+        // Error fırlatabilecek işi başlatır.
         do {
             let result = try DemoDataSeeder.clearDemoData(in: modelContext)
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
 
             if result.expenseCount == 0 && result.budgetCount == 0 {
@@ -240,54 +259,65 @@ final class SettingsViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var selectedCurrencyName: String {
         currencyName(for: currencyCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var selectedThemeName: String {
         themeName(for: preferredThemeCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var selectedLanguageName: String {
         languageName(for: preferredLanguageCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var versionValue: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
         return "\(version) (\(build))"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var isBusy: Bool {
         isUpdatingPreferences || isResettingData || isProcessingDemoData
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func currencyName(for code: String) -> String {
         currencyOptions.first(where: { $0.code == code })?.name
             ?? Locale.current.localizedString(forCurrencyCode: code)
             ?? code
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func themeName(for code: String) -> String {
         PreferredTheme.resolved(from: code).displayName
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func languageName(for code: String) -> String {
         AppLanguage.resolved(from: code).displayName
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func makeCurrencyOptions() -> [CurrencyOption] {
         AppCurrency.allCases.map { currency in
             CurrencyOption(code: currency.rawValue, name: currency.displayName)
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func makeThemeOptions() -> [ThemeOption] {
         PreferredTheme.allCases.map { theme in
             ThemeOption(theme: theme)
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func makeLanguageOptions() -> [LanguageOption] {
         AppLanguage.allCases.map { language in
             LanguageOption(language: language)

@@ -1,3 +1,8 @@
+/*
+ DOSYA: ReceiptParserService.swift
+ AMAÇ: Recognized receipt text içinden merchant, amount, date ve category ipuçlarını çıkarır. Raw OCR text’i structured scan result verisine dönüştürür.
+ KULLANAN: ReceiptOCRService, ReceiptScannerView, AddExpenseViewModel ve parser testleri tarafından kullanılır.
+*/
 import Foundation
 
 // ReceiptParserService, OCR'dan gelen raw metni kullanıcıya öneri olacak alanlara ayırır.
@@ -64,6 +69,7 @@ enum ReceiptParserService {
     private static func detectTotalAmount(in lines: [String]) -> Double? {
         for (index, line) in lines.enumerated() {
             let uppercasedLine = line.uppercased()
+            // Gerekli data eksikse erken çıkış yapar.
             guard totalKeywords.contains(where: { uppercasedLine.contains($0) }) else {
                 continue
             }
@@ -83,14 +89,17 @@ enum ReceiptParserService {
             .max()
     }
 
+    // Raw input’u structured app data’ya dönüştürür.
     private static func extractAmounts(from text: String) -> [Double] {
         let pattern = #"\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d+[.,]\d{2}"#
+        // Gerekli data eksikse erken çıkış yapar.
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return []
         }
 
         let range = NSRange(text.startIndex..<text.endIndex, in: text)
         return regex.matches(in: text, range: range).compactMap { match in
+            // Gerekli data eksikse erken çıkış yapar.
             guard let matchRange = Range(match.range, in: text) else {
                 return nil
             }
@@ -102,6 +111,7 @@ enum ReceiptParserService {
     // Amount parser, Türkçe ve İngilizce decimal/thousands separator yazımlarını normalize eder.
     private static func parseAmount(_ rawValue: String) -> Double? {
         let digitsAndSeparators = rawValue.filter { $0.isNumber || $0 == "," || $0 == "." }
+        // Gerekli data eksikse erken çıkış yapar.
         guard !digitsAndSeparators.isEmpty else {
             return nil
         }
@@ -137,6 +147,7 @@ enum ReceiptParserService {
         let formats = ["dd.MM.yyyy", "dd/MM/yyyy", "yyyy-MM-dd"]
 
         for (pattern, format) in zip(patterns, formats) {
+            // Gerekli data eksikse erken çıkış yapar.
             guard let match = firstMatch(for: pattern, in: text) else {
                 continue
             }
@@ -153,7 +164,9 @@ enum ReceiptParserService {
         return nil
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func firstMatch(for pattern: String, in text: String) -> String? {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return nil
         }
@@ -192,6 +205,7 @@ enum ReceiptParserService {
         return "Other"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func containsAny(_ keywords: [String], in text: String) -> Bool {
         keywords.contains { text.contains($0) }
     }

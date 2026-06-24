@@ -1,3 +1,8 @@
+/*
+ DOSYA: OnboardingPage.swift
+ AMAÇ: Her onboarding page için content modelini tanımlar. Onboarding text ve icon bilgilerini data olarak düzenli tutar.
+ KULLANAN: OnboardingView ve OnboardingPageView tarafından kullanılır.
+*/
 import Foundation
 
 // OnboardingPage, onboarding ekranındaki her tanıtım sayfasının localized metin keylerini taşır.

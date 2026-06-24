@@ -1,3 +1,8 @@
+/*
+ DOSYA: AddExpenseView.swift
+ AMAÇ: Receipt scan sonuçları dahil, expense manuel ekleme veya düzenleme formunu sunar. User input’u AddExpenseViewModel aksiyonlarına bağlar.
+ KULLANAN: HomeView, ExpensesView, FloatingAddButton, ReceiptScannerView ve AddExpenseViewModel tarafından kullanılır.
+*/
 import SwiftUI
 import SwiftData
 
@@ -23,6 +28,7 @@ struct AddExpenseView: View {
         _viewModel = State(initialValue: AddExpenseViewModel(expenseToEdit: expenseToEdit))
     }
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -48,8 +54,8 @@ struct AddExpenseView: View {
             // Category veya currency değiştiğinde form state'i ViewModel ile tekrar senkronize edilir.
             viewModel.prepareForm(categories: categories, displayCurrencyCode: currencyCode)
         }
-        .alert("addExpense.alert.saveFailed.title", isPresented: saveErrorBinding) {
-            Button("common.ok", role: .cancel) { }
+        .alert(AppLocalization.string("addExpense.alert.saveFailed.title"), isPresented: saveErrorBinding) {
+            Button(AppLocalization.string("common.ok"), role: .cancel) { }
         } message: {
             Text(saveErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
@@ -119,14 +125,14 @@ struct AddExpenseView: View {
     private var entryFormSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
-                Text("addExpense.section.details")
+                Text(AppLocalization.string("addExpense.section.details"))
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
                 categorySection
 
                 LabeledField(title: AppLocalization.string("addExpense.field.title"), icon: "textformat") {
-                    TextField("addExpense.placeholder.title", text: $viewModel.title)
+                    TextField(AppLocalization.string("addExpense.placeholder.title"), text: $viewModel.title)
                         .focused($focusedField, equals: .title)
                         .textInputAutocapitalization(.words)
                         .submitLabel(.next)
@@ -152,7 +158,7 @@ struct AddExpenseView: View {
 
                 LabeledField(title: AppLocalization.string("addExpense.field.date"), icon: "calendar") {
                     DatePicker(
-                        "addExpense.field.expenseDate",
+                        AppLocalization.string("addExpense.field.expenseDate"),
                         selection: $viewModel.date,
                         displayedComponents: .date
                     )
@@ -163,7 +169,7 @@ struct AddExpenseView: View {
 
                 LabeledField(title: AppLocalization.string("addExpense.field.note"), icon: "note.text") {
                     TextField(
-                        "addExpense.placeholder.note",
+                        AppLocalization.string("addExpense.placeholder.note"),
                         text: $viewModel.note,
                         axis: .vertical
                     )
@@ -178,7 +184,7 @@ struct AddExpenseView: View {
     private var categorySection: some View {
         LabeledField(title: AppLocalization.string("addExpense.field.category"), icon: "tag") {
             if categories.isEmpty {
-                Text("addExpense.empty.noCategories")
+                Text(AppLocalization.string("addExpense.empty.noCategories"))
                     .font(.subheadline)
                     .foregroundStyle(XPendoTheme.secondaryText)
             } else {
@@ -201,7 +207,7 @@ struct AddExpenseView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(XPendoTheme.primaryText)
 
-                            Text("addExpense.caption.choosePreparedCategory")
+                            Text(AppLocalization.string("addExpense.caption.choosePreparedCategory"))
                                 .font(.caption)
                                 .foregroundStyle(XPendoTheme.secondaryText)
                         }
@@ -225,7 +231,7 @@ struct AddExpenseView: View {
     private var saveSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 14) {
-                Text("common.save")
+                Text(AppLocalization.string("common.save"))
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -263,10 +269,12 @@ struct AddExpenseView: View {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var expenseFormSyncKey: String {
         "\(categories.count)-\(currencyCode)-\(expenseToEdit?.id.uuidString ?? "new")"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var selectedCategoryColor: Color {
         if let colorString = viewModel.selectedCategory?.color,
            let color = Color(hexString: colorString) {
@@ -276,7 +284,9 @@ struct AddExpenseView: View {
         return XPendoTheme.accentTeal
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var selectedCategoryName: String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let selectedCategory = viewModel.selectedCategory else {
             return AppLocalization.string("addExpense.placeholder.selectCategory")
         }
@@ -296,6 +306,7 @@ struct AddExpenseView: View {
         )
     }
 
+    // Validation geçtikten sonra yeni user data kaydeder.
     private var saveFootnote: String {
         if expenseToEdit == nil {
             return AppLocalization.string("addExpense.footnote.savedNew")
@@ -306,13 +317,17 @@ struct AddExpenseView: View {
 
     // Save akışı async tutulur; başarılı kayıt sonrası notification schedule yenilenir ve sheet kapanır.
     private func saveExpense() {
+        // Bu synchronous context içinden async work çalıştırır.
         Task {
+            // Async operation tamamlanana kadar bekler.
             await saveExpenseFlow()
         }
     }
 
     @MainActor
+    // Validation geçtikten sonra yeni user data kaydeder.
     private func saveExpenseFlow() async {
+        // Error fırlatabilecek işi başlatır.
         do {
             try viewModel.saveExpense(
                 in: modelContext,
@@ -321,6 +336,7 @@ struct AddExpenseView: View {
             )
 
             if viewModel.validationMessage == nil {
+                // Async operation tamamlanana kadar bekler.
                 try await NotificationSyncService.refresh(using: modelContext)
                 dismiss()
             }
@@ -329,6 +345,7 @@ struct AddExpenseView: View {
         }
     }
 
+    // App’in bu bölümünde kullanılan supported value listesini tanımlar.
     private enum Field {
         case title
         case amount
@@ -341,9 +358,11 @@ struct AddExpenseView: View {
         .modelContainer(XPendoModelContainer.shared)
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct ReceiptSuggestionBanner: View {
     let message: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "info.circle.fill")
@@ -364,17 +383,20 @@ private struct ReceiptSuggestionBanner: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct LabeledField<Content: View>: View {
     let title: String
     let icon: String
     @ViewBuilder let content: Content
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(title: String, icon: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.icon = icon
         self.content = content()
     }
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
@@ -399,9 +421,11 @@ private struct LabeledField<Content: View>: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct ValidationBanner: View {
     let message: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "exclamationmark.circle.fill")

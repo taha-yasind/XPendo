@@ -1,3 +1,8 @@
+/*
+ DOSYA: SettingsView.swift
+ AMAÇ: Currency, language, notification, demo mode ve data action tercihlerini gösterir. User settings değerlerini SettingsViewModel’e bağlar.
+ KULLANAN: AppRootView tab navigation, SettingsViewModel ve NotificationSettingsViewModel tarafından kullanılır.
+*/
 import SwiftData
 import SwiftUI
 
@@ -24,6 +29,7 @@ struct SettingsView: View {
     @State private var draftThemeCode = PreferredTheme.light.rawValue
     @State private var draftLanguageCode = AppLanguage.resolved(from: nil).rawValue
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -61,11 +67,13 @@ struct SettingsView: View {
         .sheet(isPresented: $isShowingResetSheet) {
             ResetDataConfirmationSheet(
                 title: clearDataConfirmationTitle,
-                subtitle: "settings.utility.clear.confirm.subtitle",
+                subtitle: AppLocalization.string("settings.utility.clear.confirm.subtitle"),
                 summary: recordedDataSummary,
                 isDeleting: settingsViewModel.isResettingData,
                 onDelete: {
+                    // Bu synchronous context içinden async work çalıştırır.
                     Task {
+                        // Async operation tamamlanana kadar bekler.
                         await settingsViewModel.clearRecordedData(modelContext: modelContext)
 
                         if settingsViewModel.errorMessage == nil {
@@ -103,8 +111,8 @@ struct SettingsView: View {
             }
             .environment(\.locale, AppLocalization.locale)
         }
-        .alert("settings.alert.updateFailed.title", isPresented: errorBinding) {
-            Button("common.ok", role: .cancel) {
+        .alert(AppLocalization.string("settings.alert.updateFailed.title"), isPresented: errorBinding) {
+            Button(AppLocalization.string("common.ok"), role: .cancel) {
                 clearErrorMessages()
             }
         } message: {
@@ -117,19 +125,19 @@ struct SettingsView: View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 SettingsSectionHeader(
-                    title: "iCloud Sync",
-                    description: "Prepared for native iCloud backup and restore when CloudKit capability is enabled."
+                    title: AppLocalization.string("settings.icloud.title"),
+                    description: AppLocalization.string("settings.icloud.description")
                 )
 
                 SettingsInfoRow(
-                    title: "CloudKit Ready",
-                    subtitle: "Requires Apple Developer Program, iCloud capability, and a CloudKit container before activation.",
+                    title: AppLocalization.string("settings.icloud.ready.title"),
+                    subtitle: AppLocalization.string("settings.icloud.ready.subtitle"),
                     icon: "icloud.fill",
-                    value: "Planned",
+                    value: AppLocalization.string("settings.icloud.status.planned"),
                     accentColor: XPendoTheme.accentTeal
                 )
 
-                Text("After activation, synced data can be restored when the app is reinstalled with the same Apple ID.")
+                Text(AppLocalization.string("settings.icloud.footnote"))
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -137,13 +145,14 @@ struct SettingsView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Settings")
+            Text(AppLocalization.string("Settings"))
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("Manage reminders, choose your preferred theme, set the app currency, and apply changes only when you are ready.")
+            Text(AppLocalization.string("Manage reminders, choose your preferred theme, set the app currency, and apply changes only when you are ready."))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
@@ -155,7 +164,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .top, spacing: 16) {
                     SettingsSectionHeader(
-                        title: "Notifications",
+                        title: AppLocalization.string("Notifications"),
                         description: notificationViewModel.permissionStatusDescription
                     )
 
@@ -171,24 +180,24 @@ struct SettingsView: View {
 
                 VStack(spacing: 12) {
                     NotificationToggleRow(
-                        title: "Allow Notifications",
-                        subtitle: "Request permission and let Xpendo schedule local reminders.",
+                        title: AppLocalization.string("Allow Notifications"),
+                        subtitle: AppLocalization.string("Request permission and let Xpendo schedule local reminders."),
                         icon: "bell.badge.fill",
                         isOn: $draftNotificationsEnabled,
                         isDisabled: isApplyLocked
                     )
 
                     NotificationToggleRow(
-                        title: "Daily Reminder",
-                        subtitle: "Sends a daily reminder at 8:00 PM to log expenses.",
+                        title: AppLocalization.string("Daily Reminder"),
+                        subtitle: AppLocalization.string("Sends a daily reminder at 8:00 PM to log expenses."),
                         icon: "clock.fill",
                         isOn: $draftDailyReminderEnabled,
                         isDisabled: draftReminderControlsDisabled
                     )
 
                     NotificationToggleRow(
-                        title: "Budget Warning",
-                        subtitle: "Schedules a daily warning at 6:00 PM when a current monthly budget is exceeded.",
+                        title: AppLocalization.string("Budget Warning"),
+                        subtitle: AppLocalization.string("Schedules a daily warning at 6:00 PM when a current monthly budget is exceeded."),
                         icon: "exclamationmark.triangle.fill",
                         isOn: $draftBudgetWarningEnabled,
                         isDisabled: draftReminderControlsDisabled
@@ -211,18 +220,18 @@ struct SettingsView: View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 SettingsSectionHeader(
-                    title: "Preferences",
-                    description: "Choose the appearance and currency that Xpendo should keep using."
+                    title: AppLocalization.string("Preferences"),
+                    description: AppLocalization.string("Choose the appearance and currency that Xpendo should keep using.")
                 )
 
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Preferred Theme")
+                            Text(AppLocalization.string("Preferred Theme"))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(XPendoTheme.primaryText)
 
-                            Text("Swipe or tap to keep Xpendo in the look you prefer.")
+                            Text(AppLocalization.string("Swipe or tap to keep Xpendo in the look you prefer."))
                                 .font(.caption)
                                 .foregroundStyle(XPendoTheme.secondaryText)
                         }
@@ -258,7 +267,7 @@ struct SettingsView: View {
                     }
                 } label: {
                     SettingsMenuRow(
-                        title: "settings.preferences.language.title",
+                        title: AppLocalization.string("settings.preferences.language.title"),
                         subtitle: settingsViewModel.languageName(for: draftLanguageCode),
                         icon: "globe",
                         value: draftLanguageCode.uppercased(),
@@ -283,7 +292,7 @@ struct SettingsView: View {
                     }
                 } label: {
                     SettingsMenuRow(
-                        title: "Currency",
+                        title: AppLocalization.string("Currency"),
                         subtitle: settingsViewModel.currencyName(for: draftCurrencyCode),
                         icon: "dollarsign.circle.fill",
                         value: draftCurrencyCode,
@@ -302,13 +311,13 @@ struct SettingsView: View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 SettingsSectionHeader(
-                    title: "Utilities",
-                    description: "Use this only when you want a clean slate for recorded expenses and monthly budgets."
+                    title: AppLocalization.string("Utilities"),
+                    description: AppLocalization.string("Use this only when you want a clean slate for recorded expenses and monthly budgets.")
                 )
 
                 NotificationToggleRow(
-                    title: "settings.demo.toggle.title",
-                    subtitle: "settings.demo.toggle.subtitle",
+                    title: AppLocalization.string("settings.demo.toggle.title"),
+                    subtitle: AppLocalization.string("settings.demo.toggle.subtitle"),
                     icon: "wand.and.stars",
                     isOn: demoModeBinding,
                     isDisabled: settingsViewModel.isBusy
@@ -318,26 +327,28 @@ struct SettingsView: View {
                     isShowingOnboardingAgain = true
                 } label: {
                     SettingsActionRow(
-                        title: "settings_show_onboarding_again",
-                        subtitle: "settings_show_onboarding_again_subtitle",
+                        title: AppLocalization.string("settings_show_onboarding_again"),
+                        subtitle: AppLocalization.string("settings_show_onboarding_again_subtitle"),
                         icon: "play.circle.fill",
                         accentColor: XPendoTheme.accentTeal,
-                        actionTitle: "settings_show_onboarding_again_action"
+                        actionTitle: AppLocalization.string("settings_show_onboarding_again_action")
                     )
                 }
                 .buttonStyle(.plain)
 
                 Button {
+                    // Bu synchronous context içinden async work çalıştırır.
                     Task {
+                        // Async operation tamamlanana kadar bekler.
                         await settingsViewModel.loadDemoData(modelContext: modelContext)
                     }
                 } label: {
                     SettingsActionRow(
-                        title: "settings.demo.load.title",
-                        subtitle: "settings.demo.load.subtitle",
+                        title: AppLocalization.string("settings.demo.load.title"),
+                        subtitle: AppLocalization.string("settings.demo.load.subtitle"),
                         icon: "tray.and.arrow.down.fill",
                         accentColor: XPendoTheme.softPurple,
-                        actionTitle: "settings.demo.load.action"
+                        actionTitle: AppLocalization.string("settings.demo.load.action")
                     )
                 }
                 .buttonStyle(.plain)
@@ -352,7 +363,7 @@ struct SettingsView: View {
                         subtitle: recordedDataSummary,
                         icon: "trash.fill",
                         accentColor: XPendoTheme.coral,
-                        actionTitle: hasRecordedData ? "Clear" : "Empty"
+                        actionTitle: hasRecordedData ? AppLocalization.string("Clear") : AppLocalization.string("Empty")
                     )
                 }
                 .buttonStyle(.plain)
@@ -370,36 +381,37 @@ struct SettingsView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var aboutSection: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
                 SettingsSectionHeader(
-                    title: "About Xpendo",
-                    description: "A focused personal expense tracker that stays local, simple, and easy to understand."
+                    title: AppLocalization.string("About Xpendo"),
+                    description: AppLocalization.string("A focused personal expense tracker that stays local, simple, and easy to understand.")
                 )
 
                 VStack(spacing: 12) {
                     SettingsInfoRow(
-                        title: "Version",
-                        subtitle: "Current app release",
+                        title: AppLocalization.string("Version"),
+                        subtitle: AppLocalization.string("Current app release"),
                         icon: "app.badge.fill",
                         value: settingsViewModel.versionValue,
                         accentColor: XPendoTheme.accentTeal
                     )
 
                     SettingsInfoRow(
-                        title: "Built With",
-                        subtitle: "Core app technologies",
+                        title: AppLocalization.string("Built With"),
+                        subtitle: AppLocalization.string("Core app technologies"),
                         icon: "hammer.fill",
                         value: "SwiftUI + SwiftData",
                         accentColor: XPendoTheme.softPurple
                     )
 
                     SettingsInfoRow(
-                        title: "Reminders",
-                        subtitle: "Delivery model",
+                        title: AppLocalization.string("Reminders"),
+                        subtitle: AppLocalization.string("Delivery model"),
                         icon: "bell.badge.fill",
-                        value: "Local notifications only",
+                        value: AppLocalization.string("Local notifications only"),
                         accentColor: XPendoTheme.freshGreen
                     )
                 }
@@ -407,9 +419,12 @@ struct SettingsView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var applyBar: some View {
         Button {
+            // Bu synchronous context içinden async work çalıştırır.
             Task {
+                // Async operation tamamlanana kadar bekler.
                 await applyChanges()
             }
         } label: {
@@ -419,7 +434,7 @@ struct SettingsView: View {
                         .tint(.white)
                 }
 
-                Text("Apply")
+                Text(AppLocalization.string("Apply"))
                     .font(.headline.weight(.semibold))
                     .foregroundColor(.white)
             }
@@ -440,10 +455,12 @@ struct SettingsView: View {
         .background(XPendoTheme.background.opacity(0.98))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var currentSettings: AppSettings? {
         settings.first
     }
 
+    // User setting veya state değişikliğini uygular.
     private var settingsLoadKey: String {
         let appSettings = currentSettings
 
@@ -458,26 +475,32 @@ struct SettingsView: View {
         ].joined(separator: "|")
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var hasRecordedData: Bool {
         !expenses.isEmpty || !budgets.isEmpty
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var isDemoModeActive: Bool {
         settingsViewModel.isDemoModeEnabled
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var demoDataControlsDisabled: Bool {
         !isDemoModeActive || settingsViewModel.isBusy
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var clearDataActionTitle: String {
         isDemoModeActive ? "settings.utility.clear.demo.title" : "settings.utility.clear.standard.title"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var clearDataConfirmationTitle: String {
         isDemoModeActive ? "settings.utility.clear.demo.confirm.title" : "settings.utility.clear.standard.confirm.title"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var recordedDataSummary: String {
         if hasRecordedData {
             return AppLocalization.format(
@@ -490,7 +513,9 @@ struct SettingsView: View {
         return AppLocalization.string("settings.utility.summary.empty")
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var hasPendingChanges: Bool {
+        // Gerekli data eksikse erken çıkış yapar.
         guard hasInitializedDraft else {
             return false
         }
@@ -503,14 +528,17 @@ struct SettingsView: View {
             || draftBudgetWarningEnabled != (currentSettings?.budgetWarningEnabled ?? notificationViewModel.budgetWarningEnabled)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var draftReminderControlsDisabled: Bool {
         !draftNotificationsEnabled || notificationViewModel.permissionState == .denied || isApplyLocked
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var isApplyLocked: Bool {
         notificationViewModel.isProcessing || settingsViewModel.isBusy
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var permissionStatusColor: Color {
         switch notificationViewModel.permissionState {
         case .authorized:
@@ -522,10 +550,12 @@ struct SettingsView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var activeErrorMessage: String? {
         notificationViewModel.errorMessage ?? settingsViewModel.errorMessage
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var errorBinding: Binding<Bool> {
         Binding(
             get: { activeErrorMessage != nil },
@@ -537,6 +567,7 @@ struct SettingsView: View {
         )
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func syncDraftValues() {
         draftNotificationsEnabled = notificationViewModel.notificationsEnabled
         draftDailyReminderEnabled = notificationViewModel.dailyReminderEnabled
@@ -546,7 +577,9 @@ struct SettingsView: View {
         draftLanguageCode = settingsViewModel.preferredLanguageCode
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func applyChanges() async {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let currentSettings else {
             settingsViewModel.errorMessage = AppLocalization.string("error.preferencesUnavailable")
             return
@@ -554,6 +587,7 @@ struct SettingsView: View {
 
         clearErrorMessages()
 
+        // Async operation tamamlanana kadar bekler.
         await settingsViewModel.updateDisplayPreferences(
             currencyCode: draftCurrencyCode,
             preferredThemeCode: draftThemeCode,
@@ -562,11 +596,13 @@ struct SettingsView: View {
             modelContext: modelContext
         )
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard settingsViewModel.errorMessage == nil else {
             syncDraftValues()
             return
         }
 
+        // Async operation tamamlanana kadar bekler.
         await notificationViewModel.applyChanges(
             notificationsEnabled: draftNotificationsEnabled,
             dailyReminderEnabled: draftDailyReminderEnabled,
@@ -578,16 +614,19 @@ struct SettingsView: View {
         syncDraftValues()
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func clearErrorMessages() {
         notificationViewModel.errorMessage = nil
         settingsViewModel.errorMessage = nil
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func countText(for count: Int, singularKey: String, pluralKey: String) -> String {
         let unit = count == 1 ? AppLocalization.string(singularKey) : AppLocalization.string(pluralKey)
         return "\(count) \(unit)"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var themeSelectionBinding: Binding<PreferredTheme> {
         Binding(
             get: { PreferredTheme.resolved(from: draftThemeCode) },
@@ -595,6 +634,7 @@ struct SettingsView: View {
         )
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var demoModeBinding: Binding<Bool> {
         Binding(
             get: { settingsViewModel.isDemoModeEnabled },
@@ -619,23 +659,26 @@ struct SettingsView: View {
     .background(XPendoTheme.background)
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct SettingsSectionHeader: View {
     let title: String
     let description: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(LocalizedStringKey(title))
+            Text(title)
                 .font(.headline)
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text(LocalizedStringKey(description))
+            Text(description)
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct SettingsMenuRow: View {
     let title: String
     let subtitle: String
@@ -644,6 +687,7 @@ private struct SettingsMenuRow: View {
     let accentColor: Color
     let isLoading: Bool
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -655,11 +699,11 @@ private struct SettingsMenuRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(LocalizedStringKey(title))
+                Text(title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text(LocalizedStringKey(subtitle))
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
@@ -671,7 +715,7 @@ private struct SettingsMenuRow: View {
                     .tint(accentColor)
             } else {
                 HStack(spacing: 8) {
-                    Text(LocalizedStringKey(value))
+                    Text(value)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(accentColor)
                         .padding(.horizontal, 12)
@@ -689,6 +733,7 @@ private struct SettingsMenuRow: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct SettingsActionRow: View {
     let title: String
     let subtitle: String
@@ -696,6 +741,7 @@ private struct SettingsActionRow: View {
     let accentColor: Color
     let actionTitle: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -707,11 +753,11 @@ private struct SettingsActionRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(LocalizedStringKey(title))
+                Text(title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text(LocalizedStringKey(subtitle))
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
                     .multilineTextAlignment(.leading)
@@ -719,7 +765,7 @@ private struct SettingsActionRow: View {
 
             Spacer()
 
-            Text(LocalizedStringKey(actionTitle))
+            Text(actionTitle)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(accentColor)
                 .padding(.horizontal, 12)
@@ -731,6 +777,7 @@ private struct SettingsActionRow: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct SettingsInfoRow: View {
     let title: String
     let subtitle: String
@@ -738,6 +785,7 @@ private struct SettingsInfoRow: View {
     let value: String
     let accentColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -749,18 +797,18 @@ private struct SettingsInfoRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(LocalizedStringKey(title))
+                Text(title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text(LocalizedStringKey(subtitle))
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
 
             Spacer()
 
-            Text(LocalizedStringKey(value))
+            Text(value)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(XPendoTheme.primaryText)
                 .multilineTextAlignment(.trailing)
@@ -770,11 +818,13 @@ private struct SettingsInfoRow: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct SettingsFeedbackBanner: View {
     let text: String
     let tone: SettingsViewModel.UtilityMessage.Tone
     let icon: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
@@ -788,6 +838,7 @@ private struct SettingsFeedbackBanner: View {
         .background(tintColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var tintColor: Color {
         switch tone {
         case .success:
@@ -798,6 +849,7 @@ private struct SettingsFeedbackBanner: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct NotificationToggleRow: View {
     let title: String
     let subtitle: String
@@ -805,6 +857,7 @@ private struct NotificationToggleRow: View {
     @Binding var isOn: Bool
     let isDisabled: Bool
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -816,11 +869,11 @@ private struct NotificationToggleRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(LocalizedStringKey(title))
+                Text(title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(titleColor)
 
-                Text(LocalizedStringKey(subtitle))
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(subtitleColor)
             }
@@ -837,27 +890,33 @@ private struct NotificationToggleRow: View {
         .opacity(isDisabled ? 0.58 : 1)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var rowBackgroundColor: Color {
         isDisabled ? XPendoTheme.placeholder.opacity(0.3) : XPendoTheme.inputBackground
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var iconBackgroundColor: Color {
         isDisabled ? XPendoTheme.secondaryText.opacity(0.08) : XPendoTheme.accentTeal.opacity(0.12)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var iconTintColor: Color {
         isDisabled ? XPendoTheme.secondaryText.opacity(0.75) : XPendoTheme.accentTeal
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var titleColor: Color {
         isDisabled ? XPendoTheme.secondaryText.opacity(0.92) : XPendoTheme.primaryText
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var subtitleColor: Color {
         isDisabled ? XPendoTheme.secondaryText.opacity(0.9) : XPendoTheme.secondaryText
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct ResetDataConfirmationSheet: View {
     let title: String
     let subtitle: String
@@ -866,6 +925,7 @@ private struct ResetDataConfirmationSheet: View {
     let onDelete: () -> Void
     let onCancel: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
@@ -878,11 +938,11 @@ private struct ResetDataConfirmationSheet: View {
                     }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStringKey(title))
+                    Text(title)
                         .font(.headline)
                         .foregroundStyle(XPendoTheme.primaryText)
 
-                    Text(LocalizedStringKey(subtitle))
+                    Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
                 }
@@ -894,7 +954,7 @@ private struct ResetDataConfirmationSheet: View {
 
             HStack(spacing: 12) {
                 Button(action: onCancel) {
-                    Text("common.cancel")
+                    Text(AppLocalization.string("common.cancel"))
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity)
@@ -908,7 +968,7 @@ private struct ResetDataConfirmationSheet: View {
                                 .tint(.white)
                         }
 
-                        Text("common.delete")
+                        Text(AppLocalization.string("common.delete"))
                             .font(.subheadline.weight(.semibold))
                     }
                     .foregroundStyle(.white)
@@ -929,10 +989,12 @@ private struct ResetDataConfirmationSheet: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct DemoModeActivationSheet: View {
     let onConfirm: () -> Void
     let onCancel: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
@@ -945,23 +1007,23 @@ private struct DemoModeActivationSheet: View {
                     }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("settings.demo.confirm.title")
+                    Text(AppLocalization.string("settings.demo.confirm.title"))
                         .font(.headline)
                         .foregroundStyle(XPendoTheme.primaryText)
 
-                    Text("settings.demo.confirm.subtitle")
+                    Text(AppLocalization.string("settings.demo.confirm.subtitle"))
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
                 }
             }
 
-            Text("settings.demo.confirm.description")
+            Text(AppLocalization.string("settings.demo.confirm.description"))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
 
             HStack(spacing: 12) {
                 Button(action: onCancel) {
-                    Text("common.cancel")
+                    Text(AppLocalization.string("common.cancel"))
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity)
@@ -969,7 +1031,7 @@ private struct DemoModeActivationSheet: View {
                 .background(XPendoTheme.inputBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 Button(action: onConfirm) {
-                    Text("settings.demo.confirm.action")
+                    Text(AppLocalization.string("settings.demo.confirm.action"))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
@@ -987,11 +1049,13 @@ private struct DemoModeActivationSheet: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct ThemeSelectorControl: View {
     let options: [SettingsViewModel.ThemeOption]
     @Binding var selection: PreferredTheme
     let isDisabled: Bool
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         GeometryReader { proxy in
             let optionCount = max(options.count, 1)
@@ -1038,6 +1102,7 @@ private struct ThemeSelectorControl: View {
             .gesture(
                 DragGesture(minimumDistance: 8)
                     .onChanged { value in
+                        // Gerekli data eksikse erken çıkış yapar.
                         guard !isDisabled else {
                             return
                         }
@@ -1051,10 +1116,12 @@ private struct ThemeSelectorControl: View {
         .opacity(isDisabled ? 0.6 : 1)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var currentIndex: Int {
         options.firstIndex(where: { $0.theme == selection }) ?? 0
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func resolvedIndex(for locationX: CGFloat, width: CGFloat) -> Int {
         let optionCount = max(options.count, 1)
         let clampedX = min(max(locationX, 0), max(width - 1, 0))
@@ -1062,7 +1129,9 @@ private struct ThemeSelectorControl: View {
         return min(max(rawIndex, 0), optionCount - 1)
     }
 
+    // User setting veya state değişikliğini uygular.
     private func updateSelection(_ theme: PreferredTheme) {
+        // Gerekli data eksikse erken çıkış yapar.
         guard !isDisabled, theme != selection else {
             return
         }

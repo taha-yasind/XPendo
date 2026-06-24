@@ -1,9 +1,15 @@
+/*
+ DOSYA: Expense.swift
+ AMAÇ: Tek bir expense entry için SwiftData modelini tanımlar. Amount, category, date, merchant, note ve receipt ile ilgili datayı saklar.
+ KULLANAN: AddExpenseViewModel, ExpensesViewModel, HomeViewModel, AnalyticsViewModel ve SwiftData queryleri tarafından kullanılır.
+*/
 import Foundation
 import SwiftData
 
 // Expense modeli, kullanıcının kaydettiği tek bir harcama kaydını temsil eder.
 // Add Expense, Expenses, Home, Budget ve Analytics ekranlarının ortak veri kaynağıdır.
 @Model
+// Shared app behavior veya persisted data sahibi olan reference type tanımlar.
 final class Expense {
     var id: UUID = UUID()
     var title: String = ""
@@ -13,6 +19,7 @@ final class Expense {
     var note: String?
     var createdAt: Date = Date()
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(
         id: UUID = UUID(),
         title: String,
@@ -36,14 +43,17 @@ final class Expense {
         category?.id
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var categoryName: String {
         category?.name ?? "Other"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var categoryIcon: String {
         category?.icon ?? "square.grid.2x2.fill"
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var categoryColor: String {
         category?.color ?? "#8E8E93"
     }

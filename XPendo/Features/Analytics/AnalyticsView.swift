@@ -1,3 +1,8 @@
+/*
+ DOSYA: AnalyticsView.swift
+ AMAÇ: Spending chartları, summary alanlarını ve category breakdown görünümlerini gösterir. AnalyticsViewModel datasını okunabilir dashboard’a dönüştürür.
+ KULLANAN: AppRootView tab navigation ve AnalyticsViewModel tarafından kullanılır.
+*/
 import Charts
 import SwiftData
 import SwiftUI
@@ -15,6 +20,7 @@ struct AnalyticsView: View {
 
     private let viewModel = AnalyticsViewModel()
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -54,6 +60,7 @@ struct AnalyticsView: View {
         viewModel.makeDashboardData(expenses: expenses)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var currencyCode: String {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
@@ -67,7 +74,9 @@ struct AnalyticsView: View {
     .background(XPendoTheme.background)
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct AnalyticsHeader: View {
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(AppLocalization.string("analytics.header.title"))
@@ -86,6 +95,7 @@ private struct AnalyticsInsightsSection: View {
     let data: AnalyticsDashboardData
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -122,7 +132,9 @@ private struct AnalyticsInsightsSection: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var topCategoryDetail: String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let topCategory = data.topCategory else {
             return AppLocalization.string("analytics.insight.topCategory.emptyDetail")
         }
@@ -130,15 +142,19 @@ private struct AnalyticsInsightsSection: View {
         return AppLocalization.format("analytics.insight.topCategory.shareDetail", shareText(for: topCategory.share), CurrencyConverter.formatFromTRY(topCategory.totalAmount, to: currencyCode))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var strongestMonthValue: String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let strongestMonth = data.strongestMonth else {
             return AppLocalization.string("analytics.insight.strongestMonth.emptyValue")
         }
 
-        return strongestMonth.monthStart.formatted(.dateTime.month(.wide).year())
+        return strongestMonth.monthStart.formatted(.dateTime.month(.wide).year().locale(AppLocalization.locale))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var strongestMonthDetail: String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let strongestMonth = data.strongestMonth else {
             return AppLocalization.string("analytics.insight.strongestMonth.emptyDetail")
         }
@@ -146,7 +162,9 @@ private struct AnalyticsInsightsSection: View {
         return CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var topCategoryColor: Color {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let colorHex = data.topCategory?.colorHex else {
             return XPendoTheme.housingGreen
         }
@@ -154,11 +172,13 @@ private struct AnalyticsInsightsSection: View {
         return Color(hexString: colorHex) ?? XPendoTheme.housingGreen
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func shareText(for share: Double) -> String {
         "\(Int((share * 100).rounded()))%"
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct AnalyticsInsightRow: View {
     let title: String
     let value: String
@@ -166,6 +186,7 @@ private struct AnalyticsInsightRow: View {
     let accentColor: Color
     let systemImage: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -205,6 +226,7 @@ private struct AnalyticsCategoryChartSection: View {
     let categories: [AnalyticsCategoryTotal]
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -255,10 +277,12 @@ private struct AnalyticsCategoryChartSection: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func categoryColor(for category: AnalyticsCategoryTotal) -> Color {
         Color(hexString: category.colorHex) ?? XPendoTheme.accentTeal
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var chartDomainUpperBound: Double {
         let maxValue = categories.map(\.totalAmount).max() ?? 0
         return max(maxValue * 1.2, 1)
@@ -272,6 +296,7 @@ private struct AnalyticsMonthlyTrendSection: View {
     let strongestMonth: AnalyticsMonthlyTotal?
     let currencyCode: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -334,7 +359,7 @@ private struct AnalyticsMonthlyTrendSection: View {
 
                         AxisValueLabel {
                             if let monthDate = value.as(Date.self) {
-                                Text(monthDate, format: .dateTime.month(.abbreviated))
+                                Text(monthDate.formatted(.dateTime.month(.abbreviated).locale(AppLocalization.locale)))
                             }
                         }
                     }
@@ -361,7 +386,7 @@ private struct AnalyticsMonthlyTrendSection: View {
                         Image(systemName: "sparkles")
                             .foregroundStyle(XPendoTheme.softPurple)
 
-                        Text(AppLocalization.format("analytics.trend.strongestMonthDetail", strongestMonth.monthStart.formatted(.dateTime.month(.wide).year()), CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)))
+                        Text(AppLocalization.format("analytics.trend.strongestMonthDetail", strongestMonth.monthStart.formatted(.dateTime.month(.wide).year().locale(AppLocalization.locale)), CurrencyConverter.formatFromTRY(strongestMonth.totalAmount, to: currencyCode)))
                             .font(.subheadline)
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
@@ -373,7 +398,9 @@ private struct AnalyticsMonthlyTrendSection: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct AnalyticsEmptyState: View {
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             StateMessageContent(

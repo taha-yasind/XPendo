@@ -1,3 +1,8 @@
+/*
+ DOSYA: AppRootView.swift
+ AMAÇ: Ana app shell, onboarding durumu, demo mode yükleme ve tab navigation akışını koordine eder. Launch sonrası kullanıcının hangi üst seviye ekranı göreceğini belirler.
+ KULLANAN: XPendoApp, feature viewleri, AppModeStore ve SwiftData model context tarafından kullanılır.
+*/
 import SwiftData
 import SwiftUI
 import UIKit
@@ -7,6 +12,7 @@ import UIKit
 struct MainChromeHiddenPreferenceKey: PreferenceKey {
     static let defaultValue = false
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func reduce(value: inout Bool, nextValue: () -> Bool) {
         value = value || nextValue()
     }
@@ -33,7 +39,9 @@ struct AppRootView: View {
     @State private var isMainChromeHidden = false
     @State private var isKeyboardVisible = false
     @State private var selectedTab: AppTab = .home
+    @State private var localeRefreshID = UUID()
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         Group {
             // Onboarding kararı AppStorage ile kalıcı tutulur ve launch akışını belirler.
@@ -46,17 +54,23 @@ struct AppRootView: View {
             }
         }
         .environment(\.locale, appLocale)
-        .id(selectedLanguageCode)
+        .id("\(selectedLanguageCode)-\(localeRefreshID)")
         .sheet(isPresented: $isShowingAddExpenseSheet) {
             AddExpenseView()
+                .environment(\.locale, appLocale)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
         .preferredColorScheme(preferredColorScheme)
         .onAppear {
+            let previousCode = AppLocalization.currentLanguageCode
             AppLocalization.updateLanguage(code: selectedLanguageCode)
+            if previousCode != selectedLanguageCode {
+                localeRefreshID = UUID()
+            }
         }
         .task {
+            // Async operation tamamlanana kadar bekler.
             await observeKeyboardVisibility()
         }
         .onChange(of: selectedLanguageCode) { _, newCode in
@@ -64,6 +78,7 @@ struct AppRootView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
+                // Bu synchronous context içinden async work çalıştırır.
                 Task {
                     // App foreground'a döndüğünde notification schedule güncel harcama/budget verisiyle yenilenir.
                     try? await NotificationSyncService.refresh(using: modelContext)
@@ -85,7 +100,7 @@ struct AppRootView: View {
                     })
                 }
                 .tabItem {
-                    Label("tab.home", systemImage: "house")
+                    Label(AppLocalization.string("tab.home"), systemImage: "house")
                 }
                 .tag(AppTab.home)
 
@@ -93,7 +108,7 @@ struct AppRootView: View {
                     ExpensesView()
                 }
                 .tabItem {
-                    Label("tab.expenses", systemImage: "list.bullet.rectangle")
+                    Label(AppLocalization.string("tab.expenses"), systemImage: "list.bullet.rectangle")
                 }
                 .tag(AppTab.expenses)
 
@@ -101,7 +116,7 @@ struct AppRootView: View {
                     BudgetView()
                 }
                 .tabItem {
-                    Label("tab.budget", systemImage: "wallet.pass")
+                    Label(AppLocalization.string("tab.budget"), systemImage: "wallet.pass")
                 }
                 .tag(AppTab.budget)
 
@@ -109,7 +124,7 @@ struct AppRootView: View {
                     AnalyticsView()
                 }
                 .tabItem {
-                    Label("tab.analytics", systemImage: "chart.pie")
+                    Label(AppLocalization.string("tab.analytics"), systemImage: "chart.pie")
                 }
                 .tag(AppTab.analytics)
             }
@@ -134,6 +149,7 @@ struct AppRootView: View {
 
     // AppSettings içindeki theme kodu SwiftUI ColorScheme'e çevrilir.
     private var preferredColorScheme: ColorScheme? {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let themeCode = settings.first?.preferredThemeCode else {
             return nil
         }
@@ -146,18 +162,23 @@ struct AppRootView: View {
         AppLanguage.resolved(from: settings.first?.preferredLanguageCode).rawValue
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var appLocale: Locale {
         AppLanguage.resolved(from: settings.first?.preferredLanguageCode).locale
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func presentAddExpenseSheet() {
         isShowingAddExpenseSheet = true
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func observeKeyboardVisibility() async {
+        // Async operation tamamlanana kadar bekler.
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
                 for await _ in NotificationCenter.default.notifications(named: UIResponder.keyboardWillShowNotification) {
+                    // Async operation tamamlanana kadar bekler.
                     await MainActor.run {
                         setKeyboardVisible(true)
                     }
@@ -166,6 +187,7 @@ struct AppRootView: View {
 
             group.addTask {
                 for await _ in NotificationCenter.default.notifications(named: UIResponder.keyboardWillHideNotification) {
+                    // Async operation tamamlanana kadar bekler.
                     await MainActor.run {
                         setKeyboardVisible(false)
                     }
@@ -174,7 +196,9 @@ struct AppRootView: View {
         }
     }
 
+    // User setting veya state değişikliğini uygular.
     private func setKeyboardVisible(_ isVisible: Bool) {
+        // Gerekli data eksikse erken çıkış yapar.
         guard isKeyboardVisible != isVisible else {
             return
         }

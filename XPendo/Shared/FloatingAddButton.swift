@@ -1,3 +1,8 @@
+/*
+ DOSYA: FloatingAddButton.swift
+ AMAÇ: Expense creation başlatmak için kullanılan reusable floating action button’ı tanımlar. Add button’ın tablar arasında görsel olarak tutarlı kalmasını sağlar.
+ KULLANAN: HomeView, ExpensesView, BudgetView ve diğer feature ekranları tarafından kullanılır.
+*/
 import SwiftUI
 
 // FloatingAddButton, ana tab ekranlarında ortak Add Expense giriş aksiyonunu temsil eder.
@@ -5,6 +10,7 @@ import SwiftUI
 struct FloatingAddButton: View {
     let action: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         Button(action: action) {
             VStack(spacing: 6) {
@@ -25,7 +31,7 @@ struct FloatingAddButton: View {
                 }
                 .shadow(color: XPendoTheme.accentTeal.opacity(0.32), radius: 18, x: 0, y: 10)
 
-                Text("common.add")
+                Text(AppLocalization.string("common.add"))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(XPendoTheme.primaryText)
             }
@@ -33,6 +39,6 @@ struct FloatingAddButton: View {
             .padding(.top, 6)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text("floatingAdd.accessibilityLabel"))
+        .accessibilityLabel(Text(AppLocalization.string("floatingAdd.accessibilityLabel")))
     }
 }

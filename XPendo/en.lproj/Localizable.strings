@@ -175,6 +175,12 @@
 "settings.utility.clear.standard.confirm.title" = "Clear Standard Mode Data?";
 "settings.utility.clear.demo.confirm.title" = "Clear Demo Mode Data?";
 "settings.utility.clear.confirm.subtitle" = "This action cannot be undone.";
+"settings.icloud.title" = "iCloud Sync";
+"settings.icloud.description" = "Prepared for native iCloud backup and restore when CloudKit capability is enabled.";
+"settings.icloud.ready.title" = "CloudKit Ready";
+"settings.icloud.ready.subtitle" = "Requires Apple Developer Program, iCloud capability, and a CloudKit container before activation.";
+"settings.icloud.status.planned" = "Planned";
+"settings.icloud.footnote" = "After activation, synced data can be restored when the app is reinstalled with the same Apple ID.";
 
 "settings.notifications.permission.denied.long" = "Notification permission is denied in system settings. Xpendo cannot deliver reminders until it is re-enabled.";
 "settings.notifications.permission.denied.short" = "Notification permission is denied in system settings.";

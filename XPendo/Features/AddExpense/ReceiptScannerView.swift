@@ -1,3 +1,8 @@
+/*
+ DOSYA: ReceiptScannerView.swift
+ AMAÇ: Camera veya photo picker tabanlı receipt scanning deneyimini sarar. UIKit/Vision workflowlarını SwiftUI içine köprüler.
+ KULLANAN: AddExpenseView ve ReceiptOCRService tarafından kullanılır.
+*/
 import AVFoundation
 import PhotosUI
 import SwiftUI
@@ -15,6 +20,7 @@ struct ReceiptScannerView: View {
     @State private var statusMessage: String?
     @State private var errorMessage: String?
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
@@ -87,6 +93,7 @@ struct ReceiptScannerView: View {
         }
         .sheet(isPresented: $isShowingCamera) {
             ReceiptCameraPicker { image in
+                // Bu synchronous context içinden async work çalıştırır.
                 Task {
                     // Kamera çıktısı OCR pipeline'a gönderilir; UI thread'i bloklanmaz.
                     await process(image)
@@ -95,16 +102,20 @@ struct ReceiptScannerView: View {
             .ignoresSafeArea()
         }
         .onChange(of: selectedPhotoItem) { _, newItem in
+            // Gerekli data eksikse erken çıkış yapar.
             guard let newItem else {
                 return
             }
 
+            // Bu synchronous context içinden async work çalıştırır.
             Task {
+                // Async operation tamamlanana kadar bekler.
                 await loadPhoto(from: newItem)
             }
         }
     }
 
+    // Receipt scanning çalıştırır ve structured result döndürür.
     private func scannerActionRow(title: String, subtitle: String, icon: String) -> some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -135,6 +146,7 @@ struct ReceiptScannerView: View {
 
     // Kamera açmadan önce cihaz uygunluğu ve video permission durumu kontrol edilir.
     private func openCamera() {
+        // Gerekli data eksikse erken çıkış yapar.
         guard isCameraAvailable else {
             errorMessage = AppLocalization.string("receiptScan.error.cameraUnavailable")
             return
@@ -144,8 +156,10 @@ struct ReceiptScannerView: View {
         case .authorized:
             isShowingCamera = true
         case .notDetermined:
+            // Bu synchronous context içinden async work çalıştırır.
             Task {
                 let granted = await AVCaptureDevice.requestAccess(for: .video)
+                // Async operation tamamlanana kadar bekler.
                 await MainActor.run {
                     if granted {
                         isShowingCamera = true
@@ -161,6 +175,7 @@ struct ReceiptScannerView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var isCameraAvailable: Bool {
         #if targetEnvironment(simulator)
         return false
@@ -169,6 +184,7 @@ struct ReceiptScannerView: View {
         #endif
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var cameraSubtitle: String {
         isCameraAvailable
             ? AppLocalization.string("receiptScan.camera.subtitle")
@@ -177,13 +193,16 @@ struct ReceiptScannerView: View {
 
     // PhotosPicker'dan gelen görsel Data olarak okunur ve UIImage'a çevrilir.
     private func loadPhoto(from item: PhotosPickerItem) async {
+        // Error fırlatabilecek işi başlatır.
         do {
+            // Gerekli data eksikse erken çıkış yapar.
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else {
                 errorMessage = AppLocalization.string("receiptScan.error.imageUnavailable")
                 return
             }
 
+            // Async operation tamamlanana kadar bekler.
             await process(image)
         } catch {
             errorMessage = error.localizedDescription
@@ -192,11 +211,13 @@ struct ReceiptScannerView: View {
 
     // OCR flow: image -> recognized text -> parser result -> AddExpense form önerileri.
     @MainActor
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func process(_ image: UIImage) async {
         isProcessing = true
         errorMessage = nil
         statusMessage = nil
 
+        // Error fırlatabilecek işi başlatır.
         do {
             let recognizedText = try await ReceiptOCRService.recognizeText(in: image)
             let result = ReceiptParserService.parse(recognizedText)
@@ -217,6 +238,7 @@ private struct ReceiptCameraPicker: UIViewControllerRepresentable {
 
     @Environment(\.dismiss) private var dismiss
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = .camera
@@ -224,21 +246,26 @@ private struct ReceiptCameraPicker: UIViewControllerRepresentable {
         return picker
     }
 
+    // User setting veya state değişikliğini uygular.
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func makeCoordinator() -> Coordinator {
         Coordinator(onImagePicked: onImagePicked, dismiss: dismiss)
     }
 
+    // Shared app behavior veya persisted data sahibi olan reference type tanımlar.
     final class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
         let onImagePicked: (UIImage) -> Void
         let dismiss: DismissAction
 
+        // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
         init(onImagePicked: @escaping (UIImage) -> Void, dismiss: DismissAction) {
             self.onImagePicked = onImagePicked
             self.dismiss = dismiss
         }
 
+        // Bu type için odaklı bir davranış parçasını yönetir.
         func imagePickerController(
             _ picker: UIImagePickerController,
             didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
@@ -250,16 +277,19 @@ private struct ReceiptCameraPicker: UIViewControllerRepresentable {
             dismiss()
         }
 
+        // Bu type için odaklı bir davranış parçasını yönetir.
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             dismiss()
         }
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct SettingsLikeHeader: View {
     let title: String
     let description: String
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
@@ -273,11 +303,13 @@ private struct SettingsLikeHeader: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct ReceiptScanBanner: View {
     let text: String
     let icon: String
     let tintColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: icon)

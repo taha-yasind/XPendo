@@ -1,9 +1,16 @@
+/*
+ DOSYA: PlaceholderShapes.swift
+ AMAÇ: Empty veya loading state için lightweight decorative placeholder shape viewleri sağlar. Basit reusable shape viewleri merkezileştirir.
+ KULLANAN: PlaceholderCard ve placeholder visual gerektiren feature ekranları tarafından kullanılır.
+*/
 import SwiftUI
 
+// App tarafından kullanılan lightweight value type tanımlar.
 struct SkeletonLine: View {
     var width: CGFloat? = nil
     var height: CGFloat = 12
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         RoundedRectangle(cornerRadius: height / 2, style: .continuous)
             .fill(XPendoTheme.placeholder)
@@ -11,10 +18,12 @@ struct SkeletonLine: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 struct PlaceholderProgressBar: View {
     var tint: Color = XPendoTheme.accentTeal
     var progress: CGFloat = 0.6
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {

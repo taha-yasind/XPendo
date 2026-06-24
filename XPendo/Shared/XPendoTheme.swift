@@ -1,3 +1,8 @@
+/*
+ DOSYA: XPendoTheme.swift
+ AMAÇ: Color, typography helper, spacing ve reusable style değerlerini merkezileştirir. Tüm SwiftUI ekranlarına shared visual language sağlar.
+ KULLANAN: Tüm feature viewleri ve shared UI componentleri tarafından kullanılır.
+*/
 import SwiftUI
 import UIKit
 
@@ -9,6 +14,7 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var displayName: String {
         switch self {
         case .light:
@@ -20,6 +26,7 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var systemImage: String {
         switch self {
         case .light:
@@ -31,6 +38,7 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var colorScheme: ColorScheme? {
         switch self {
         case .light:
@@ -42,7 +50,9 @@ enum PreferredTheme: String, CaseIterable, Identifiable {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func resolved(from code: String?) -> PreferredTheme {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let code else {
             return .system
         }
@@ -92,6 +102,7 @@ enum XPendoTheme {
 
 // Hex string extension, category renklerinin SwiftData'da string saklanıp UI'da Color'a çevrilmesini sağlar.
 extension Color {
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(hex: UInt, alpha: Double = 1.0) {
         self.init(
             .sRGB,
@@ -107,6 +118,7 @@ extension Color {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "#", with: "")
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard cleanedHex.count == 6, let hexValue = UInt(cleanedHex, radix: 16) else {
             return nil
         }
@@ -115,6 +127,7 @@ extension Color {
     }
 }
 
+// UIColor’ın ana declaration’ını değiştirmeden ilgili davranış ekler.
 private extension UIColor {
     convenience init(hex: UInt, alpha: Double = 1.0) {
         self.init(

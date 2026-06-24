@@ -1,3 +1,8 @@
+/*
+ DOSYA: BudgetViewModel.swift
+ AMAÇ: Budget oluşturma, update, silme ve spending calculation işlemlerini yönetir. Business rule yerine BudgetView’in layout’a odaklanmasını sağlar.
+ KULLANAN: BudgetView, BudgetStatusCard, Budget, Expense ve Category modelleri tarafından kullanılır.
+*/
 import Foundation
 import Observation
 import SwiftData
@@ -11,7 +16,9 @@ struct BudgetMonthData {
     let totalRemaining: Double
     let budgetStatuses: [BudgetCategoryStatus]
 
+    // Saklanan app data üzerinden derived value hesaplar.
     var totalProgress: Double {
+        // Gerekli data eksikse erken çıkış yapar.
         guard totalLimit > 0 else {
             return 0
         }
@@ -31,7 +38,9 @@ struct BudgetCategoryStatus: Identifiable {
     let spentAmount: Double
     let remainingAmount: Double
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var progress: Double {
+        // Gerekli data eksikse erken çıkış yapar.
         guard limitAmount > 0 else {
             return 0
         }
@@ -39,10 +48,12 @@ struct BudgetCategoryStatus: Identifiable {
         return spentAmount / limitAmount
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var cappedProgress: Double {
         min(max(progress, 0), 1)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var isOverBudget: Bool {
         remainingAmount < 0
     }
@@ -58,11 +69,14 @@ struct BudgetCategoryEntry: Identifiable {
     let limitAmount: Double?
     let spentAmount: Double
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var hasBudget: Bool {
         limitAmount != nil
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var remainingAmount: Double? {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let limitAmount else {
             return nil
         }
@@ -70,7 +84,9 @@ struct BudgetCategoryEntry: Identifiable {
         return limitAmount - spentAmount
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var progress: Double {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let limitAmount, limitAmount > 0 else {
             return 0
         }
@@ -78,11 +94,14 @@ struct BudgetCategoryEntry: Identifiable {
         return spentAmount / limitAmount
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var cappedProgress: Double {
         min(max(progress, 0), 1)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var isOverBudget: Bool {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let remainingAmount else {
             return false
         }
@@ -93,20 +112,27 @@ struct BudgetCategoryEntry: Identifiable {
 
 // BudgetViewModel, aylık budget state'ini, draft inputları, validation ve persistence akışını yönetir.
 @Observable
+// Screen state ve user actionları SwiftUI layout’tan ayrı tutar.
 final class BudgetViewModel {
-    private let calendar = Calendar.current
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.locale = AppLocalization.locale
+        return calendar
+    }
 
     var selectedMonth: Date
     var draftAmountsByCategoryID: [UUID: String] = [:]
     var validationMessage: String?
     private(set) var validationCategoryID: UUID?
 
+    // Bu value’yu çalışmak için ihtiyaç duyduğu data ile hazırlar.
     init(now: Date = .now) {
         self.selectedMonth = BudgetViewModel.startOfMonth(for: now)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var selectedMonthTitle: String {
-        selectedMonth.formatted(.dateTime.month(.wide).year())
+        selectedMonth.formatted(.dateTime.month(.wide).year().locale(AppLocalization.locale))
     }
 
     // Ekran açıldığında mevcut Budget kayıtları display currency'ye çevrilip draft alanlara yazılır.
@@ -128,6 +154,7 @@ final class BudgetViewModel {
 
     // Kullanıcı ay değiştirince budget hesaplamaları start-of-month değerine göre yenilenir.
     func moveMonth(by value: Int) {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let movedMonth = calendar.date(byAdding: .month, value: value, to: selectedMonth) else {
             return
         }
@@ -177,6 +204,7 @@ final class BudgetViewModel {
 
         let budgetStatuses = monthBudgets
             .compactMap { budget -> BudgetCategoryStatus? in
+                // Gerekli data eksikse erken çıkış yapar.
                 guard let categoryID = budget.categoryID else {
                     return nil
                 }
@@ -206,10 +234,12 @@ final class BudgetViewModel {
         )
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func draftAmount(for categoryID: UUID) -> String {
         draftAmountsByCategoryID[categoryID] ?? ""
     }
 
+    // User setting veya state değişikliğini uygular.
     func updateDraftAmount(_ text: String, for categoryID: UUID) {
         draftAmountsByCategoryID[categoryID] = text
 
@@ -219,12 +249,14 @@ final class BudgetViewModel {
         }
     }
 
+    // Validation geçtikten sonra yeni user data kaydeder.
     func saveButtonTitle(for categoryID: UUID, budgets: [Budget]) -> String {
         matchingBudget(for: categoryID, in: budgets) == nil
             ? AppLocalization.string("common.save")
             : AppLocalization.string("common.update")
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func isResetEnabled(for categoryID: UUID, budgets: [Budget]) -> Bool {
         if matchingBudget(for: categoryID, in: budgets) != nil {
             return true
@@ -234,7 +266,9 @@ final class BudgetViewModel {
         return !draftAmount.isEmpty
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     func validationMessage(for categoryID: UUID) -> String? {
+        // Gerekli data eksikse erken çıkış yapar.
         guard validationCategoryID == categoryID else {
             return nil
         }
@@ -252,6 +286,7 @@ final class BudgetViewModel {
         validationMessage = nil
         validationCategoryID = nil
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let amount = parsedAmount(from: draftAmount(for: category.id)), amount > 0 else {
             validationCategoryID = category.id
             validationMessage = AppLocalization.string("budget.validation.amountPositive")
@@ -298,6 +333,7 @@ final class BudgetViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func budgetsForSelectedMonth(from budgets: [Budget]) -> [Budget] {
         let month = calendar.component(.month, from: selectedMonth)
         let year = calendar.component(.year, from: selectedMonth)
@@ -319,10 +355,12 @@ final class BudgetViewModel {
         return Double(normalizedText)
     }
 
+    // Raw value değerlerini interface’te gösterim için formatlar.
     private func formattedAmount(_ amount: Double) -> String {
         BudgetViewModel.amountFormatter.string(from: NSNumber(value: amount)) ?? String(amount)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func sortBudgetStatuses(_ lhs: BudgetCategoryStatus, _ rhs: BudgetCategoryStatus) -> Bool {
         if lhs.isOverBudget != rhs.isOverBudget {
             return lhs.isOverBudget && !rhs.isOverBudget
@@ -335,8 +373,11 @@ final class BudgetViewModel {
         return lhs.categoryName < rhs.categoryName
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private static func startOfMonth(for date: Date) -> Date {
-        Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: date)) ?? date
+        var calendar = Calendar.current
+        calendar.locale = AppLocalization.locale
+        return calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
     }
 
     private static let amountFormatter: NumberFormatter = {
@@ -344,6 +385,7 @@ final class BudgetViewModel {
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 2
         formatter.minimumFractionDigits = 0
+        formatter.locale = AppLocalization.locale
         return formatter
     }()
 }

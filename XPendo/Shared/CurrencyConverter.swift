@@ -1,3 +1,8 @@
+/*
+ DOSYA: CurrencyConverter.swift
+ AMAÇ: Money value değerlerini formatlar ve desteklenen currencyler arasında conversion yapar. Currency display davranışını app genelinde tutarlı tutar.
+ KULLANAN: HomeViewModel, AnalyticsViewModel, BudgetViewModel, settings ve currency testleri tarafından kullanılır.
+*/
 import Foundation
 
 // AppCurrency, XPendo'nun desteklediği currency seçeneklerini ve TRY bazlı dönüşüm oranlarını tutar.
@@ -8,6 +13,7 @@ enum AppCurrency: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var tryRate: Double {
         switch self {
         case .turkishLira:
@@ -19,11 +25,14 @@ enum AppCurrency: String, CaseIterable, Identifiable {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var displayName: String {
         Locale.current.localizedString(forCurrencyCode: rawValue) ?? rawValue
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func resolved(from code: String?) -> AppCurrency {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let code else {
             return .turkishLira
         }
@@ -37,10 +46,12 @@ enum AppCurrency: String, CaseIterable, Identifiable {
 enum CurrencyConverter {
     static let baseCurrencyCode = AppCurrency.turkishLira.rawValue
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func supportedCurrencyCode(from code: String?) -> String {
         AppCurrency.resolved(from: code).rawValue
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func convertFromTRY(_ amountInTRY: Double, to currencyCode: String) -> Double {
         let currency = AppCurrency.resolved(from: currencyCode)
         return amountInTRY / currency.tryRate
@@ -59,6 +70,7 @@ enum CurrencyConverter {
         return convertedAmount.formatted(.currency(code: resolvedCurrencyCode))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func displayAmount(fromTRY amountInTRY: Double, in currencyCode: String) -> Double {
         convertFromTRY(amountInTRY, to: currencyCode)
     }

@@ -1,3 +1,8 @@
+/*
+ DOSYA: ReceiptOCRService.swift
+ AMAÇ: Receipt görsellerinde Apple Vision text recognition çalıştırır. OCR detaylarını add-expense ekranından izole eder.
+ KULLANAN: Receipt scanning akışlarında ReceiptScannerView ve AddExpenseViewModel tarafından kullanılır.
+*/
 import UIKit
 import Vision
 
@@ -6,6 +11,7 @@ enum ReceiptOCRError: LocalizedError {
     case imageUnavailable
     case noTextDetected
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var errorDescription: String? {
         switch self {
         case .imageUnavailable:
@@ -21,6 +27,7 @@ enum ReceiptOCRError: LocalizedError {
 enum ReceiptOCRService {
     // OCR işi background Task üzerinde çalışır ve boş sonuçta noTextDetected hatası döndürür.
     static func recognizeText(in image: UIImage) async throws -> String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let cgImage = image.cgImage else {
             throw ReceiptOCRError.imageUnavailable
         }
@@ -45,6 +52,7 @@ enum ReceiptOCRService {
             .filter { !$0.isEmpty }
             .joined(separator: "\n")
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard !recognizedText.isEmpty else {
             throw ReceiptOCRError.noTextDetected
         }

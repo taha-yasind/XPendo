@@ -1,3 +1,8 @@
+/*
+ DOSYA: BudgetView.swift
+ AMAÇ: Budget progress, editing control ve budget ile ilgili empty state alanlarını gösterir. BudgetViewModel state’ini kullanıcıya sunar.
+ KULLANAN: AppRootView tab navigation, BudgetViewModel ve BudgetStatusCard tarafından kullanılır.
+*/
 import SwiftData
 import SwiftUI
 
@@ -28,6 +33,7 @@ struct BudgetView: View {
     @State private var isResetSheetPresented = false
     @FocusState private var focusedBudgetCategoryID: UUID?
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -67,8 +73,8 @@ struct BudgetView: View {
             // Budget, category veya currency değiştiğinde draft limit alanları güncel veriye göre hazırlanır.
             viewModel.prepare(categories: categories, budgets: budgets, displayCurrencyCode: currencyCode)
         }
-        .alert("budget.alert.actionFailed.title", isPresented: saveErrorBinding) {
-            Button("common.ok", role: .cancel) { }
+        .alert(AppLocalization.string("budget.alert.actionFailed.title"), isPresented: saveErrorBinding) {
+            Button(AppLocalization.string("common.ok"), role: .cancel) { }
         } message: {
             Text(saveErrorMessage ?? AppLocalization.string("common.tryAgain"))
         }
@@ -97,6 +103,7 @@ struct BudgetView: View {
         viewModel.makeMonthData(budgets: budgets, expenses: expenses)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var currencyCode: String {
         CurrencyConverter.supportedCurrencyCode(from: settings.first?.currencyCode)
     }
@@ -117,6 +124,7 @@ struct BudgetView: View {
         return "\(viewModel.selectedMonth.timeIntervalSinceReferenceDate)-\(categories.count)-\(budgetSignature)-\(currencyCode)"
     }
 
+    // Validation geçtikten sonra yeni user data kaydeder.
     private var saveErrorBinding: Binding<Bool> {
         Binding(
             get: { saveErrorMessage != nil },
@@ -129,10 +137,11 @@ struct BudgetView: View {
     }
 
     @ViewBuilder
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var budgetListSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Categories")
+                Text(AppLocalization.string("Categories"))
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -143,7 +152,7 @@ struct BudgetView: View {
                     .foregroundStyle(XPendoTheme.secondaryText)
             }
 
-            Text("Enter each category amount directly from the list below for \(viewModel.selectedMonthTitle).")
+            Text(AppLocalization.format("Enter each category amount directly from the list below for %@.", viewModel.selectedMonthTitle))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
 
@@ -173,15 +182,18 @@ struct BudgetView: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func dismissKeyboard() {
         focusedBudgetCategoryID = nil
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func moveToPreviousMonth() {
         dismissKeyboard()
         viewModel.moveMonth(by: -1)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func moveToNextMonth() {
         dismissKeyboard()
         viewModel.moveMonth(by: 1)
@@ -200,14 +212,19 @@ struct BudgetView: View {
     // Save aksiyonu async flow'a taşınır; işlem sonrası notification schedule yenilenir.
     private func saveBudget(for categoryID: UUID) {
         dismissKeyboard()
+        // Bu synchronous context içinden async work çalıştırır.
         Task {
+            // Async operation tamamlanana kadar bekler.
             await saveBudgetFlow(for: categoryID)
         }
     }
 
+    // Bu state’i default değerlerine geri döndürür.
     private func resetBudget(for categoryID: UUID) {
         dismissKeyboard()
+        // Bu synchronous context içinden async work çalıştırır.
         Task {
+            // Async operation tamamlanana kadar bekler.
             await resetBudgetFlow(for: categoryID)
         }
     }
@@ -221,6 +238,7 @@ struct BudgetView: View {
 
     // Reset onaylandıktan sonra seçili category için Budget kaydı silinir.
     private func confirmResetBudget() {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let categoryID = pendingResetCategoryID else {
             return
         }
@@ -241,6 +259,7 @@ struct BudgetView: View {
         return lhs.categoryName.localizedCaseInsensitiveCompare(rhs.categoryName) == .orderedAscending
     }
 
+    // Bu state’i default değerlerine geri döndürür.
     private var resetConfirmationMessage: String {
         guard
             let categoryID = pendingResetCategoryID,
@@ -258,11 +277,14 @@ struct BudgetView: View {
 
     // Budget save başarılı olursa budget warning notification'ları yeni limite göre yeniden planlanır.
     @MainActor
+    // Validation geçtikten sonra yeni user data kaydeder.
     private func saveBudgetFlow(for categoryID: UUID) async {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let category = categories.first(where: { $0.id == categoryID }) else {
             return
         }
 
+        // Error fırlatabilecek işi başlatır.
         do {
             try viewModel.saveBudget(
                 for: category,
@@ -270,6 +292,7 @@ struct BudgetView: View {
                 budgets: budgets,
                 inputCurrencyCode: currencyCode
             )
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             saveErrorMessage = error.localizedDescription
@@ -278,13 +301,16 @@ struct BudgetView: View {
 
     // Budget reset sonrası notification state'i de güncel budget listesine göre yenilenir.
     @MainActor
+    // Bu state’i default değerlerine geri döndürür.
     private func resetBudgetFlow(for categoryID: UUID) async {
+        // Error fırlatabilecek işi başlatır.
         do {
             try viewModel.resetBudget(
                 for: categoryID,
                 in: modelContext,
                 budgets: budgets
             )
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             saveErrorMessage = error.localizedDescription
@@ -298,13 +324,14 @@ private struct ResetBudgetConfirmationSheet: View {
     let onConfirm: () -> Void
     let onCancel: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         ZStack {
             XPendoTheme.background
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 16) {
-                Text("Reset Budget")
+                Text(AppLocalization.string("Reset Budget"))
                     .font(.headline)
                     .foregroundStyle(XPendoTheme.primaryText)
 
@@ -314,7 +341,7 @@ private struct ResetBudgetConfirmationSheet: View {
 
                 HStack(spacing: 12) {
                     Button(action: onCancel) {
-                        Text("common.cancel")
+                        Text(AppLocalization.string("common.cancel"))
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(XPendoTheme.primaryText)
                             .frame(maxWidth: .infinity)
@@ -331,7 +358,7 @@ private struct ResetBudgetConfirmationSheet: View {
                     .buttonStyle(.plain)
 
                     Button(action: onConfirm) {
-                        Text("common.reset")
+                        Text(AppLocalization.string("common.reset"))
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -366,14 +393,16 @@ private struct ResetBudgetConfirmationSheet: View {
     .background(XPendoTheme.background)
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct BudgetHeader: View {
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Budget")
+            Text(AppLocalization.string("Budget"))
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(XPendoTheme.primaryText)
 
-            Text("Define monthly category limits and compare them with your real spending.")
+            Text(AppLocalization.string("Define monthly category limits and compare them with your real spending."))
                 .font(.subheadline)
                 .foregroundStyle(XPendoTheme.secondaryText)
         }
@@ -388,6 +417,7 @@ private struct BudgetMonthOverviewCard: View {
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 18) {
@@ -408,7 +438,7 @@ private struct BudgetMonthOverviewCard: View {
                             .font(.headline)
                             .foregroundStyle(XPendoTheme.primaryText)
 
-                        Text("Monthly budget tracking")
+                        Text(AppLocalization.string("Monthly budget tracking"))
                             .font(.caption)
                             .foregroundStyle(XPendoTheme.secondaryText)
                     }
@@ -429,7 +459,7 @@ private struct BudgetMonthOverviewCard: View {
                     .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(XPendoTheme.primaryText)
 
-                Text("Total budget planned for \(selectedMonthTitle).")
+                Text(AppLocalization.format("Total budget planned for %@.", selectedMonthTitle))
                     .font(.subheadline)
                     .foregroundStyle(XPendoTheme.secondaryText)
 
@@ -484,6 +514,7 @@ private struct BudgetMonthOverviewCard: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var progressFootnote: String {
         if monthData.trackedBudgetCount == 0 {
             return AppLocalization.string("budget.progressFootnote.empty")
@@ -492,6 +523,7 @@ private struct BudgetMonthOverviewCard: View {
         return AppLocalization.format("budget.progressFootnote.used", Int((monthData.totalProgress * 100).rounded()))
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var warningText: String {
         if monthData.overspentCount == 1 {
             return AppLocalization.string("budget.warning.single")
@@ -501,11 +533,13 @@ private struct BudgetMonthOverviewCard: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct BudgetSummaryTile: View {
     let title: String
     let value: String
     let accentColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -524,10 +558,12 @@ private struct BudgetSummaryTile: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct BudgetOverviewProgressBar: View {
     let progress: Double
     let accentColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
@@ -543,7 +579,9 @@ private struct BudgetOverviewProgressBar: View {
     }
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 private struct BudgetEmptyState: View {
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             StateMessageContent(

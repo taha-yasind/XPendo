@@ -1,8 +1,15 @@
+/*
+ DOSYA: OnboardingPageView.swift
+ AMAÇ: OnboardingPage datasını kullanarak tek bir onboarding page gösterir. Page layout’unu onboarding flow içinde reusable tutar.
+ KULLANAN: OnboardingView tarafından kullanılır.
+*/
 import SwiftUI
 
+// Interface’in bu bölümünden sorumlu SwiftUI view’i tanımlar.
 struct OnboardingPageView: View {
     let page: OnboardingPage
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(spacing: 26) {
             Spacer(minLength: 24)

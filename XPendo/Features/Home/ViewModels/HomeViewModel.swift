@@ -1,3 +1,8 @@
+/*
+ DOSYA: HomeViewModel.swift
+ AMAÇ: Dashboard total, recent expense ve progress summary değerlerini hesaplar. HomeView layout’unu calculation logic’ten ayrı tutar.
+ KULLANAN: HomeView, Expense, Budget ve Category modelleri tarafından kullanılır.
+*/
 import Foundation
 
 // HomeDashboardData, Home ekranında gösterilen özet metrikleri tek modelde toplar.
@@ -12,6 +17,7 @@ struct HomeDashboardData {
     let budgetPreview: HomeBudgetPreview
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 struct HomeTopCategorySummary {
     let name: String
     let icon: String
@@ -19,12 +25,14 @@ struct HomeTopCategorySummary {
     let totalAmount: Double
 }
 
+// App’in bu bölümünde kullanılan supported value listesini tanımlar.
 enum HomeBudgetPreview {
     case empty
     case tracked(HomeBudgetStatus)
     case warning(HomeBudgetStatus)
 }
 
+// App tarafından kullanılan lightweight value type tanımlar.
 struct HomeBudgetStatus {
     let categoryName: String
     let categoryIcon: String
@@ -35,7 +43,9 @@ struct HomeBudgetStatus {
     let trackedBudgetCount: Int
     let warningCount: Int
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var progress: Double {
+        // Gerekli data eksikse erken çıkış yapar.
         guard limitAmount > 0 else {
             return 0
         }
@@ -47,7 +57,11 @@ struct HomeBudgetStatus {
 // HomeViewModel, SwiftData'dan gelen Expense ve Budget listelerini dashboard verisine dönüştürür.
 // UI kodu hesaplama detaylarını bilmeden hazır özet verileri kullanır.
 struct HomeViewModel {
-    private let calendar = Calendar.current
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.locale = AppLocalization.locale
+        return calendar
+    }
     private let recentExpenseLimit = 4
 
     // Home ekranı için bugün, bu ay, son harcamalar, top category ve budget preview hesaplanır.
@@ -63,7 +77,7 @@ struct HomeViewModel {
         let budgetPreview = makeBudgetPreview(from: monthExpenses, budgets: budgets, now: now)
 
         return HomeDashboardData(
-            monthLabel: now.formatted(.dateTime.month(.wide)),
+            monthLabel: now.formatted(.dateTime.month(.wide).locale(AppLocalization.locale)),
             todayTotal: totalAmount(of: todayExpenses),
             todayExpenseCount: todayExpenses.count,
             monthTotal: totalAmount(of: monthExpenses),
@@ -77,6 +91,7 @@ struct HomeViewModel {
     // Bu ayın harcamaları category bazında gruplanır ve en yüksek toplamlı category seçilir.
     private func makeTopCategory(from expenses: [Expense]) -> HomeTopCategorySummary? {
         let categorizedExpenses = expenses.compactMap { expense -> (category: Category, expense: Expense)? in
+            // Gerekli data eksikse erken çıkış yapar.
             guard let category = expense.category else {
                 return nil
             }
@@ -108,6 +123,7 @@ struct HomeViewModel {
         let year = calendar.component(.year, from: now)
         let currentMonthBudgets = budgets.filter { $0.month == month && $0.year == year }
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard !currentMonthBudgets.isEmpty else {
             return .empty
         }
@@ -118,6 +134,7 @@ struct HomeViewModel {
             }
 
         let budgetStatuses = currentMonthBudgets.compactMap { budget -> HomeBudgetStatus? in
+            // Gerekli data eksikse erken çıkış yapar.
             guard let categoryID = budget.categoryID else {
                 return nil
             }
@@ -153,6 +170,7 @@ struct HomeViewModel {
             )
         }
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let mostActiveBudget = budgetStatuses.max(by: { $0.progress < $1.progress }) else {
             return .empty
         }
@@ -160,12 +178,14 @@ struct HomeViewModel {
         return .tracked(mostActiveBudget)
     }
 
+    // Saklanan app data üzerinden derived value hesaplar.
     private func totalAmount(of expenses: [Expense]) -> Double {
         expenses.reduce(0) { partialResult, expense in
             partialResult + expense.amount
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func overAmount(of status: HomeBudgetStatus) -> Double {
         status.spentAmount - status.limitAmount
     }

@@ -1,3 +1,8 @@
+/*
+ DOSYA: AddExpenseViewModel.swift
+ AMAÇ: Expense oluşturma veya güncelleme için form state ve validation logic saklar. Expense save kurallarını SwiftUI view dışında tutar.
+ KULLANAN: AddExpenseView, ReceiptScannerView ve SwiftData expense/category modelleri tarafından kullanılır.
+*/
 import Foundation
 import Observation
 import SwiftData
@@ -5,6 +10,7 @@ import SwiftData
 // AddExpenseViewModel, Add Expense ekranındaki form state'ini ve validation akışını yönetir.
 // Yeni kayıt oluşturma ve mevcut Expense'i edit etme mantığı aynı ViewModel içinde toplanır.
 @Observable
+// Screen state ve user actionları SwiftUI layout’tan ayrı tutar.
 final class AddExpenseViewModel {
     private let expenseToEdit: Expense?
     private var didConfigureDisplayAmount = false
@@ -31,6 +37,7 @@ final class AddExpenseViewModel {
 
     // Category listesi seed veya SwiftData sorgusu sonrası değişirse seçili category güvenli hale getirilir.
     func ensureSelectedCategory(from categories: [Category]) {
+        // Gerekli data eksikse erken çıkış yapar.
         guard !categories.isEmpty else {
             selectedCategory = nil
             return
@@ -45,6 +52,7 @@ final class AddExpenseViewModel {
     func prepareForm(categories: [Category], displayCurrencyCode: String) {
         ensureSelectedCategory(from: categories)
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let expenseToEdit, !didConfigureDisplayAmount else {
             return
         }
@@ -62,17 +70,20 @@ final class AddExpenseViewModel {
     ) throws {
         validationMessage = nil
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard !categories.isEmpty else {
             validationMessage = AppLocalization.string("addExpense.validation.categoryRequired")
             return
         }
 
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Gerekli data eksikse erken çıkış yapar.
         guard !trimmedTitle.isEmpty else {
             validationMessage = AppLocalization.string("addExpense.validation.titleRequired")
             return
         }
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let amount = parsedAmount, amount > 0 else {
             validationMessage = AppLocalization.string("addExpense.validation.amountPositive")
             return
@@ -80,6 +91,7 @@ final class AddExpenseViewModel {
 
         let amountInTRY = CurrencyConverter.convertToTRY(amount, from: inputCurrencyCode)
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard let category = selectedCategory ?? categories.first else {
             validationMessage = AppLocalization.string("addExpense.validation.selectCategory")
             return
@@ -105,6 +117,7 @@ final class AddExpenseViewModel {
 
             modelContext.insert(expense)
 
+            // Error fırlatabilecek işi başlatır.
             do {
                 try modelContext.save()
             } catch {
@@ -151,18 +164,21 @@ final class AddExpenseViewModel {
         validationMessage = nil
     }
 
+    // Validation geçtikten sonra yeni user data kaydeder.
     var saveButtonTitle: String {
         expenseToEdit == nil
             ? AppLocalization.string("addExpense.button.save")
             : AppLocalization.string("addExpense.button.update")
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var screenTitle: String {
         expenseToEdit == nil
             ? AppLocalization.string("addExpense.title.add")
             : AppLocalization.string("addExpense.title.edit")
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var screenSubtitle: String {
         if expenseToEdit == nil {
             return AppLocalization.string("addExpense.subtitle.add")
@@ -175,6 +191,7 @@ final class AddExpenseViewModel {
     private var parsedAmount: Double? {
         let trimmedAmount = amountText.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // Gerekli data eksikse erken çıkış yapar.
         guard !trimmedAmount.isEmpty else {
             return nil
         }

@@ -1,3 +1,8 @@
+/*
+ DOSYA: BudgetStatusCard.swift
+ AMAÇ: Budget usage ve remaining money için reusable görsel summary üretir. Budget progress UI yapısını ekranlar arasında tutarlı tutar.
+ KULLANAN: BudgetView ve budget summary gösteren ekranlar tarafından kullanılır.
+*/
 import SwiftUI
 
 // BudgetStatusCard, Budget ekranında tek category için limit inputu ve kullanım özetini gösterir.
@@ -13,6 +18,7 @@ struct BudgetStatusCard: View {
     let onSave: () -> Void
     let onReset: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 16) {
@@ -127,7 +133,7 @@ struct BudgetStatusCard: View {
                         .foregroundStyle(XPendoTheme.secondaryText)
                     }
                 } else {
-                    Text("No budget saved for this month yet. Enter an amount above to start tracking this category.")
+                    Text(AppLocalization.string("No budget saved for this month yet. Enter an amount above to start tracking this category."))
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
                         .padding(14)
@@ -166,6 +172,7 @@ struct BudgetStatusCard: View {
         return entry.isOverBudget ? AppLocalization.string("budget.status.over") : AppLocalization.string("budget.status.tracked")
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var statusDescription: String {
         if !entry.hasBudget {
             return AppLocalization.string("budget.statusDescription.notSet")
@@ -178,6 +185,7 @@ struct BudgetStatusCard: View {
 
     // Kalan veya aşan tutar display currency formatına çevrilerek gösterilir.
     private var remainingValue: String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let remainingAmount = entry.remainingAmount else {
             return AppLocalization.string("common.notSet")
         }
@@ -185,7 +193,9 @@ struct BudgetStatusCard: View {
         return CurrencyConverter.formatFromTRY(abs(remainingAmount), to: currencyCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var limitValue: String {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let limitAmount = entry.limitAmount else {
             return AppLocalization.string("common.notSet")
         }
@@ -193,6 +203,7 @@ struct BudgetStatusCard: View {
         return CurrencyConverter.formatFromTRY(limitAmount, to: currencyCode)
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var statusColor: Color {
         if entry.isOverBudget {
             return XPendoTheme.coral
@@ -207,6 +218,7 @@ private struct BudgetUsageProgressBar: View {
     let progress: Double
     let accentColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
@@ -228,6 +240,7 @@ private struct BudgetStatColumn: View {
     let value: String
     let accentColor: Color
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)

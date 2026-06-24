@@ -1,3 +1,8 @@
+/*
+ DOSYA: ExpenseRowCard.swift
+ AMAÇ: Category, amount ve destekleyici detaylarla tek bir expense row gösterir. Expense listelerinde tekrarlanan item olarak kullanılır.
+ KULLANAN: ExpensesView, HomeView ve Expense değerleri gösteren listeler tarafından kullanılır.
+*/
 import SwiftUI
 
 // ExpenseRowCard, Expenses ekranında tek bir Expense kaydını gösteren reusable karttır.
@@ -8,6 +13,7 @@ struct ExpenseRowCard: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
 
+    // Bu view için görünen SwiftUI layout’unu kurar.
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 16) {
@@ -29,7 +35,7 @@ struct ExpenseRowCard: View {
                         HStack(spacing: 8) {
                             Text(CategoryLocalization.localizedName(for: expense.categoryName))
                             Text("•")
-                            Text(expense.date.formatted(date: .abbreviated, time: .omitted))
+                            Text(expense.date.formatted(.dateTime.day().month(.abbreviated).year().locale(AppLocalization.locale)))
                         }
                         .font(.caption)
                         .foregroundStyle(XPendoTheme.secondaryText)
@@ -67,6 +73,7 @@ struct ExpenseRowCard: View {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private var categoryColor: Color {
         Color(hexString: expense.categoryColor) ?? XPendoTheme.accentTeal
     }

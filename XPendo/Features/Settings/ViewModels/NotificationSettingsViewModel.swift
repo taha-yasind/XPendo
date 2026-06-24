@@ -1,3 +1,8 @@
+/*
+ DOSYA: NotificationSettingsViewModel.swift
+ AMAÇ: Notification permission state ve reminder scheduling settings değerlerini yönetir. Notification kararlarını settings UI dışında tutar.
+ KULLANAN: SettingsView, LocalNotificationManager ve AppSettings tarafından kullanılır.
+*/
 import Foundation
 import Observation
 import SwiftData
@@ -6,6 +11,7 @@ import SwiftData
 // LocalNotificationManager ile konuşur, AppSettings'e kaydeder ve schedule refresh tetikler.
 @MainActor
 @Observable
+// Screen state ve user actionları SwiftUI layout’tan ayrı tutar.
 final class NotificationSettingsViewModel {
     var notificationsEnabled = false
     var dailyReminderEnabled = false
@@ -17,6 +23,7 @@ final class NotificationSettingsViewModel {
 
     // Settings ekranı açıldığında mevcut AppSettings ve sistem permission durumu okunur.
     func load(from settings: AppSettings?) async {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let settings else {
             return
         }
@@ -36,6 +43,7 @@ final class NotificationSettingsViewModel {
         settings: AppSettings?,
         modelContext: ModelContext
     ) async {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let settings else {
             notificationsEnabled = false
             return
@@ -56,6 +64,7 @@ final class NotificationSettingsViewModel {
                 infoMessage = nil
 
             case .notDetermined:
+                // Error fırlatabilecek işi başlatır.
                 do {
                     let granted = try await LocalNotificationManager.requestAuthorization()
                     permissionState = await LocalNotificationManager.permissionState()
@@ -81,8 +90,10 @@ final class NotificationSettingsViewModel {
                 : nil
         }
 
+        // Error fırlatabilecek işi başlatır.
         do {
             try modelContext.save()
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             settings.notificationsEnabled = previousValue
@@ -91,11 +102,13 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // User setting veya state değişikliğini uygular.
     func setDailyReminderEnabled(
         _ isEnabled: Bool,
         settings: AppSettings?,
         modelContext: ModelContext
     ) async {
+        // Async operation tamamlanana kadar bekler.
         await updatePreference(
             isEnabled,
             currentValue: settings?.dailyReminderEnabled ?? false,
@@ -109,11 +122,13 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // User setting veya state değişikliğini uygular.
     func setBudgetWarningEnabled(
         _ isEnabled: Bool,
         settings: AppSettings?,
         modelContext: ModelContext
     ) async {
+        // Async operation tamamlanana kadar bekler.
         await updatePreference(
             isEnabled,
             currentValue: settings?.budgetWarningEnabled ?? false,
@@ -135,6 +150,7 @@ final class NotificationSettingsViewModel {
         settings: AppSettings?,
         modelContext: ModelContext
     ) async {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let settings else {
             errorMessage = AppLocalization.string("error.preferencesUnavailable")
             return
@@ -160,6 +176,7 @@ final class NotificationSettingsViewModel {
                 resolvedNotificationsEnabled = true
 
             case .notDetermined:
+                // Error fırlatabilecek işi başlatır.
                 do {
                     let granted = try await LocalNotificationManager.requestAuthorization()
                     permissionState = await LocalNotificationManager.permissionState()
@@ -197,8 +214,10 @@ final class NotificationSettingsViewModel {
         budgetWarningEnabled = resolvedBudgetWarningEnabled
         self.infoMessage = infoMessage
 
+        // Error fırlatabilecek işi başlatır.
         do {
             try modelContext.save()
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             restoreState(
@@ -211,6 +230,7 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var permissionStatusTitle: String {
         switch permissionState {
         case .authorized:
@@ -222,6 +242,7 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var permissionStatusDescription: String {
         switch permissionState {
         case .authorized:
@@ -233,6 +254,7 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     var reminderControlsDisabled: Bool {
         !notificationsEnabled || !permissionState.isAuthorized || isProcessing
     }
@@ -246,6 +268,7 @@ final class NotificationSettingsViewModel {
         apply: @escaping (AppSettings, Bool) -> Void,
         onRollback: @escaping (Bool) -> Void
     ) async {
+        // Gerekli data eksikse erken çıkış yapar.
         guard let settings else {
             return
         }
@@ -256,8 +279,10 @@ final class NotificationSettingsViewModel {
 
         apply(settings, isEnabled)
 
+        // Error fırlatabilecek işi başlatır.
         do {
             try modelContext.save()
+            // Async operation tamamlanana kadar bekler.
             try await NotificationSyncService.refresh(using: modelContext)
         } catch {
             apply(settings, currentValue)
@@ -266,6 +291,7 @@ final class NotificationSettingsViewModel {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     private func restoreState(
         notificationsEnabled: Bool,
         dailyReminderEnabled: Bool,

@@ -1,8 +1,14 @@
+/*
+ DOSYA: CategoryLocalization.swift
+ AMAÇ: Localized category name ve helper key değerlerini sağlar. Category display text değerlerini diller arasında tutarlı tutar.
+ KULLANAN: Category viewleri, seederlar ve category name gösteren UI alanları tarafından kullanılır.
+*/
 import Foundation
 
 // CategoryLocalization, SwiftData'da English saklanan default category adlarını UI diline çevirir.
 // Böylece persistence sabit kalırken ekranda localization uygulanır.
 enum CategoryLocalization {
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func localizedName(for storedName: String) -> String {
         switch storedName {
         case "Food":
@@ -26,6 +32,7 @@ enum CategoryLocalization {
         }
     }
 
+    // Bu type için odaklı bir davranış parçasını yönetir.
     static func isOther(_ storedName: String) -> Bool {
         storedName.trimmingCharacters(in: .whitespacesAndNewlines).localizedCaseInsensitiveCompare("Other") == .orderedSame
     }
